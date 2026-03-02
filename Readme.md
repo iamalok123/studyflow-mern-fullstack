@@ -22,13 +22,7 @@
 
 ---
 
-## 🌐 Live Demo
-
-| Service  | URL |
-|----------|-----|
-| Frontend | _Your Vercel frontend URL_ |
-| Backend  | _Your Vercel backend URL_ |
-
+## 🌐 Live Demo - https://studyflow-ai-jade.vercel.app/
 ---
 
 ## ✨ Features
