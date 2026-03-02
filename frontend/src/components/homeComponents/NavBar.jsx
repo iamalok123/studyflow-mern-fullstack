@@ -72,7 +72,7 @@ const NavBar = () => {
             <div className={`fixed inset-0 z-60 flex flex-col items-center justify-center gap-6 bg-slate-900/40 text-lg font-medium backdrop-blur-3xl transition-all duration-500 md:hidden ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
                 <div className="absolute top-6 left-6 flex items-center gap-2.5">
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-emerald-400 to-teal-500 shadow-sm shadow-emerald-500/20">
-                        <BrainCircuitIcon className="size-4.5 text-white" />
+                        <img src="logo2.svg" alt="logo" />
                     </div>
                     <span className='font-bold text-lg text-white tracking-tight'>StudyFlow</span>
                 </div>
