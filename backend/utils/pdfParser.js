@@ -1,4 +1,4 @@
-import { PDFParse } from "pdf-parse";
+import pdf from "pdf-parse/lib/pdf-parse.js";
 
 /**
  * Extract text from a PDF buffer
@@ -7,17 +7,12 @@ import { PDFParse } from "pdf-parse";
  */
 export const extractTextFromPDF = async (pdfBuffer) => {
     try {
-        // pdf-parse v2: PDFParse is a CLASS — pass buffer via `data` option in constructor
-        const parser = new PDFParse({
-            data: new Uint8Array(pdfBuffer),
-        });
+        // pdf-parse v1: accepts a Buffer directly, returns { text, numpages, ... }
+        const data = await pdf(pdfBuffer);
 
-        const result = await parser.getText();
-
-        // result.text = concatenated text, result.total = number of pages
         return {
-            text: result.text,
-            numPages: result.total,
+            text: data.text,
+            numPages: data.numpages,
         };
     } catch (error) {
         console.error("PDF parsing error:", error);
