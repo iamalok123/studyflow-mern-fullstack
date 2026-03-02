@@ -41,21 +41,12 @@ const getDocumentById = async (id) => {
   }
 };
 
-const updateDocument = async (id, data) => {
-  try {
-    const response = await axiosInstance.put(API_PATHS.DOCUMENTS.UPDATE_DOCUMENT(id), data);
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Failed to update document' };
-  }
-};
 
 const documentService = {
   getDocuments,
   uploadDocument,
   deleteDocument,
   getDocumentById,
-  updateDocument,
 };
 
 export default documentService;
