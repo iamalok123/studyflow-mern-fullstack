@@ -43,6 +43,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
+// Health check
+app.get('/', (req, res) => {
+  res.json({ success: true, message: 'StudyFlow API is running' });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
