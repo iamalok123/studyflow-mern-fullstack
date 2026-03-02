@@ -8,7 +8,7 @@ const FlashcardSetCard = ({ flashcardSet }) => {
 
 
   const handleStudyNow = () => {
-    navigate(`/documents/${flashcardSet.documentId._id}/flashcards`);
+    navigate(`/documents/${flashcardSet?.documentId?._id}/flashcards`);
   };
 
   const reviewedCount = flashcardSet.cards.filter(card => card.lastReviewed).length;

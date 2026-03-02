@@ -1,14 +1,19 @@
-import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 
-dotenv.config();
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-if (!process.env.GEMINI_API_KEY) {
-    console.error("ERROR: GEMINI_API_KEY is not set in the environment variables.");
-    process.exit(1);
-}
+// Lazy-initialised Gemini client (avoids module-level crash in serverless).
+let _ai = null;
+const getAI = () => {
+    if (!_ai) {
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error(
+                "GEMINI_API_KEY is not set in environment variables. " +
+                "Add it to your .env file or Vercel project settings."
+            );
+        }
+        _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    }
+    return _ai;
+};
 
 /**
  * Retry a function with exponential backoff for transient API errors.
@@ -49,7 +54,7 @@ const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => {
  */
 const generateWithRetry = async (prompt) => {
     const response = await retryWithBackoff(() =>
-        ai.models.generateContent({
+        getAI().models.generateContent({
             model: "gemini-2.5-flash-lite",
             contents: prompt,
         })
@@ -65,16 +70,31 @@ const generateWithRetry = async (prompt) => {
  * @returns {Promise<Array<{question: string, answer: string, difficulty: string}>>}
  */
 export const generateFlashcards = async (text, count = 10) => {
-    const prompt = `Generate exactly ${count} educational flashcards from the following text.
-    Format each flashcard as:
-    Q: [Clear, specific question]
-    A: [Concise, accurate answer]
-    D: [Difficulty level: Easy, Medium, or Hard]
+    const prompt = `You are an expert educator creating study flashcards. Generate exactly ${count} high-quality flashcards from the text below.
 
-    Separate each flashcard with "---"
+Rules:
+- Cover diverse aspects: definitions, key facts, cause-effect, comparisons, applications, and examples.
+- Questions must be self-contained — a reader should understand the question without seeing the source text.
+- Answers must be precise, factual, and concise (1-3 sentences max).
+- Vary question styles: "What is...", "How does...", "Why is...", "Compare...", "What happens when...", "Name the..."
+- Assign difficulty fairly: Easy = recall/definition, Medium = understanding/application, Hard = analysis/synthesis.
+- If the text is code/technical: include syntax, logic, and concept-based questions.
+- If the text is non-technical (history, literature, law, etc.): focus on events, themes, arguments, and key figures.
+- NEVER invent information not present in the text.
 
-    Text:
-    ${text.substring(0, 15000)}`;
+Strict output format (no extra text before or after):
+Q: [question]
+A: [answer]
+D: [Easy|Medium|Hard]
+---
+Q: [question]
+A: [answer]
+D: [Easy|Medium|Hard]
+---
+...continue for all ${count} flashcards...
+
+Text:
+${text.substring(0, 15000)}`;
 
     try {
         const generatedText = await generateWithRetry(prompt);
@@ -127,21 +147,34 @@ export const generateFlashcards = async (text, count = 10) => {
  * @returns {Promise<Array<{question: string, options: Array, correctAnswer: string, explanation: string, difficulty: string}>>}
  */
 export const generateQuiz = async (text, numQuestions = 5) => {
-    const prompt = `Generate exactly ${numQuestions} multiple choice questions from the following text.
-    Format each question as:
-    Q: [Question]
-    O1: [Option 1]
-    O2: [Option 2]
-    O3: [Option 3]
-    O4: [Option 4]
-    A: [Correct option - exactly as written above]
-    E: [Brief explanation]
-    D: [Difficulty: Easy, Medium, or Hard]
+    const prompt = `You are an expert quiz creator. Generate exactly ${numQuestions} multiple-choice questions from the text below.
 
-    Separate questions with "---"
+Rules:
+- Each question must have exactly 4 options. Only ONE is correct.
+- Distractors (wrong options) must be plausible but clearly incorrect — no trick questions.
+- Cover a mix of: factual recall, conceptual understanding, application, and analysis.
+- Questions must be self-contained — a reader should understand them without the source text.
+- The correct answer text in "A:" must exactly match one of the four options.
+- Explanations should be educational — briefly state WHY the answer is correct.
+- Assign difficulty: Easy = direct recall, Medium = requires understanding, Hard = requires reasoning/synthesis.
+- If the text is code/technical: include output prediction, bug identification, and concept questions.
+- If the text is non-technical: focus on comprehension, inference, and key details.
+- NEVER invent facts not present in the text.
 
-    Text:
-    ${text.substring(0, 15000)}`;
+Strict output format (no extra text before or after):
+Q: [question]
+O1: [option 1]
+O2: [option 2]
+O3: [option 3]
+O4: [option 4]
+A: [correct option text — must exactly match one of O1-O4]
+E: [explanation]
+D: [Easy|Medium|Hard]
+---
+...continue for all ${numQuestions} questions...
+
+Text:
+${text.substring(0, 15000)}`;
 
     try {
         const generatedText = await generateWithRetry(prompt);
@@ -206,11 +239,21 @@ export const generateQuiz = async (text, numQuestions = 5) => {
  * @returns {Promise<string>}
  */
 export const generateSummary = async (text) => {
-    const prompt = `Provide a concise summary of the following text, highlighting the key concepts, main ideas, and important details.
-    Keep the summary clear and structured.
+    const prompt = `You are an expert summarizer. Provide a clear, well-structured summary of the following text.
 
-    Text:
-    ${text.substring(0, 20000)}`;
+Instructions:
+- Start with a one-line **Overview** sentence capturing the core topic.
+- Then list **Key Points** as bullet points (use "•" prefix). Each point should be a concise, standalone insight.
+- Group related points under short **bold headings** if the content covers multiple topics or sections.
+- End with a **Takeaway** — a 1-2 sentence conclusion or main lesson.
+- Adapt your tone to the content: technical docs → precise and factual; narratives → thematic and analytical; research → findings-focused.
+- If the text contains code: summarize what the code does, key functions, and the overall architecture.
+- If the text is very short: still provide structured points, do not pad with filler.
+- NEVER add information not present in the text.
+- Use markdown formatting (bold, bullet points, headings) for readability.
+
+Text:
+${text.substring(0, 20000)}`;
 
     try {
         const generatedText = await generateWithRetry(prompt);
@@ -238,20 +281,25 @@ export const chatWithContext = async (question, chunks) => {
         .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
         .join("\n\n");
 
-    const prompt = `You are a helpful learning assistant. Answer the user's question based on the document context provided below.
+    const prompt = `You are an expert study assistant helping a student learn from their uploaded document.
 
-    Instructions:
-    - If the answer is found in the context, or the question is related/similar to the context, answer based on the context. Start your answer with: "Based on the document:"
-    - If the question is completely unrelated to the context and not covered at all, answer using your general knowledge. Start your answer with: "This is not covered in the document. Based on general knowledge:"
-    - Provide clear, well-structured, and educational answers.
-    - Include examples where helpful.
+Context from the document:
+${context}
 
-    Context:
-    ${context}
+Student's question: ${question}
 
-    Question: ${question}
+Instructions:
+- If the answer is found in or related to the context, answer based on the document. Start with: "**Based on the document:**"
+- If the question is completely unrelated to the context, answer from general knowledge. Start with: "**Not covered in the document. Based on general knowledge:**"
+- Structure your answer in clear **bullet points** (use "•" prefix) for readability.
+- For complex answers, use short **bold headings** to organize sections.
+- Include practical **examples** where they aid understanding.
+- If the question is about code: explain logic step-by-step, mention inputs/outputs, and highlight edge cases.
+- If the question is vague (e.g., "explain this", "tell me more"): cover the most important aspects of the document context.
+- Keep answers educational but concise — no unnecessary repetition.
+- Use markdown formatting (bold, bullets, code blocks) for clarity.
 
-    Answer:`;
+Answer:`;
 
     try {
         const generatedText = await generateWithRetry(prompt);
@@ -276,15 +324,25 @@ export const chatWithContext = async (question, chunks) => {
  * @returns {Promise<string>}
  */
 export const explainConcept = async (concept, context) => {
-    const prompt = `You are a helpful learning assistant. Explain the concept of "${concept}" in a clear, educational way.
+    const prompt = `You are an expert educator. Explain the concept of "${concept}" clearly and thoroughly.
 
-    Instructions:
-    - If the concept is found in the context below, or is related/similar to the context, explain it based on the context. Start your explanation with: "Based on the document:"
-    - If the concept is completely unrelated to the context and not covered at all, explain it using your general knowledge. Start your explanation with: "This concept is not covered in the document. Based on general knowledge:"
-    - Always provide a clear, easy-to-understand explanation with relevant examples.
+Document context:
+${context.substring(0, 10000)}
 
-    Context:
-    ${context.substring(0, 10000)}`;
+Instructions:
+- If the concept appears in or relates to the context, explain it grounded in the document. Start with: "**Based on the document:**"
+- If the concept is unrelated to the context, explain from general knowledge. Start with: "**Not covered in the document. Based on general knowledge:**"
+- Structure your explanation with these sections (use **bold headings** and bullet points):
+  • **What it is** — A clear 1-2 sentence definition.
+  • **How it works** — Step-by-step breakdown or mechanism.
+  • **Why it matters** — Real-world relevance or importance.
+  • **Example** — A concrete, easy-to-understand example.
+  • **Common Misconceptions** (optional) — Only if there are frequent misunderstandings.
+- Adapt complexity to the content: beginner-friendly for general topics, precise for technical/code concepts.
+- For code concepts: include a small illustrative code snippet if helpful.
+- Use markdown formatting (bold, bullets, code blocks) for readability.
+
+Explanation:`;
 
     try {
         const generatedText = await generateWithRetry(prompt);

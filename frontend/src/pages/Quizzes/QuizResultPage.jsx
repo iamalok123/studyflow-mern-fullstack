@@ -135,9 +135,7 @@ const QuizResultPage = () => {
 
         {detailedResults.map((result, index) => {
           const userAnswerIndex = result.options.findIndex(option => option === result.selectedAnswer);
-          const correctAnswerIndex = result.correctAnswer?.startsWith('O')
-            ? parseInt(result.correctAnswer.substring(1))
-            : result.options.findIndex(option => option === result.correctAnswer);
+          const correctAnswerIndex = result.options.findIndex(option => option === result.correctAnswer);
 
           const isCorrect = result.isCorrect;
 

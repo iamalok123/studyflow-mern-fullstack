@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import documentService from '../../services/documentService';
 import Spinner from '../../components/common/Spinner';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ExternalLink, Download } from 'lucide-react';
+import { ArrowLeft, ExternalLink, FileText } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Tabs from '../../components/common/Tabs';
 import ChatInterface from '../../components/chat/ChatInterface';
@@ -33,19 +33,8 @@ const DocumentDetailPage = () => {
     fetchDocumentDetails();
   }, [id]);
 
-  // Helper function to get the full PDF URL
-  const getPdfUrl = () => {
-    if (!document?.data?.filePath) return null;
-
-    const filePath = document.data.filePath;
-
-    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-      return filePath;
-    }
-
-    const baseUrl = process.env.VITE_API_URL || 'http://localhost:5000';
-    return `${baseUrl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
-  };
+  // The filePath is a Cloudinary raw URL (opens in new tab)
+  const pdfUrl = document?.data?.filePath || null;
 
 
   const renderContent = () => {
@@ -53,7 +42,7 @@ const DocumentDetailPage = () => {
       return <Spinner />;
     }
 
-    if (!document || !document.data || !document.data.filePath) {
+    if (!document || !document.data || !pdfUrl) {
       return (
         <div className='text-center p-8'>
           <span>PDF not available</span>
@@ -61,33 +50,49 @@ const DocumentDetailPage = () => {
       );
     }
 
-    const pdfUrl = getPdfUrl();
+    const docData = document.data;
+    const fileSizeMB = docData.fileSize ? (docData.fileSize / (1024 * 1024)).toFixed(2) : null;
 
     return (
       <div className='bg-white border border-slate-300 rounded-lg overflow-hidden shadow-sm'>
-        <div className='flex items-center justify-between p-4 bg-slate-50 border-b border-slate-300'>
-          <span className='text-sm font-medium text-slate-700'>Document Viewer</span>
+        {/* Document info header */}
+        <div className='p-6 border-b border-slate-200'>
+          <div className='flex items-center gap-4'>
+            <div className='shrink-0 w-14 h-14 bg-emerald-50 rounded-xl flex items-center justify-center'>
+              <FileText size={28} className='text-emerald-600' />
+            </div>
+            <div className='flex-1 min-w-0'>
+              <h3 className='text-lg font-semibold text-slate-800 truncate'>{docData.fileName}</h3>
+              <div className='flex items-center gap-3 mt-1 text-sm text-slate-500'>
+                {fileSizeMB && <span>{fileSizeMB} MB</span>}
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                  docData.status === 'Ready'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : docData.status === 'Processing'
+                    ? 'bg-amber-50 text-amber-700'
+                    : 'bg-red-50 text-red-700'
+                }`}>
+                  {docData.status}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* View PDF button */}
+        <div className='p-6 flex flex-col items-center gap-4 bg-slate-50'>
+          <p className='text-sm text-slate-600 text-center'>
+            Your PDF is securely stored in the cloud. Click below to view it.
+          </p>
           <a
             href={pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className='inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition-colors'
+            className='inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 active:bg-emerald-800 transition-colors shadow-sm'
           >
-            <ExternalLink size={16} />
-            Open in new tab
+            <ExternalLink size={18} />
+            View PDF
           </a>
-        </div>
-
-        <div className='bg-slate-100 p-1'>
-          <iframe
-            src={pdfUrl}
-            title="PDF Viewer"
-            frameBorder="0"
-            className='w-full h-[70vh] bg-white border rounded shadow-sm border-slate-300'
-            style={{
-              colorScheme: 'light',
-            }}
-          />
         </div>
       </div>
     );

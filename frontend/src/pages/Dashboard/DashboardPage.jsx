@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Spinner from '../../components/common/Spinner'
 import progressService from '../../services/progressService'
 import toast from 'react-hot-toast'
+import { Link } from 'react-router-dom'
 import { FileText, BookOpen, BrainCircuit, TrendingUp, Clock } from 'lucide-react'
 
 const DashboardPage = () => {
@@ -13,7 +14,6 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
       try {
         const response = await progressService.getDashboardData();
-        console.log(response.data);
         setDashboardData(response.data);
       } catch (error) {
         setError(error.error || error.message || 'Failed to fetch dashboard data');
@@ -157,13 +157,13 @@ const DashboardPage = () => {
                     </div>
 
                     {activity.link && (
-                      <a
-                        href={activity.link}
+                      <Link
+                        to={activity.link}
                         className='ml-4 px-4 py-2 text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all duration-200 whitespace-nowrap'
                       >
                         View
                         {/* <ArrowRight className='w-5 h-5' /> */}
-                      </a>
+                      </Link>
                     )}
                   </div>
                 ))}

@@ -65,26 +65,22 @@ const FlashcardPage = () => {
   };
 
   const handleReview = async (cardIndex) => {
-    const currentCard = flashcards[currentCardIndex];
+    const currentCard = flashcards[cardIndex];
     if (!currentCard) {
       return;
     }
 
     try {
-      setLoading(true);
       await flashcardService.reviewFlashcard(currentCard._id, cardIndex);
       toast.success("Flashcard reviewed successfully");
     } catch (error) {
       console.error("Error reviewing flashcard: ", error);
       toast.error("Failed to review flashcard");
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleToggleStar = async (cardId) => {
     try {
-      setLoading(true);
       await flashcardService.toggleStar(cardId);
       setFlashcards(prevFlashcards =>
         prevFlashcards.map(card =>
@@ -95,14 +91,12 @@ const FlashcardPage = () => {
     } catch (error) {
       console.error("Error starring flashcard: ", error);
       toast.error("Failed to star flashcard");
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDeleteFlashcardSet = async () => {
     try {
-      setLoading(true);
+      setDeleting(true);
       await flashcardService.deleteFlashcardSet(flashcardSets._id);
       setIsDeleteModalOpen(false);
       fetchFlashcards();
@@ -111,7 +105,7 @@ const FlashcardPage = () => {
       console.error("Error deleting flashcard: ", error);
       toast.error("Failed to delete flashcard");
     } finally {
-      setLoading(false);
+      setDeleting(false);
     }
   };
 

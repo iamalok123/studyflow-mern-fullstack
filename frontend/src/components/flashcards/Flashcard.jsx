@@ -15,9 +15,9 @@ const Flashcard = ({ flashcard, onToggleStar }) => {
     setIsFlipped(!isFlipped);
   }
   return (
-    <div className='min-h-[320px]' style={{ perspective: '1000px' }}>
+    <div className='min-h-80' style={{ perspective: '1000px' }}>
       <div
-        className='relative w-full min-h-[320px] transition-transform duration-500 transform-gpu cursor-pointer'
+        className='relative w-full min-h-80 transition-transform duration-500 transform-gpu cursor-pointer'
         style={{
           transformStyle: 'preserve-3d',
           transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
@@ -61,7 +61,7 @@ const Flashcard = ({ flashcard, onToggleStar }) => {
 
           {/* Flip Indicator */}
           <div className='flex items-center justify-center gap-2'>
-            <RotateCcw className='w-4 h-4 text-slate-400 animate-spin' strokeWidth={2} />
+            <RotateCcw className='w-4 h-4 text-slate-400' strokeWidth={2} />
             <span className='text-xs text-slate-600'>Click to reveal answer</span>
           </div>
         </div>
@@ -104,7 +104,7 @@ const Flashcard = ({ flashcard, onToggleStar }) => {
 
           {/* Flip Indicator */}
           <div className='flex items-center justify-center gap-2'>
-            <RotateCcw className='w-4 h-4 text-emerald-400 animate-spin' strokeWidth={2} />
+            <RotateCcw className='w-4 h-4 text-emerald-400' strokeWidth={2} />
             <span className='text-xs text-emerald-500'>Click to flip back</span>
           </div>
         </div>

@@ -133,7 +133,7 @@ const ChatInterface = () => {
         {loading && (
           <div className="flex items-center gap-2 sm:gap-3 my-3 sm:my-4">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-              <Spinner className="w-4 h-4 text-emerald-600" strokeWidth={2} />
+              <Spinner inline className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="flex items-center gap-2 bg-white px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl rounded-bl-md shadow-sm border border-slate-200">
               <div className="flex gap-1">

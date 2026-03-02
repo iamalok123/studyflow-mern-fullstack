@@ -1,28 +1,8 @@
 import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const uploadDir = path.join(__dirname, '../uploads/documents');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix =
-      Date.now() + '-' + Math.round(Math.random() * 1e9);
-
-    cb(null, `${uniqueSuffix}-${file.originalname}`);
-  },
-});
+// Use memory storage — files stay in buffer (no disk writes)
+// This is required for Vercel serverless (read-only filesystem)
+const storage = multer.memoryStorage();
 
 // File filter — only PDFs
 const fileFilter = (req, file, cb) => {
@@ -33,13 +13,13 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Configure multer
+// Configure multer with 10MB limit
 const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
+  storage,
+  fileFilter,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760 // 10MB default
-  }
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760, // 10MB default
+  },
 });
 
 export default upload;

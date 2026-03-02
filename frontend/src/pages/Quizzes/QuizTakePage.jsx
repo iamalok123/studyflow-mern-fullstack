@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
 import quizService from '../../services/quizService'
 import PageHeader from '../../components/common/PageHeader'
 import Spinner from '../../components/common/Spinner'
-import Button from '../../components/common/Button'
 import toast from 'react-hot-toast'
 
 const QuizTakePage = () => {
@@ -84,7 +83,7 @@ const QuizTakePage = () => {
     );
   }
 
-  if (!quiz || quiz.questions.length === 0) {
+  if (!quiz || !quiz.questions || quiz.questions.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className='text-center'>

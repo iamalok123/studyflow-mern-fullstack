@@ -2,8 +2,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import errorHandler from './middlewares/errorHandler.js';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
@@ -12,10 +10,6 @@ import flashcardRoutes from './routes/flashcardRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
-
-
-// ES6 module __dirname
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 // Initialize express app
@@ -33,11 +27,12 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. mobile apps, curl, Postman)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: origin ${origin} not allowed`));
-      }
+      if (!origin) return callback(null, true);
+      // Exact match against allowed origins
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      // Allow any Vercel preview deployment (*.vercel.app)
+      if (/\.vercel\.app$/.test(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
     },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -46,10 +41,6 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // Routes
@@ -85,7 +76,5 @@ if (process.env.NODE_ENV !== 'production') {
 export default app;
 
 process.on('unhandledRejection', (err) => {
-  console.log(`Error: ${err.message}`);
-  console.log('Shutting down due to unhandled rejection');
-  process.exit(1);
+  console.error('Unhandled Rejection:', err.message);
 });

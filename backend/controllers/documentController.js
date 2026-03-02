@@ -4,9 +4,31 @@ import Quiz from "../models/Quiz.js";
 import ChatHistory from "../models/ChatHistory.js";
 import { extractTextFromPDF } from "../utils/pdfParser.js";
 import { chunkText } from "../utils/textChunker.js";
-import fs from "fs/promises";
-import path from "path";
+import getCloudinary from "../config/cloudinary.js";
 import mongoose from "mongoose";
+
+
+/**
+ * Upload a PDF buffer to Cloudinary using upload_stream.
+ * Returns { secure_url, public_id }.
+ */
+const uploadToCloudinary = (buffer, originalName) => {
+    return new Promise((resolve, reject) => {
+        const stream = getCloudinary().uploader.upload_stream(
+            {
+                resource_type: "image",              // deliver PDFs via image pipeline (browser-viewable)
+                folder: "studyflow/documents",       // organized folder
+                public_id: `${Date.now()}-${originalName.replace(/\.[^/.]+$/, "")}`,
+                format: "pdf",
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result);
+            }
+        );
+        stream.end(buffer);
+    });
+};
 
 
 // @desc    Upload PDF document
@@ -25,7 +47,6 @@ export const uploadDocument = async (req, res, next) => {
         const { title } = req.body;
 
         if (!title) {
-            await fs.unlink(req.file.path).catch(() => { });
             return res.status(400).json({
                 success: false,
                 error: "Please provide a document title",
@@ -33,21 +54,25 @@ export const uploadDocument = async (req, res, next) => {
             });
         }
 
-        const baseURL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
-        const fileURL = `${baseURL}/uploads/documents/${req.file.filename}`;
+        // 1. Upload PDF buffer to Cloudinary
+        const cloudinaryResult = await uploadToCloudinary(
+            req.file.buffer,
+            req.file.originalname
+        );
 
-        // Create document record
+        // 2. Create document record (status = Processing)
         const document = await Document.create({
             userId: req.user._id,
             title,
             fileName: req.file.originalname,
-            filePath: fileURL,
+            filePath: cloudinaryResult.secure_url,
+            cloudinaryPublicId: cloudinaryResult.public_id,
             fileSize: req.file.size,
             status: "Processing",
         });
 
-        // Process PDF in background (non-blocking)
-        processPDF(document._id, req.file.path).catch(err => {
+        // 3. Process PDF text extraction in background (non-blocking)
+        processPDF(document._id, req.file.buffer).catch((err) => {
             console.error("PDF processing failed:", err);
         });
 
@@ -56,20 +81,16 @@ export const uploadDocument = async (req, res, next) => {
             data: document,
             message: "Document uploaded successfully. Processing in background...",
         });
-
     } catch (error) {
-        if (req.file) {
-            await fs.unlink(req.file.path).catch(() => { });
-        }
         next(error);
     }
 };
 
 
 // Helper: process PDF text extraction in background
-const processPDF = async (documentId, filePath) => {
+const processPDF = async (documentId, pdfBuffer) => {
     try {
-        const { text } = await extractTextFromPDF(filePath);
+        const { text } = await extractTextFromPDF(pdfBuffer);
 
         const chunks = chunkText(text, 500, 50);
 
@@ -202,15 +223,15 @@ export const deleteDocument = async (req, res, next) => {
             });
         }
 
-        // Delete local file from disk
-        try {
-            // Extract the filename from the stored URL and build the local path
-            const filename = path.basename(document.filePath);
-            const localFilePath = path.join(process.cwd(), "uploads", "documents", filename);
-            await fs.unlink(localFilePath);
-        } catch (fileErr) {
-            // Don't fail the request if file is already missing
-            console.warn("Could not delete local file:", fileErr.message);
+        // Delete PDF from Cloudinary
+        if (document.cloudinaryPublicId) {
+            try {
+                await getCloudinary().uploader.destroy(document.cloudinaryPublicId, {
+                    resource_type: "image",
+                });
+            } catch (cloudErr) {
+                console.warn("Could not delete Cloudinary file:", cloudErr.message);
+            }
         }
 
         // Delete all associated DB records in parallel
