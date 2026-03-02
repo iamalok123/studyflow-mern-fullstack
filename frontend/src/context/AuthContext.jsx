@@ -67,7 +67,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     logout,
-    updateUser
+    updateUser,
+    checkAuthStatus
   };
 
   return (
