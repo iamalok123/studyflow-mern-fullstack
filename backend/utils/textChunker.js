@@ -184,7 +184,7 @@ export const findRelevantChunks = (chunks, query, maxChunks = 3) => {
         // Small bonus for earlier chunks
         const positonBonus = 1 - (index / chunks.length) * 0.1;
 
-        // Return clean object without Mongoose gataset
+        // Return clean object without Mongoose metadata
         return {
             content: chunk.content,
             chunkIndex: chunk.chunkIndex,

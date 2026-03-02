@@ -24,7 +24,7 @@ const documentSchema = new mongoose.Schema({
         default: null,
     },
     fileSize: {
-        type: String,
+        type: Number,
         required: true,
     },
     extractedText: {

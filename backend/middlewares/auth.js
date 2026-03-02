@@ -29,7 +29,7 @@ const protect = async (req, res, next) => {
                     statusCode: 401,
                 })
             }
-            next();
+            return next();
         } catch (error) {
             console.error("Auth MiddlewareError: ", error.message);
             if (error.name === "TokenExpiredError") {

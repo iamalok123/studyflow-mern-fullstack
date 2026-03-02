@@ -18,7 +18,11 @@ export const register = async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
         if (!username || !email || !password) {
-            return res.status(400).json({ message: "All fields are required" });
+            return res.status(400).json({
+                success: false,
+                error: "All fields are required",
+                statusCode: 400,
+            });
         }
 
         // Check if user exists
@@ -68,7 +72,11 @@ export const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(400).json({ message: "All fields are required" });
+            return res.status(400).json({
+                success: false,
+                error: "All fields are required",
+                statusCode: 400,
+            });
         }
 
         // Check if user exists
