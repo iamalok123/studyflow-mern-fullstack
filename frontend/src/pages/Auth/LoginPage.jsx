@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import authService from '../../services/authService'
-import { BrainCircuit, Mail, Lock, ArrowRight } from 'lucide-react'
+import { Mail, Lock, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { GoogleLogin } from '@react-oauth/google'
 
@@ -62,7 +62,7 @@ const LoginPage = () => {
           {/* Header */}
           <div className='text-center mb-10'>
             <div className='inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/25 mb-4'>
-              <BrainCircuit className='w-7 h-7 text-white' strokeWidth={2} />
+              <img src="/logo2.svg" alt="logo2" />
             </div>
             <h1 className='text-2xl font-medium text-slate-900 tracking-tight mb-2'>
               Welcome back
