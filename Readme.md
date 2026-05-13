@@ -22,7 +22,7 @@
 
 ---
 
-## 🌐 Live Demo - https://studyflow-ai-jade.vercel.app/
+## 🌐 Live Demo - https://studyflow-ai-alpha.vercel.app/
 ---
 
 ## ✨ Features
