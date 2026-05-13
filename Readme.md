@@ -200,6 +200,8 @@ StudyFlow_FullStack_Project_MERN/
 │
 ├── backend/
 │   ├── server.js                   # Express app entry point & Vercel export
+│   ├── api/
+│   │   └── index.js                # Vercel serverless function entry
 │   ├── package.json
 │   ├── .env.example                # Backend environment variable template
 │   ├── vercel.json                 # Vercel serverless config (60s timeout)
@@ -669,7 +671,7 @@ Both the frontend and backend are configured for **Vercel** serverless deploymen
 2. Import in **Vercel** → set **Root Directory** to `backend`
 3. Set all **Environment Variables** from the backend `.env` section
 4. Set **Framework Preset** to **Other**
-5. The `vercel.json` routes all requests to `server.js` with a **60-second function timeout**
+5. The `vercel.json` routes all requests to `api/index.js` with a **60-second function timeout**
 
 ### Frontend Deployment
 
@@ -696,6 +698,7 @@ Both the frontend and backend are configured for **Vercel** serverless deploymen
 | Concern | Solution |
 |---------|----------|
 | **No local filesystem** | Vercel serverless has a read-only filesystem. All file uploads use **Multer memory storage** (buffer) and stream directly to Cloudinary via `upload_stream` — no disk writes |
+| **Backend function entry** | Vercel expects serverless function config to target files inside `api/`, so `backend/api/index.js` re-exports the Express app from `server.js` |
 | **10 MB upload limit** | Multer enforces the max file size before any processing begins |
 | **60-second timeout** | Backend functions have a 60s max duration (in `vercel.json`). PDF text extraction now happens before the upload response returns, which is safer for Vercel serverless than after-response background work |
 | **No iframe PDF viewer** | PDFs are accessed via a direct **Cloudinary CDN link** (opens in new tab), avoiding cross-origin iframe restrictions on deployed environments |
