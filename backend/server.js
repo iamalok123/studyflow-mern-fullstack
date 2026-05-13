@@ -1,12 +1,12 @@
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ quiet: true });
 import express from 'express';
 import cors from 'cors';
 import errorHandler from './middlewares/errorHandler.js';
 import securityHeaders from './middlewares/securityHeaders.js';
 import { createRateLimiter } from './middlewares/rateLimiter.js';
 import { validateEnv } from './utils/env.js';
-import connectDB from './config/db.js';
+import connectDB, { getDbStatus } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
 import flashcardRoutes from './routes/flashcardRoutes.js';
@@ -18,9 +18,6 @@ import progressRoutes from './routes/progressRoutes.js';
 // Initialize express app
 validateEnv();
 const app = express();
-
-// Connect to MongoDB
-connectDB();
 
 app.use(securityHeaders);
 
@@ -77,13 +74,30 @@ const aiRateLimit = createRateLimiter({
 
 app.use(generalRateLimit);
 
+const ensureDbConnected = async (req, res, next) => {
+  try {
+    await connectDB();
+    return next();
+  } catch (error) {
+    return res.status(503).json({
+      success: false,
+      error: "Database connection unavailable. Please try again shortly.",
+      statusCode: 503,
+    });
+  }
+};
 
 // Health check
 app.get('/', (req, res) => {
-  res.json({ success: true, message: 'StudyFlow API is running' });
+  res.json({
+    success: true,
+    message: 'StudyFlow API is running',
+    database: getDbStatus(),
+  });
 });
 
 // Routes
+app.use('/api', ensureDbConnected);
 app.use('/api/auth', authRateLimit, authRoutes);
 app.use('/api/documents/upload', uploadRateLimit);
 app.use('/api/documents', documentRoutes);
@@ -109,7 +123,11 @@ app.use(errorHandler);
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
-    console.log(`Server is running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    console.log(`StudyFlow API running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  });
+
+  connectDB().catch(() => {
+    // connectDB logs one concise, actionable database status line.
   });
 }
 

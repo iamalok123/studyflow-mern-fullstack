@@ -475,6 +475,10 @@ FRONTEND_URL=http://localhost:5173
 
 # Database
 MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/studyflow
+# Optional DNS fallback for MongoDB Atlas SRV lookup
+MONGODB_DNS_SERVERS=1.1.1.1,8.8.8.8
+MONGODB_DNS_TIMEOUT_MS=5000
+MONGODB_CONNECT_TIMEOUT_MS=12000
 
 # JWT
 JWT_SECRET=replace_with_a_random_secret_at_least_32_characters
@@ -699,6 +703,7 @@ Both the frontend and backend are configured for **Vercel** serverless deploymen
 | **CORS** | Backend CORS auto-allows `*.vercel.app` preview deployments in addition to your configured `FRONTEND_URL` |
 | **Env validation** | Production backend startup fails fast if required env vars are missing or `JWT_SECRET` is too short |
 | **AI and upload protection** | AI, auth, upload, and general API routes have rate limits and request validation |
+| **MongoDB DNS fallback** | For `mongodb+srv://` Atlas URIs, backend can use `MONGODB_DNS_SERVERS` such as `1.1.1.1,8.8.8.8` to reduce local ISP/DNS SRV lookup failures |
 
 ---
 
@@ -808,6 +813,3 @@ This project is licensed under the **ISC License**.
 
 ---
 
-<p align="center">
-  Built with ❤️ using the MERN Stack — Powered by Google Gemini AI & Cloudinary
-</p>
