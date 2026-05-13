@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import authService from '../../services/authService'
 import { Mail, Lock, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -12,6 +12,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -151,28 +152,30 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className='flex items-center gap-3 my-6'>
-            <div className='flex-1 h-px bg-slate-200/60'></div>
-            <span className='text-xs font-medium text-slate-400 uppercase tracking-wide'>or continue with</span>
-            <div className='flex-1 h-px bg-slate-200/60'></div>
-          </div>
+          {googleEnabled && (
+            <>
+              <div className='flex items-center gap-3 my-6'>
+                <div className='flex-1 h-px bg-slate-200/60'></div>
+                <span className='text-xs font-medium text-slate-400 uppercase tracking-wide'>or continue with</span>
+                <div className='flex-1 h-px bg-slate-200/60'></div>
+              </div>
 
-          {/* Google Sign-In Button */}
-          <div className='flex justify-center'>
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => {
-                setError('Google sign-in failed. Please try again.');
-                toast.error('Google sign-in failed');
-              }}
-              shape="rectangular"
-              size="large"
-              width={350}
-              text="signin_with"
-              theme="outline"
-            />
-          </div>
+              <div className='flex justify-center'>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => {
+                    setError('Google sign-in failed. Please try again.');
+                    toast.error('Google sign-in failed');
+                  }}
+                  shape="rectangular"
+                  size="large"
+                  width={350}
+                  text="signin_with"
+                  theme="outline"
+                />
+              </div>
+            </>
+          )}
 
           {/* Footer */}
           <div className='mt-8 pt-6 border-t border-slate-200/60'>

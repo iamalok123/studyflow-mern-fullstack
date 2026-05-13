@@ -1,12 +1,11 @@
 import { MenuIcon, XIcon, BrainCircuitIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from "../../context/AuthContext";
+import { Link } from 'react-router-dom';
+import { useAuth } from "../../context/useAuth";
 
 const NavBar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { isAuthenticated } = useAuth();
-    const navigate = useNavigate();
 
     const links = [
         { name: 'How It Works', href: '#how-it-works' },

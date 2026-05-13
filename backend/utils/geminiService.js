@@ -208,7 +208,7 @@ ${text.substring(0, 15000)}`;
                 }
             }
 
-            if (question && options.length === 4 && correctAnswer) {
+            if (question && options.length === 4 && correctAnswer && options.includes(correctAnswer)) {
                 questions.push({
                     question,
                     options,

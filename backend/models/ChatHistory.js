@@ -19,7 +19,8 @@ const chatHistorySchema = new mongoose.Schema({
         },
         content: {
             type: String,
-            required: true
+            required: true,
+            maxlength: [12000, "Chat message is too long."]
         },
         timestamp: {
             type: Date,

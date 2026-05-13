@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Lock, Save, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import authService from '../../services/authService';
 import Spinner from '../../components/common/Spinner';
 import toast from 'react-hot-toast';
@@ -62,8 +62,8 @@ const ProfilePage = () => {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    if (passwordData.newPassword.length < 6) {
-      toast.error('New password must be at least 6 characters');
+    if (passwordData.newPassword.length < 8) {
+      toast.error('New password must be at least 8 characters');
       return;
     }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -240,7 +240,7 @@ const ProfilePage = () => {
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   required
                   className='w-full h-12 pl-12 pr-12 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/20'
-                  placeholder='Enter new password (min 6 chars)'
+                  placeholder='Enter new password (min 8 chars)'
                 />
                 <button
                   type='button'

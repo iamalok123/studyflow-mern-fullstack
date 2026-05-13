@@ -1,5 +1,5 @@
 import { Bell, Menu, User } from 'lucide-react'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import React from 'react'
 
 const Header = ({ toggleSidebar }) => {

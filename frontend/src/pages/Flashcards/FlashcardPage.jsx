@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -22,7 +22,7 @@ const FlashcardPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchFlashcards = async () => {
+  const fetchFlashcards = useCallback(async () => {
     try {
       setLoading(true);
       const response = await flashcardService.getFlashcardsForDocument(documentId);
@@ -34,11 +34,11 @@ const FlashcardPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [documentId]);
 
   useEffect(() => {
     fetchFlashcards();
-  }, [documentId]);
+  }, [documentId, fetchFlashcards]);
 
   const handleGenerateFlashcards = async () => {
     try {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import authService from '../../services/authService'
 import {  Mail, Lock, User, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -13,15 +13,16 @@ const RegisterPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+  const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      toast.error('Password must be at least 6 characters long');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      toast.error('Password must be at least 8 characters long');
       return;
     }
     setError('');
@@ -190,30 +191,32 @@ const RegisterPage = () => {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-slate-200/60"></div>
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">
-              or continue with
-            </span>
-            <div className="flex-1 h-px bg-slate-200/60"></div>
-          </div>
+          {googleEnabled && (
+            <>
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-slate-200/60"></div>
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+                  or continue with
+                </span>
+                <div className="flex-1 h-px bg-slate-200/60"></div>
+              </div>
 
-          {/* Google Sign-Up Button */}
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => {
-                setError("Google sign-up failed. Please try again.");
-                toast.error("Google sign-up failed");
-              }}
-              shape="rectangular"
-              size="large"
-              width={350}
-              text="signup_with"
-              theme="outline"
-            />
-          </div>
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => {
+                    setError("Google sign-up failed. Please try again.");
+                    toast.error("Google sign-up failed");
+                  }}
+                  shape="rectangular"
+                  size="large"
+                  width={350}
+                  text="signup_with"
+                  theme="outline"
+                />
+              </div>
+            </>
+          )}
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-slate-200/60">

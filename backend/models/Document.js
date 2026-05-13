@@ -9,7 +9,8 @@ const documentSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlength: [120, "Document title cannot exceed 120 characters."]
     },
     fileName: {
         type: String,
@@ -29,6 +30,7 @@ const documentSchema = new mongoose.Schema({
     },
     extractedText: {
         type: String,
+        maxlength: [4000000, "Extracted text is too large to store."],
         default: ""
     },
     chunks: [{

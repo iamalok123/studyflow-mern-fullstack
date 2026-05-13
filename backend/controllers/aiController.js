@@ -5,13 +5,19 @@ import ChatHistory from "../models/ChatHistory.js";
 import * as geminiService from "../utils/geminiService.js";
 import { findRelevantChunks } from "../utils/textChunker.js";
 
+const clampInt = (value, fallback, min, max) => {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) return fallback;
+    return Math.min(Math.max(parsed, min), max);
+};
 
 // @desc    Generate flashcards from document
 // @route   POST /api/ai/generate-flashcards
 // @access  Private
 export const generateFlashcards = async (req, res, next) => {
     try {
-        const { documentId, count = 10 } = req.body;
+        const { documentId } = req.body;
+        const count = clampInt(req.body.count, 10, 1, 30);
 
         if (!documentId) {
             return res.status(400).json({
@@ -38,8 +44,16 @@ export const generateFlashcards = async (req, res, next) => {
         // Generate flashcards using Gemini
         const cards = await geminiService.generateFlashcards(
             document.extractedText,
-            parseInt(count)
+            count
         );
+
+        if (!cards.length) {
+            return res.status(422).json({
+                success: false,
+                error: "AI could not generate valid flashcards from this document. Please try a different document or count.",
+                statusCode: 422,
+            });
+        }
 
         // Save flashcards to database
         const flashcardSet = await Flashcard.create({
@@ -70,7 +84,8 @@ export const generateFlashcards = async (req, res, next) => {
 // @access  Private
 export const generateQuiz = async (req, res, next) => {
     try {
-        const { documentId, numQuestions = 5, title } = req.body;
+        const { documentId, title } = req.body;
+        const numQuestions = clampInt(req.body.numQuestions, 5, 1, 20);
 
         if (!documentId) {
             return res.status(400).json({
@@ -97,8 +112,16 @@ export const generateQuiz = async (req, res, next) => {
         // Generate quiz using Gemini
         const questions = await geminiService.generateQuiz(
             document.extractedText,
-            parseInt(numQuestions)
+            numQuestions
         );
+
+        if (!questions.length) {
+            return res.status(422).json({
+                success: false,
+                error: "AI could not generate a valid quiz from this document. Please try a different document or question count.",
+                statusCode: 422,
+            });
+        }
 
         // Save quiz to database
         const quiz = await Quiz.create({
@@ -238,6 +261,10 @@ export const chat = async (req, res, next) => {
                 relevantChunks: chunkIndices
             }
         );
+
+        if (chatHistory.messages.length > 100) {
+            chatHistory.messages = chatHistory.messages.slice(-100);
+        }
 
         await chatHistory.save();
 

@@ -87,6 +87,30 @@ export const submitQuiz = async (req, res, next) => {
             });
         }
 
+        if (answers.length !== quiz.questions.length) {
+            return res.status(400).json({
+                success: false,
+                error: 'Please answer every question before submitting',
+                statusCode: 400
+            });
+        }
+
+        const seenQuestionIndexes = new Set();
+        for (const answer of answers) {
+            const { questionIndex, selectedAnswer } = answer;
+            const question = quiz.questions[questionIndex];
+
+            if (!question || seenQuestionIndexes.has(questionIndex) || !question.options.includes(selectedAnswer)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid answer payload',
+                    statusCode: 400
+                });
+            }
+
+            seenQuestionIndexes.add(questionIndex);
+        }
+
         // Process answers
         let correctCount = 0;
         const userAnswers = [];
@@ -172,7 +196,7 @@ export const getQuizResults = async (req, res, next) => {
                 options: question.options,
                 correctAnswer: question.correctAnswer,
                 selectedAnswer: userAnswer?.selectedAnswer || null,
-                isCorrect: userAnswer?.isCorrect || null,
+                isCorrect: userAnswer?.isCorrect ?? null,
                 explanation: question.explanation
             };
         });

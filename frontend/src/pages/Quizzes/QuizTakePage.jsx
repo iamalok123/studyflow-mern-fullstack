@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
 import quizService from '../../services/quizService'
@@ -15,13 +15,7 @@ const QuizTakePage = () => {
   const [selectedAnswers, setSelectedAnswers] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
-    if (quizId) {
-      fetchQuiz();
-    }
-  }, [quizId]);
-
-  const fetchQuiz = async () => {
+  const fetchQuiz = useCallback(async () => {
     try {
       setLoading(true);
       const response = await quizService.getQuizById(quizId);
@@ -32,7 +26,13 @@ const QuizTakePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [quizId]);
+
+  useEffect(() => {
+    if (quizId) {
+      fetchQuiz();
+    }
+  }, [quizId, fetchQuiz]);
 
   const handleOptionChange = (questionId, optionIndex) => {
     setSelectedAnswers((prevAnswers) => ({
@@ -54,6 +54,11 @@ const QuizTakePage = () => {
   };
 
   const handleSubmitQuiz = async () => {
+    if (Object.keys(selectedAnswers).length !== quiz.questions.length) {
+      toast.error('Please answer every question before submitting');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const formattedAnswers = Object.keys(selectedAnswers).map(questionId => {
@@ -94,7 +99,6 @@ const QuizTakePage = () => {
   }
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
-  const isAnswered = selectedAnswers.hasOwnProperty(currentQuestion._id);
   const answeredCount = Object.keys(selectedAnswers).length;
 
   return (
@@ -232,7 +236,7 @@ const QuizTakePage = () => {
       {/* Submit Navigation Dots */}
       <div className='flex items-center justify-center flex-wrap gap-2 mt-8 pb-4'>
         {quiz.questions.map((_, index) => {
-          const isAnsweredQuestion = selectedAnswers.hasOwnProperty(quiz.questions[index]._id);
+          const isAnsweredQuestion = Object.prototype.hasOwnProperty.call(selectedAnswers, quiz.questions[index]._id);
           const isCurrentQuestion = currentQuestionIndex === index;
           return (
             <button

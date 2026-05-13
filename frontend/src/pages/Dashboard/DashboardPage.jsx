@@ -8,7 +8,6 @@ import { FileText, BookOpen, BrainCircuit, TrendingUp, Clock } from 'lucide-reac
 const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -16,7 +15,6 @@ const DashboardPage = () => {
         const response = await progressService.getDashboardData();
         setDashboardData(response.data);
       } catch (error) {
-        setError(error.error || error.message || 'Failed to fetch dashboard data');
         toast.error(error.error || error.message || 'Failed to fetch dashboard data');
       } finally {
         setLoading(false);
@@ -130,7 +128,7 @@ const DashboardPage = () => {
                 ...(dashboardData.recentActivity.quizzes || []).map((quiz) => ({
                   id: quiz._id,
                   description: quiz.title,
-                  timestamp: quiz.lastAttempted,
+                  timestamp: quiz.completedAt || quiz.createdAt,
                   link: `/quizzes/${quiz._id}`,
                   type: 'quiz'
                 }))

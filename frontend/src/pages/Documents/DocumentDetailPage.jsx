@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import documentService from '../../services/documentService';
 import Spinner from '../../components/common/Spinner';
@@ -6,10 +6,11 @@ import toast from 'react-hot-toast';
 import { ArrowLeft, ExternalLink, FileText } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Tabs from '../../components/common/Tabs';
-import ChatInterface from '../../components/chat/ChatInterface';
-import AiActions from '../../components/ai/AIActions';
-import FlashcardManager from '../../components/flashcards/FlashcardManager';
-import QuizManager from '../../components/quizzes/QuizManager';
+
+const ChatInterface = lazy(() => import('../../components/chat/ChatInterface'));
+const AiActions = lazy(() => import('../../components/ai/AIActions'));
+const FlashcardManager = lazy(() => import('../../components/flashcards/FlashcardManager'));
+const QuizManager = lazy(() => import('../../components/quizzes/QuizManager'));
 
 const DocumentDetailPage = () => {
 
@@ -24,7 +25,7 @@ const DocumentDetailPage = () => {
         const data = await documentService.getDocumentById(id);
         setDocument(data);
       } catch (error) {
-        toast.error('Failed to fetch document details.');
+        toast.error(error?.error || error?.message || 'Failed to fetch document details.');
       } finally {
         setLoading(false);
       }
@@ -101,25 +102,33 @@ const DocumentDetailPage = () => {
 
   const renderChat = () => {
     return (
-      <ChatInterface />
+      <Suspense fallback={<Spinner />}>
+        <ChatInterface />
+      </Suspense>
     );
   };
 
   const renderAIActions = () => {
     return (
-      <AiActions />
+      <Suspense fallback={<Spinner />}>
+        <AiActions />
+      </Suspense>
     );
   };
 
   const renderFlashcardsTab = () => {
     return (
-      <FlashcardManager documentId={id} />
+      <Suspense fallback={<Spinner />}>
+        <FlashcardManager documentId={id} />
+      </Suspense>
     );
   };
 
   const renderQuizzesTab = () => {
     return (
-      <QuizManager documentId={id} />
+      <Suspense fallback={<Spinner />}>
+        <QuizManager documentId={id} />
+      </Suspense>
     );
   };
 

@@ -14,7 +14,8 @@ const quizSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlength: [120, "Quiz title cannot exceed 120 characters."]
     },
     questions: [
         {

@@ -1,15 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const AuthContext = createContext();
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -33,6 +25,9 @@ export const AuthProvider = ({ children }) => {
         const userData = JSON.parse(userStr);
         setUser(userData);
         setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
       }
     } catch (error) {
       // Corrupted localStorage — clear it silently, no redirect needed
@@ -46,6 +41,17 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === 'token' || event.key === 'user') {
+        checkAuthStatus();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [checkAuthStatus]);
 
   const login = (userData, token) => {

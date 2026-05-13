@@ -40,6 +40,18 @@ const DocumentListPage = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.type !== 'application/pdf') {
+        toast.error('Please select a PDF file');
+        e.target.value = '';
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('PDF file must be 10MB or smaller');
+        e.target.value = '';
+        return;
+      }
+
       setUploadFile(file);
       setUploadTitle(file.name.replace(/\.[^/.]+$/, ""));
     }

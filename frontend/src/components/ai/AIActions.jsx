@@ -23,7 +23,7 @@ const AiActions = () => {
       setModalContent(summary);
       setIsModalOpen(true);
     } catch (error) {
-      toast.error("Failed to generate summary.");
+      toast.error(error?.error || error?.message || "Failed to generate summary.");
     } finally {
       setLoadingAction(null);
     }
@@ -46,7 +46,7 @@ const AiActions = () => {
       setIsModalOpen(true);
       setConcept("");
     } catch (error) {
-      toast.error("Failed to explain concept.");
+      toast.error(error?.error || error?.message || "Failed to explain concept.");
     } finally {
       setLoadingAction(null);
     }

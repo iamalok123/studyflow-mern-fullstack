@@ -14,11 +14,16 @@ import mongoose from "mongoose";
  */
 const uploadToCloudinary = (buffer, originalName) => {
     return new Promise((resolve, reject) => {
+        const safeName = originalName
+            .replace(/\.[^/.]+$/, "")
+            .replace(/[^a-zA-Z0-9-_]/g, "-")
+            .slice(0, 80);
+
         const stream = getCloudinary().uploader.upload_stream(
             {
                 resource_type: "image",              // deliver PDFs via image pipeline (browser-viewable)
                 folder: "studyflow/documents",       // organized folder
-                public_id: `${Date.now()}-${originalName.replace(/\.[^/.]+$/, "")}`,
+                public_id: `${Date.now()}-${safeName}`,
                 format: "pdf",
             },
             (error, result) => {
@@ -28,6 +33,14 @@ const uploadToCloudinary = (buffer, originalName) => {
         );
         stream.end(buffer);
     });
+};
+
+const isPdfBuffer = (buffer) => {
+    if (!Buffer.isBuffer(buffer) || buffer.length < 4) {
+        return false;
+    }
+
+    return buffer.subarray(0, 4).toString("utf8") === "%PDF";
 };
 
 
@@ -44,7 +57,15 @@ export const uploadDocument = async (req, res, next) => {
             });
         }
 
-        const { title } = req.body;
+        if (!isPdfBuffer(req.file.buffer)) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid PDF file",
+                statusCode: 400,
+            });
+        }
+
+        const title = req.body.title?.trim();
 
         if (!title) {
             return res.status(400).json({
@@ -60,7 +81,26 @@ export const uploadDocument = async (req, res, next) => {
             req.file.originalname
         );
 
-        // 2. Create document record (status = Processing)
+        let extractedText = "";
+        let chunks = [];
+        let status = "Ready";
+        let message = "Document uploaded and processed successfully.";
+
+        try {
+            const { text } = await extractTextFromPDF(req.file.buffer);
+            extractedText = text;
+            chunks = chunkText(text, 500, 50);
+
+            if (chunks.length === 0) {
+                status = "Failed";
+                message = "Document uploaded, but no readable text could be extracted.";
+            }
+        } catch (processingError) {
+            status = "Failed";
+            message = "Document uploaded, but text extraction failed.";
+            console.error("PDF processing failed:", processingError.message);
+        }
+
         const document = await Document.create({
             userId: req.user._id,
             title,
@@ -68,42 +108,18 @@ export const uploadDocument = async (req, res, next) => {
             filePath: cloudinaryResult.secure_url,
             cloudinaryPublicId: cloudinaryResult.public_id,
             fileSize: req.file.size,
-            status: "Processing",
-        });
-
-        // 3. Process PDF text extraction in background (non-blocking)
-        processPDF(document._id, req.file.buffer).catch((err) => {
-            console.error("PDF processing failed:", err);
+            extractedText,
+            chunks,
+            status,
         });
 
         res.status(201).json({
             success: true,
             data: document,
-            message: "Document uploaded successfully. Processing in background...",
+            message,
         });
     } catch (error) {
         next(error);
-    }
-};
-
-
-// Helper: process PDF text extraction in background
-const processPDF = async (documentId, pdfBuffer) => {
-    try {
-        const { text } = await extractTextFromPDF(pdfBuffer);
-
-        const chunks = chunkText(text, 500, 50);
-
-        await Document.findByIdAndUpdate(documentId, {
-            extractedText: text,
-            chunks,
-            status: "Ready",
-        });
-
-        console.log(`Document ${documentId} processed successfully`);
-    } catch (error) {
-        console.error(`Error processing PDF ${documentId}:`, error);
-        await Document.findByIdAndUpdate(documentId, { status: "Failed" });
     }
 };
 
@@ -251,7 +267,6 @@ export const deleteDocument = async (req, res, next) => {
         next(error);
     }
 };
-
 
 
 

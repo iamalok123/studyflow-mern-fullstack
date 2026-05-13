@@ -25,7 +25,7 @@ export const getDashboard = async (req, res, next) => {
             Quiz.countDocuments({ userId }),
             Quiz.countDocuments({ userId, completedAt: { $ne: null } }),
             Flashcard.find({ userId }).select('cards.reviewCount cards.isStarred'),
-            Quiz.find({ userId, completedAt: { $ne: null } }).select('score'),
+            Quiz.find({ userId, completedAt: { $ne: null } }).select('score completedAt'),
             Document.find({ userId })
                 .sort({ lastAccessed: -1 })
                 .limit(5)
@@ -34,7 +34,7 @@ export const getDashboard = async (req, res, next) => {
                 .sort({ createdAt: -1 })
                 .limit(5)
                 .populate('documentId', 'title')
-                .select('title score totalQuestions completedAt'),
+                .select('title score totalQuestions completedAt createdAt'),
         ]);
 
         // Calculate flashcard statistics from already-fetched data
@@ -53,8 +53,32 @@ export const getDashboard = async (req, res, next) => {
             ? Math.round(completedQuizList.reduce((sum, quiz) => sum + quiz.score, 0) / completedQuizList.length)
             : 0;
 
-        // Study streak (simplified - in production, track daily activity)
-        const studyStreak = Math.floor(Math.random() * 7) + 1;
+        const activityDates = new Set();
+        const addActivityDate = (date) => {
+            if (!date) return;
+            activityDates.add(new Date(date).toISOString().slice(0, 10));
+        };
+
+        recentDocuments.forEach((doc) => {
+            addActivityDate(doc.lastAccessed);
+        });
+        completedQuizList.forEach((quiz) => {
+            addActivityDate(quiz.completedAt);
+        });
+        flashcardSets.forEach((set) => {
+            set.cards.forEach((card) => {
+                addActivityDate(card.lastReviewed);
+            });
+        });
+
+        let studyStreak = 0;
+        const cursor = new Date();
+        cursor.setUTCHours(0, 0, 0, 0);
+
+        while (activityDates.has(cursor.toISOString().slice(0, 10))) {
+            studyStreak += 1;
+            cursor.setUTCDate(cursor.getUTCDate() - 1);
+        }
 
         res.json({
             success: true,

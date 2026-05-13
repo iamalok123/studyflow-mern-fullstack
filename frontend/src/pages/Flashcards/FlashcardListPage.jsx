@@ -18,7 +18,7 @@ const FlashcardListPage = () => {
         setFlashcardSets(response.data);
       } catch (error) {
 
-        toast.error("Failed to load flashcard sets");
+        toast.error(error?.error || error?.message || "Failed to load flashcard sets");
       } finally {
         setLoading(false);
       }

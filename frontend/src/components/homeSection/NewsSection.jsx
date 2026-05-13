@@ -1,5 +1,5 @@
 import { SparklesIcon, FileUp, Zap, BookOpen, ArrowRightIcon } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 const steps = [

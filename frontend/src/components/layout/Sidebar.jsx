@@ -1,6 +1,6 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import { LayoutDashboard, User, FileText, BrainCircuit, BookOpen, LogOut, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 

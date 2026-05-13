@@ -3,6 +3,9 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import errorHandler from './middlewares/errorHandler.js';
+import securityHeaders from './middlewares/securityHeaders.js';
+import { createRateLimiter } from './middlewares/rateLimiter.js';
+import { validateEnv } from './utils/env.js';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
@@ -13,10 +16,13 @@ import progressRoutes from './routes/progressRoutes.js';
 
 
 // Initialize express app
+validateEnv();
 const app = express();
 
 // Connect to MongoDB
 connectDB();
+
+app.use(securityHeaders);
 
 // Middleware to handle CORS
 const allowedOrigins = process.env.FRONTEND_URL
@@ -39,8 +45,37 @@ app.use(
   })
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+
+const generalRateLimit = createRateLimiter({
+  keyPrefix: "general",
+  windowMs: 60 * 1000,
+  max: 180,
+});
+
+const authRateLimit = createRateLimiter({
+  keyPrefix: "auth",
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: "Too many authentication attempts. Please try again later.",
+});
+
+const uploadRateLimit = createRateLimiter({
+  keyPrefix: "upload",
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: "Too many upload attempts. Please try again later.",
+});
+
+const aiRateLimit = createRateLimiter({
+  keyPrefix: "ai",
+  windowMs: 60 * 1000,
+  max: 20,
+  message: "Too many AI requests. Please slow down and try again.",
+});
+
+app.use(generalRateLimit);
 
 
 // Health check
@@ -49,10 +84,11 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRateLimit, authRoutes);
+app.use('/api/documents/upload', uploadRateLimit);
 app.use('/api/documents', documentRoutes);
 app.use('/api/flashcards', flashcardRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiRateLimit, aiRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/progress', progressRoutes);
 

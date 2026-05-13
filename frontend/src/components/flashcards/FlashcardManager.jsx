@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Plus,
   ChevronLeft,
@@ -27,7 +27,7 @@ const FlashcardManager = ({ documentId }) => {
   const [deleting, setDeleting] = useState(false);
   const [setToDelete, setSetToDelete] = useState(null);
 
-  const fetchFlashcardSets = async () => {
+  const fetchFlashcardSets = useCallback(async () => {
     try {
       setLoading(true);
       const response = await flashcardService.getFlashcardsForDocument(documentId);
@@ -38,13 +38,13 @@ const FlashcardManager = ({ documentId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [documentId]);
 
   useEffect(() => {
     if (documentId) {
       fetchFlashcardSets();
     }
-  }, [documentId]);
+  }, [documentId, fetchFlashcardSets]);
 
   const handleGenerateFlashcards = async () => {
     try {

@@ -29,8 +29,8 @@ const registerValidation = [
         .normalizeEmail()
         .withMessage("Please provide a valid email"),
     body("password")
-        .isLength({ min: 6 })
-        .withMessage("Password must be at least 6 characters"),
+        .isLength({ min: 8 })
+        .withMessage("Password must be at least 8 characters"),
 ];
 
 const loginValidation = [
@@ -43,14 +43,37 @@ const loginValidation = [
         .withMessage("Password is required"),
 ];
 
+const profileUpdateValidation = [
+    body("username")
+        .trim()
+        .isLength({ min: 3, max: 50 })
+        .withMessage("Username must be between 3 and 50 characters"),
+];
+
+const changePasswordValidation = [
+    body("currentPassword")
+        .notEmpty()
+        .withMessage("Current password is required"),
+    body("newPassword")
+        .isLength({ min: 8 })
+        .withMessage("New password must be at least 8 characters"),
+];
+
+const googleLoginValidation = [
+    body("credential")
+        .isString()
+        .isLength({ min: 20 })
+        .withMessage("Google credential is required"),
+];
+
 // Public Routes
 router.post("/register", registerValidation, handleValidationErrors, register);
 router.post("/login", loginValidation, handleValidationErrors, login);
-router.post("/google", googleLogin);
+router.post("/google", googleLoginValidation, handleValidationErrors, googleLogin);
 
 // Protected Routes
 router.get("/profile", protect, getProfile);
-router.put("/profile", protect, updateProfile);
-router.put("/change-password", protect, changePassword);
+router.put("/profile", protect, profileUpdateValidation, handleValidationErrors, updateProfile);
+router.put("/change-password", protect, changePasswordValidation, handleValidationErrors, changePassword);
 
 export default router;
