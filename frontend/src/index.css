@@ -1,10 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @theme {
   --font-display: "Urbanist", sans-serif;
-  --font-serif: "DM Serif Display", serif;
   --breakpoint-3xl: 1920px;
   --color-primary: #10B981;
   --color-primary-hover: #059669;
@@ -21,17 +20,18 @@
     -webkit-font-smoothing: antialiased;
   }
   body {
-    background-color: #F8FAFB;
+    font-family: var(--font-display);
+    background-color: #F7FAF9;
     color: #1E1E2F;
   }
   h1, h2, h3 {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
   }
 }
 
 @layer utilities {
   .font-serif-display {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
   }
   .animate-float {
     animation: float 3s ease-in-out infinite;

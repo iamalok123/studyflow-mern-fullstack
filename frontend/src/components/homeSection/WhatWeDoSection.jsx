@@ -1,74 +1,43 @@
-import { ArrowRightIcon, CheckIcon } from "lucide-react";
+import { ArrowRightIcon, CheckIcon, DatabaseIcon, FileUpIcon, Layers3Icon, MessagesSquareIcon, ShieldCheckIcon, ZapIcon } from "lucide-react";
 import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
+
+const highlights = [
+    "Context-aware AI chat with memory",
+    "Spaced repetition flashcards",
+    "Adaptive quiz difficulty",
+    "Secure Cloudinary PDF storage",
+];
+
+const workflow = [
+    { icon: FileUpIcon, title: "Upload", text: "Drop in lecture PDFs, notes, or research papers." },
+    { icon: ZapIcon, title: "Generate", text: "Create summaries, quizzes, cards, and explanations." },
+    { icon: Layers3Icon, title: "Review", text: "Study with a focused dashboard built for retention." },
+];
 
 const WhatWeDoSection = () => {
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
-    const techLogos = [
-        { name: 'MongoDB', color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-200', letter: 'M' },
-        { name: 'React', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', letter: 'R' },
-        { name: 'Gemini AI', color: 'text-violet-700', bg: 'bg-violet-50', border: 'border-violet-200', letter: 'G' },
-        { name: 'Express', color: 'text-slate-700', bg: 'bg-slate-100', border: 'border-slate-200', letter: 'E' },
-        { name: 'Node.js', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', letter: 'N' },
-        { name: 'Cloudinary', color: 'text-indigo-700', bg: 'bg-indigo-50', border: 'border-indigo-200', letter: 'C' },
-    ];
-
-    const highlights = [
-        'Context-aware AI chat with memory',
-        'Spaced repetition flashcards',
-        'Adaptive quiz difficulty',
-        'Secure Cloudinary PDF storage',
-    ];
-
     return (
-        <>
-            {/* Trust / Tech Stack Row */}
-            <section className="py-14 px-4 md:px-16 lg:px-24 w-full bg-white border-t border-slate-200">
-                <div className="max-w-[1200px] mx-auto flex flex-col items-center animate-fade-in-up">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-8 text-center">
-                        Built with industry-leading technology
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-4 max-w-3xl w-full mx-auto">
-                        {techLogos.map((tech, i) => (
-                            <div
-                                key={i}
-                                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl ${tech.bg} border-2 ${tech.border} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200`}
-                            >
-                                <div className={`size-6 rounded-lg bg-white border ${tech.border} flex items-center justify-center text-[11px] font-black ${tech.color}`}>
-                                    {tech.letter}
-                                </div>
-                                <span className={`text-xs font-bold ${tech.color}`}>{tech.name}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* How It Works Section */}
-            <section id="how-it-works" className="py-20 md:py-28 px-4 md:px-16 lg:px-24 w-full bg-[#F3F6F9]">
-                <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-14 lg:gap-16">
-
-                    {/* Left: Text */}
-                    <div className="flex flex-col items-start w-full lg:w-1/2 animate-fade-in-up">
-                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-[0.2em] mb-3 px-3 py-1 bg-emerald-100 rounded-full border border-emerald-200">
-                            How It Works
+        <section id="how-it-works" className="bg-[#F7FAF9] px-4 py-16 md:px-16 md:py-24 lg:px-24">
+            <div className="mx-auto grid max-w-300 items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+                    <div className="flex flex-col items-start">
+                        <span className="mb-4 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+                            How it works
                         </span>
-                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-5 leading-tight" style={{ fontFamily: 'Urbanist, sans-serif', letterSpacing: '-0.02em' }}>
-                            Your Complete AI{" "}
-                            <span className="gradient-text">Study Companion</span>
+                        <h2 className="max-w-xl text-3xl font-black leading-tight text-slate-950 md:text-5xl">
+                            A complete learning system, not another file viewer.
                         </h2>
-                        <p className="text-base leading-relaxed text-slate-600 mb-7 max-w-lg">
-                            StudyFlow combines document management, AI intelligence, and interactive learning tools to help you understand faster, retain longer, and study smarter.
+                        <p className="mt-5 max-w-lg text-base font-medium leading-7 text-slate-600">
+                            StudyFlow combines document management, AI intelligence, and interactive practice tools so students can understand faster and retain longer.
                         </p>
 
-                        {/* Feature bullets */}
-                        <ul className="space-y-3 mb-8">
-                            {highlights.map((item, i) => (
-                                <li key={i} className="flex items-center gap-3 text-sm text-slate-700 font-medium">
-                                    <div className="size-5 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center shrink-0">
-                                        <CheckIcon className="size-3 text-emerald-600" strokeWidth={3} />
+                        <ul className="mt-7 space-y-3">
+                            {highlights.map((item) => (
+                                <li key={item} className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                                    <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                                        <CheckIcon className="size-3.5" strokeWidth={3} />
                                     </div>
                                     {item}
                                 </li>
@@ -76,31 +45,81 @@ const WhatWeDoSection = () => {
                         </ul>
 
                         <button
-                            onClick={() => navigate(isAuthenticated ? '/dashboard' : '/register')}
-                            className="group flex items-center gap-2 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 py-3 px-7 rounded-xl text-white font-semibold text-sm active:scale-[0.98]">
-                            <span>Start Learning</span>
-                            <ArrowRightIcon className='size-4 group-hover:translate-x-0.5 transition-transform' />
+                            onClick={() => navigate(isAuthenticated ? "/dashboard" : "/register")}
+                            className="group mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-7 text-sm font-bold text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-[0.98]"
+                        >
+                            Start learning
+                            <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
                         </button>
                     </div>
 
-                    <div className="relative w-full lg:w-1/2 flex justify-center animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-                        <div className="absolute inset-0 bg-linear-to-tr from-emerald-100/40 to-teal-100/30 rounded-full blur-[60px] -z-10 scale-90"></div>
-                        <div className="relative w-full max-w-[380px] aspect-square rounded-2xl overflow-visible glow-shadow-lg border-4 border-white">
-                            <img src="https://cdni.iconscout.com/illustration/free/thumb/free-man-working-on-laptop-illustration-svg-download-png-4243574.png" alt="Student studying" className="w-full h-full object-cover rounded-xl" />
-                            <div className="absolute -top-4 -right-4 bg-white p-2.5 rounded-xl shadow-lg border border-slate-100 animate-float" style={{ animationDelay: '0.2s' }}>
-                                <div className="size-9 rounded-lg bg-orange-50 flex items-center justify-center text-lg">💡</div>
+                    <div className="relative">
+                        <div className="grid gap-4 md:grid-cols-[0.85fr_1fr]">
+                            <div className="space-y-4">
+                                {workflow.map((step, index) => (
+                                    <div key={step.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60">
+                                        <div className="mb-4 flex items-center justify-between">
+                                            <div className="flex size-11 items-center justify-center rounded-xl bg-slate-950 text-white">
+                                                <step.icon className="size-5" />
+                                            </div>
+                                            <span className="text-xs font-black text-slate-300">0{index + 1}</span>
+                                        </div>
+                                        <h3 className="text-lg font-black text-slate-950">{step.title}</h3>
+                                        <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{step.text}</p>
+                                    </div>
+                                ))}
                             </div>
-                            <div className="absolute top-1/3 -left-5 bg-white p-2.5 rounded-xl shadow-lg border border-slate-100 animate-float-slow" style={{ animationDelay: '0.7s' }}>
-                                <div className="size-9 rounded-lg bg-emerald-50 flex items-center justify-center text-lg">🧠</div>
-                            </div>
-                            <div className="absolute -bottom-4 right-8 bg-white p-2.5 rounded-xl shadow-lg border border-slate-100 animate-float" style={{ animationDelay: '1.1s' }}>
-                                <div className="size-9 rounded-lg bg-blue-50 flex items-center justify-center text-lg">💬</div>
+
+                            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+                                <div className="rounded-[1.25rem] bg-[#EEF6F2] p-4">
+                                    <div className="mb-5 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs font-black uppercase tracking-widest text-slate-400">Study dashboard</p>
+                                            <p className="mt-1 text-2xl font-black text-slate-950">Today</p>
+                                        </div>
+                                        <div className="flex size-11 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
+                                            <DatabaseIcon className="size-5" />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="rounded-2xl bg-white p-4 shadow-sm">
+                                            <p className="text-xs font-bold text-slate-500">Quizzes</p>
+                                            <p className="mt-2 text-3xl font-black text-slate-950">14</p>
+                                        </div>
+                                        <div className="rounded-2xl bg-white p-4 shadow-sm">
+                                            <p className="text-xs font-bold text-slate-500">Retention</p>
+                                            <p className="mt-2 text-3xl font-black text-emerald-600">91%</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 rounded-2xl bg-white p-4 shadow-sm">
+                                        <div className="mb-3 flex items-center justify-between">
+                                            <p className="text-sm font-black text-slate-950">Progress map</p>
+                                            <ShieldCheckIcon className="size-4 text-emerald-600" />
+                                        </div>
+                                        <div className="flex h-24 items-end gap-2">
+                                            {[40, 58, 48, 74, 62, 86, 70].map((height, index) => (
+                                                <div key={index} className="flex-1 rounded-t-xl bg-linear-to-t from-emerald-500 to-lime-300" style={{ height: `${height}%` }} />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 rounded-2xl bg-slate-950 p-4 text-white shadow-sm">
+                                        <div className="mb-3 flex items-center gap-2">
+                                            <MessagesSquareIcon className="size-4 text-lime-300" />
+                                            <p className="text-sm font-black">AI tutor is ready</p>
+                                        </div>
+                                        <p className="text-xs font-medium leading-5 text-slate-300">
+                                            Ask for simpler explanations, examples, or practice questions from the exact PDF context.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-        </>
+            </div>
+        </section>
     );
 }
 

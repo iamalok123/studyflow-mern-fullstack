@@ -1,4 +1,4 @@
-import { SparklesIcon, FileUp, Zap, BookOpen, ArrowRightIcon } from 'lucide-react';
+import { ArrowRightIcon, BookOpen, CheckCircle2Icon, FileUp, SparklesIcon, Zap } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,63 +13,59 @@ const CtaSection = () => {
     const navigate = useNavigate();
 
     return (
-        <section className='relative py-28 px-4 w-full overflow-hidden bg-[#F3F6F9]'>
+        <section className='relative w-full overflow-hidden bg-[#F7FAF9] px-4 py-24 md:py-28'>
 
             {/* Dot grid background */}
             <div
-                className="absolute inset-0 opacity-50 -z-10"
+                className="absolute inset-0 opacity-60"
                 style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '24px 24px' }}
             />
 
-            {/* Glowing orbs */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-400/20 rounded-full blur-[100px] -z-10" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-teal-400/20 rounded-full blur-[100px] -z-10" />
-
-            <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-14 z-10 relative">
+            <div className="max-w-300 mx-auto flex flex-col lg:flex-row items-center justify-between gap-14 z-10 relative">
 
                 {/* Left Text */}
                 <div className="w-full lg:w-1/2 text-left animate-fade-in-up">
-                    <div className="inline-flex items-center justify-center p-3 rounded-xl bg-emerald-100 border border-emerald-200 mb-6 text-emerald-700 shadow-sm">
+                    <div className="mb-6 inline-flex items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-emerald-700 shadow-sm">
                         <SparklesIcon className="size-5" />
                     </div>
 
-                    <h2 className='text-4xl md:text-5xl lg:text-[3.25rem] font-bold text-slate-900 mb-6 leading-tight' style={{ fontFamily: 'Urbanist, sans-serif', letterSpacing: '-0.03em' }}>
+                    <h2 className='mb-6 text-4xl font-black leading-tight text-slate-950 md:text-5xl lg:text-[3.25rem]'>
                         Ready to Study{" "}
                         <span className="gradient-text">Smarter?</span>
                     </h2>
 
-                    <p className='text-lg text-slate-600 mb-8 max-w-md leading-relaxed'>
-                        Join thousands of students turning overwhelming PDFs into easy-to-digest flashcards and quizzes — instantly.
+                    <p className='mb-8 max-w-md text-lg font-medium leading-8 text-slate-600'>
+                        Join thousands of students turning overwhelming PDFs into easy-to-digest flashcards and quizzes, instantly.
                     </p>
 
                     <button
                         onClick={() => navigate(isAuthenticated ? '/dashboard' : '/register')}
-                        className="group inline-flex items-center gap-2 bg-linear-to-r from-emerald-500 to-teal-500 text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:from-emerald-600 hover:to-teal-600 hover:-translate-y-0.5 transition-all duration-300 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/35 active:scale-[0.98]"
+                        className="group inline-flex h-12 items-center gap-2 rounded-full bg-slate-950 px-8 text-sm font-bold text-white shadow-lg shadow-slate-950/15 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-[0.98]"
                     >
                         Start Learning For Free
                         <ArrowRightIcon className="size-4 group-hover:translate-x-0.5 transition-transform" />
                     </button>
-                    <p className="mt-4 text-xs text-slate-500 font-medium">✓ Free forever &nbsp;·&nbsp; ✓ No credit card &nbsp;·&nbsp; ✓ Cancel anytime</p>
+                    <p className="mt-4 text-xs font-bold text-slate-500">Free forever · No credit card · Cancel anytime</p>
                 </div>
 
-                {/* Right — How it works steps */}
+                {/* Right side workflow steps */}
                 <div className="w-full lg:w-1/2 flex justify-center lg:justify-end animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                    <div className="relative w-full max-w-md bg-white border-2 border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/50">
+                    <div className="relative w-full max-w-md rounded-lg border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/60">
 
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-6">How it works</p>
+                        <p className="mb-6 text-xs font-black uppercase tracking-widest text-slate-500">How it works</p>
 
                         <div className="flex flex-col gap-4">
                             {steps.map((step, i) => (
                                 <div
                                     key={i}
-                                    className={`flex items-center gap-4 p-4 rounded-2xl bg-white border-2 ${step.border} shadow-sm hover:shadow-md transition-shadow duration-200 animate-float`}
+                                    className={`flex items-center gap-4 rounded-lg border ${step.border} bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md animate-float`}
                                     style={{ animationDelay: `${i * 0.4}s` }}
                                 >
-                                    <div className={`${step.bg} border-2 ${step.border} p-3 rounded-xl shrink-0`}>
+                                    <div className={`${step.bg} border ${step.border} shrink-0 rounded-lg p-3`}>
                                         <step.icon className={`size-5 ${step.color}`} strokeWidth={2} />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm font-bold text-slate-800">{step.label}</p>
+                                        <p className="text-sm font-black text-slate-950">{step.label}</p>
                                         <div className="h-1.5 w-20 bg-slate-100 rounded mt-1.5" />
                                     </div>
                                     <span className="text-xs font-black text-slate-300">{step.num}</span>
@@ -78,9 +74,9 @@ const CtaSection = () => {
                         </div>
 
                         {/* Bottom confirmation badge */}
-                        <div className="mt-6 flex items-center gap-2.5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                            <span className="text-lg">✅</span>
-                            <p className="text-xs font-semibold text-emerald-800">Your study session is ready in &lt;30 seconds</p>
+                        <div className="mt-6 flex items-center gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 p-3.5">
+                            <CheckCircle2Icon className="size-5 shrink-0 text-emerald-700" />
+                            <p className="text-xs font-bold text-emerald-800">Your study session is ready in &lt;30 seconds</p>
                         </div>
                     </div>
                 </div>

@@ -1,54 +1,88 @@
-import { SparklesIcon, LayersIcon, CheckCircle2Icon, FileTextIcon, MessageCircleIcon } from 'lucide-react';
+import { CheckCircle2Icon, FileTextIcon, LayersIcon, MessageCircleIcon, SparklesIcon } from 'lucide-react';
 
 const capabilities = [
-    { title: 'Flashcard Generation', description: 'Turn PDF chapters into spaced-repetition flashcards instantly.', icon: LayersIcon, gradient: 'from-emerald-500 to-teal-500', shadow: 'shadow-emerald-500/30' },
-    { title: 'Quiz Creation', description: 'Create adaptive MCQ quizzes to test your comprehension.', icon: CheckCircle2Icon, gradient: 'from-blue-500 to-indigo-500', shadow: 'shadow-blue-500/30' },
-    { title: 'Smart Summaries', description: 'Extract concise summaries from dense documents in one click.', icon: FileTextIcon, gradient: 'from-violet-500 to-purple-500', shadow: 'shadow-violet-500/30' },
-    { title: 'Contextual AI Chat', description: 'Conversational AI that actually understands your document.', icon: MessageCircleIcon, gradient: 'from-orange-500 to-amber-500', shadow: 'shadow-orange-500/30' },
+    { title: 'Flashcard Generation', description: 'Turn PDF chapters into spaced-repetition flashcards instantly.', icon: LayersIcon, iconClass: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+    { title: 'Quiz Creation', description: 'Create adaptive MCQ quizzes to test your comprehension.', icon: CheckCircle2Icon, iconClass: 'bg-blue-50 text-blue-600 border-blue-100' },
+    { title: 'Smart Summaries', description: 'Extract concise summaries from dense documents in one click.', icon: FileTextIcon, iconClass: 'bg-violet-50 text-violet-600 border-violet-100' },
+    { title: 'Contextual AI Chat', description: 'Conversational AI that actually understands your document.', icon: MessageCircleIcon, iconClass: 'bg-orange-50 text-orange-600 border-orange-100' },
 ];
 
 const AiCapabilitiesSection = () => {
     return (
-        <section id='capabilities' className='py-20 md:py-28 px-4 md:px-16 lg:px-24 w-full bg-white relative overflow-hidden'>
-
-            {/* Top separator line */}
-            <div className="absolute top-0 inset-x-0 h-px bg-linear-to-r from-transparent via-emerald-300/60 to-transparent" />
-
-            {/* Ambient background */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-50/80 rounded-full blur-[120px] -z-10" />
-
-            <div className="max-w-[1200px] mx-auto">
-
-                {/* Header */}
-                <div className='flex flex-col items-center mb-14 animate-fade-in-up'>
-                    <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs mb-5 border border-emerald-200 shadow-sm">
-                        <SparklesIcon className="size-3.5" />
-                        Powered by Google Gemini AI
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-3" style={{ fontFamily: 'Urbanist, sans-serif', letterSpacing: '-0.02em' }}>
-                        Your Personal AI Tutor
-                    </h2>
-                    <p className="text-base text-slate-600 text-center max-w-lg leading-relaxed">
-                        Four powerful AI tools that work together to help you learn faster and retain more.
-                    </p>
-                </div>
-
-                {/* Cards */}
-                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'>
-                    {capabilities.map((cap, i) => (
-                        <div
-                            key={i}
-                            className='group flex flex-col items-center text-center p-7 rounded-2xl bg-white border-2 border-slate-100 hover:border-slate-200 shadow-sm hover:shadow-xl hover:shadow-slate-200/60 hover:-translate-y-1.5 transition-all duration-300 animate-fade-in-up'
-                            style={{ animationDelay: `${i * 0.08}s` }}
-                        >
-                            {/* Icon — gradient fill on hover */}
-                            <div className={`size-[56px] rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center mb-5 text-slate-500 group-hover:bg-linear-to-br group-hover:${cap.gradient} group-hover:text-white group-hover:border-transparent group-hover:shadow-lg group-hover:${cap.shadow} transition-all duration-300`}>
-                                <cap.icon className='size-6' strokeWidth={1.75} />
+        <section id='capabilities' className='w-full bg-[#F7FAF9] px-4 py-16 md:px-16 md:py-24 lg:px-24'>
+            <div className="mx-auto max-w-300">
+                <div className="grid items-center gap-10 rounded-4xl border border-slate-200 bg-white p-5 shadow-[0_24px_80px_rgba(15,23,42,0.06)] md:p-8 lg:grid-cols-[1fr_0.95fr] lg:p-10">
+                    <div className="order-2 lg:order-1">
+                        <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-950 p-2 shadow-[0_24px_70px_rgba(15,23,42,0.18)]">
+                            <div className="flex items-center gap-1.5 border-b border-white/10 px-3 py-2">
+                                <span className="size-2 rounded-full bg-red-400" />
+                                <span className="size-2 rounded-full bg-yellow-400" />
+                                <span className="size-2 rounded-full bg-emerald-400" />
+                                <div className="ml-4 h-5 flex-1 rounded-full bg-white/10" />
                             </div>
-                            <h3 className='text-base font-bold text-slate-800 mb-2'>{cap.title}</h3>
-                            <p className='text-sm text-slate-600 leading-relaxed'>{cap.description}</p>
+
+                            <div className="rounded-[1.25rem] bg-[#EEF6F2] p-4">
+                                <div className="mb-4 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-black uppercase tracking-widest text-slate-400">AI tutor session</p>
+                                        <p className="mt-1 text-2xl font-black text-slate-950">Photosynthesis notes</p>
+                                    </div>
+                                    <div className="flex size-11 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
+                                        <SparklesIcon className="size-5" />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="max-w-[82%] rounded-2xl bg-white p-4 shadow-sm">
+                                        <p className="text-sm font-black text-slate-950">Explain this page simply.</p>
+                                        <p className="mt-2 text-xs font-medium leading-5 text-slate-500">Use my uploaded PDF context only.</p>
+                                    </div>
+                                    <div className="ml-auto max-w-[86%] rounded-2xl bg-slate-950 p-4 text-white shadow-sm">
+                                        <p className="text-sm font-black">Here is the simple version.</p>
+                                        <p className="mt-2 text-xs font-medium leading-5 text-slate-300">
+                                            Plants use light energy to turn carbon dioxide and water into glucose, then release oxygen as a result.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                    {['Summarize', 'Quiz me', 'Make cards'].map((item) => (
+                                        <div key={item} className="rounded-xl bg-white px-3 py-2 text-center text-xs font-black text-slate-700 shadow-sm">
+                                            {item}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                    ))}
+                    </div>
+
+                    <div className="order-1 lg:order-2">
+                        <div className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-xs font-black text-emerald-800 shadow-sm">
+                            <SparklesIcon className="size-3.5" />
+                            Powered by Google Gemini AI
+                        </div>
+                        <h2 className="max-w-lg text-3xl font-black leading-tight text-slate-950 md:text-5xl">
+                            Your tutor follows the document, not a generic script.
+                        </h2>
+                        <p className="mt-5 max-w-lg text-base font-medium leading-7 text-slate-600">
+                            Each AI tool is framed around the same source material, so summaries, questions, cards, and chat answers feel connected.
+                        </p>
+
+                        <div className='mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2'>
+                            {capabilities.map((cap) => (
+                                <div
+                                    key={cap.title}
+                                    className='group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60'
+                                >
+                                    <div className={`mb-4 flex size-11 items-center justify-center rounded-xl border ${cap.iconClass}`}>
+                                        <cap.icon className='size-5' strokeWidth={1.75} />
+                                    </div>
+                                    <h3 className='mb-2 text-base font-black text-slate-950'>{cap.title}</h3>
+                                    <p className='text-sm font-medium leading-6 text-slate-600'>{cap.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

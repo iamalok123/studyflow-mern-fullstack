@@ -13,7 +13,7 @@ export default function Home() {
         <>
             <LenisScroller />
             <NavBar />
-            <main className="w-full overflow-x-hidden">
+            <main className="w-full overflow-x-hidden bg-[#F7FAF9]">
                 <HeroSection />
                 <WhatWeDoSection />
                 <FeaturesGrid />

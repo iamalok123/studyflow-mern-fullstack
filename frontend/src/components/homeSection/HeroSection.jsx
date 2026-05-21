@@ -1,166 +1,198 @@
-import { CheckIcon, FileTextIcon, BrainCircuitIcon, PenLineIcon, MessageCircleIcon } from "lucide-react";
+import {
+    ArrowRightIcon,
+    BarChart3Icon,
+    BookOpenCheckIcon,
+    BrainCircuitIcon,
+    CheckIcon,
+    Clock3Icon,
+    FileTextIcon,
+    GraduationCapIcon,
+    MessageCircleIcon,
+    PlayCircleIcon,
+    ShieldCheckIcon,
+    SparklesIcon,
+    UploadCloudIcon,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+
+const activityItems = [
+    { label: "PDF processed", value: "94%", icon: FileTextIcon, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "Quiz accuracy", value: "82%", icon: BarChart3Icon, color: "text-blue-600", bg: "bg-blue-50" },
+    { label: "Cards reviewed", value: "128", icon: BookOpenCheckIcon, color: "text-orange-600", bg: "bg-orange-50" },
+];
 
 const HeroSection = () => {
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
     return (
-        <section className="relative flex flex-col lg:flex-row items-center gap-10 lg:gap-8 px-4 md:px-16 lg:px-24 pt-32 pb-20 max-w-[1200px] mx-auto">
+        <section className="relative overflow-hidden bg-[#F7FAF9] px-4 pt-28 pb-12 sm:px-6 md:pt-32 md:pb-16 lg:px-8">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_16%,rgba(16,185,129,0.12),transparent_30%),radial-gradient(circle_at_78%_10%,rgba(20,184,166,0.12),transparent_26%)]" />
+            <div className="relative mx-auto max-w-300">
+                <div className="rounded-4xl border border-slate-200/80 bg-white/90 px-4 py-7 shadow-[0_30px_100px_rgba(15,23,42,0.08)] backdrop-blur md:px-8 md:py-10 lg:px-12">
+                    <div className="grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:gap-12">
+                        <div className="flex flex-col items-start">
+                            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+                                <SparklesIcon className="size-3.5 text-emerald-600" />
+                                AI study workspace for PDFs
+                            </div>
 
-            {/* Background blobs — richer opacity */}
-            <div className="absolute top-0 left-[-5%] w-[500px] h-[500px] bg-emerald-200/50 rounded-full blur-[120px] -z-10 animate-float-slow" />
-            <div className="absolute bottom-0 right-[-5%] w-[400px] h-[400px] bg-teal-200/40 rounded-full blur-[100px] -z-10 animate-float-slow" style={{ animationDelay: '1.5s' }} />
+                            <h1 className="max-w-2xl text-4xl font-black leading-[1.03] text-slate-950 sm:text-5xl lg:text-6xl">
+                                Turn dense documents into a clear study flow.
+                            </h1>
 
-            {/* LEFT: Text */}
-            <div className="flex flex-col items-start w-full lg:w-[52%] z-10">
-                {/* Badge */}
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-300 bg-emerald-50 mb-6 animate-fade-in-up shadow-sm">
-                    <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <p className="text-xs font-bold text-emerald-700 tracking-wide uppercase">AI-Powered Learning</p>
-                </div>
+                            <p className="mt-5 max-w-xl text-base font-medium leading-7 text-slate-600 md:text-lg">
+                                Upload PDFs and instantly generate summaries, flashcards, quizzes, and contextual AI explanations powered by Google Gemini.
+                            </p>
 
-                <h1
-                    className="text-[2.6rem] md:text-[3.4rem] lg:text-[3.75rem] font-bold text-slate-900 leading-[1.08] mb-5 animate-fade-in-up"
-                    style={{ animationDelay: '0.1s', fontFamily: 'Urbanist, sans-serif', letterSpacing: '-0.03em' }}
-                >
-                    Transform Your PDFs{" "}
-                    <br className="hidden md:block" />
-                    Into{" "}
-                    <span className="gradient-text">Smart Learning</span>
-                </h1>
+                            <div className="mt-7 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                                <button
+                                    onClick={() => navigate(isAuthenticated ? "/dashboard" : "/register")}
+                                    className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-slate-950 px-7 text-sm font-bold text-white shadow-xl shadow-slate-950/15 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-[0.98]"
+                                >
+                                    Start learning free
+                                    <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
+                                </button>
+                                <a
+                                    href="#features"
+                                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 text-sm font-bold text-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-700"
+                                >
+                                    <PlayCircleIcon className="size-4 text-emerald-600" />
+                                    Explore features
+                                </a>
+                            </div>
 
-                <p className="text-base leading-relaxed text-slate-600 mb-7 max-w-md animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-                    Upload documents and instantly generate flashcards, quizzes, summaries, and AI explanations — powered by Google Gemini.
-                </p>
+                            <div className="mt-5 flex flex-wrap gap-3 text-xs font-bold text-slate-500">
+                                <span className="inline-flex items-center gap-1.5">
+                                    <CheckIcon className="size-3.5 text-emerald-600" />
+                                    Free forever
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                    <ShieldCheckIcon className="size-3.5 text-emerald-600" />
+                                    Secure PDF storage
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                    <Clock3Icon className="size-3.5 text-emerald-600" />
+                                    Ready in seconds
+                                </span>
+                            </div>
 
-                {/* Buttons */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mb-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                    <button
-                        onClick={() => navigate(isAuthenticated ? '/dashboard' : '/register')}
-                        className="px-8 py-3.5 rounded-xl bg-linear-to-r from-emerald-500 to-teal-500 text-white font-bold text-sm shadow-xl shadow-emerald-500/30 hover:from-emerald-600 hover:to-teal-600 hover:shadow-2xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98] text-center"
-                    >
-                        Get Started Free →
-                    </button>
-                    <a
-                        href="#features"
-                        className="px-7 py-3.5 rounded-xl bg-white text-slate-700 font-semibold text-sm border-2 border-slate-200 hover:border-emerald-400 hover:text-emerald-700 hover:bg-emerald-50/50 transition-all duration-300 text-center"
-                    >
-                        Explore Features
-                    </a>
-                </div>
-                <p className="text-xs text-slate-500 mb-8 animate-fade-in-up font-medium" style={{ animationDelay: '0.25s' }}>
-                    ✓ Free forever &nbsp;·&nbsp; ✓ No credit card required
-                </p>
-
-                {/* Feature Chips */}
-                <div className="flex flex-wrap gap-2 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                    {[
-                        { icon: FileTextIcon, text: 'Upload PDFs' },
-                        { icon: BrainCircuitIcon, text: 'AI Flashcards' },
-                        { icon: PenLineIcon, text: 'Smart Quizzes' },
-                        { icon: MessageCircleIcon, text: 'AI Chat' },
-                    ].map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-slate-700 border-2 border-slate-200 hover:border-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 transition-all duration-200 shadow-sm cursor-default">
-                            <item.icon className="size-3.5 text-emerald-500" />
-                            <span>{item.text}</span>
+                            <div className="mt-8 grid w-full grid-cols-3 gap-3 border-t border-slate-200 pt-6 sm:max-w-lg">
+                                {[
+                                    ["10K+", "Docs studied"],
+                                    ["50K+", "Cards created"],
+                                    ["4.9/5", "Learner rating"],
+                                ].map(([value, label]) => (
+                                    <div key={label}>
+                                        <p className="text-xl font-black text-slate-950 md:text-2xl">{value}</p>
+                                        <p className="mt-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">{label}</p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    ))}
-                </div>
-            </div>
 
-            {/* RIGHT: Floating Illustration */}
-            <div className="relative w-full lg:w-[48%] flex justify-center items-center mt-6 lg:mt-0 min-h-[420px] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                        <div className="relative mx-auto w-full max-w-145">
+                            <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-950 p-2 shadow-[0_30px_80px_rgba(15,23,42,0.22)]">
+                                <div className="flex items-center gap-1.5 border-b border-white/10 px-3 py-2">
+                                    <span className="size-2 rounded-full bg-red-400" />
+                                    <span className="size-2 rounded-full bg-yellow-400" />
+                                    <span className="size-2 rounded-full bg-emerald-400" />
+                                    <div className="ml-4 h-5 flex-1 rounded-full bg-white/10" />
+                                </div>
 
-                {/* Glow behind */}
-                <div className="absolute w-[85%] h-[85%] bg-linear-to-br from-emerald-200/60 to-teal-200/50 rounded-full blur-[60px] -z-10" />
+                                <div className="grid gap-2 rounded-[1.25rem] bg-[#EEF6F2] p-3 sm:grid-cols-[0.86fr_1fr] sm:p-4">
+                                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                                        <div className="mb-5 flex items-center justify-between">
+                                            <div>
+                                                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Document</p>
+                                                <p className="mt-1 text-lg font-black text-slate-950">Neural Notes.pdf</p>
+                                            </div>
+                                            <div className="flex size-10 items-center justify-center rounded-xl bg-slate-950 text-white">
+                                                <UploadCloudIcon className="size-5" />
+                                            </div>
+                                        </div>
 
-                {/* Center container */}
-                <div className="relative w-[360px] h-[360px] md:w-[400px] md:h-[400px] rounded-3xl border-2 border-emerald-100 bg-white/60 backdrop-blur-xl shadow-2xl shadow-emerald-500/15 flex items-center justify-center animate-float">
+                                        <div className="space-y-3">
+                                            <div className="h-3 w-full rounded-full bg-slate-100" />
+                                            <div className="h-3 w-10/12 rounded-full bg-slate-100" />
+                                            <div className="h-3 w-8/12 rounded-full bg-slate-100" />
+                                        </div>
 
-                    {/* PDF Card — top-left */}
-                    <div className="absolute -top-4 -left-4 p-3 bg-white rounded-2xl shadow-xl shadow-slate-300/50 -rotate-6 border border-slate-100 animate-float" style={{ animationDelay: '0.5s' }}>
-                        <div className="w-14 h-18 bg-red-50 rounded-lg border border-red-200 flex flex-col items-center justify-center gap-1.5 p-2">
-                            <div className="w-8 h-0.5 bg-red-400 rounded" />
-                            <div className="w-6 h-0.5 bg-red-300 rounded" />
-                            <div className="w-7 h-0.5 bg-red-300 rounded" />
-                            <span className="text-[9px] text-red-600 font-bold mt-0.5">PDF</span>
-                        </div>
-                    </div>
+                                        <div className="mt-6 rounded-2xl bg-slate-50 p-3">
+                                            <div className="mb-3 flex items-center justify-between">
+                                                <p className="text-xs font-black text-slate-700">Learning queue</p>
+                                                <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black text-emerald-700">Live</span>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {activityItems.map((item) => (
+                                                    <div key={item.label} className="flex items-center gap-2 rounded-xl bg-white p-2 shadow-sm">
+                                                        <div className={`flex size-8 items-center justify-center rounded-lg ${item.bg} ${item.color}`}>
+                                                            <item.icon className="size-4" />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate text-xs font-bold text-slate-700">{item.label}</p>
+                                                        </div>
+                                                        <span className="text-xs font-black text-slate-950">{item.value}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
 
-                    {/* Flashcard — bottom-right */}
-                    <div className="absolute -bottom-4 -right-4 p-3 bg-white rounded-2xl shadow-xl shadow-slate-300/50 rotate-6 border border-slate-100 animate-float" style={{ animationDelay: '1s' }}>
-                        <div className="w-32 bg-emerald-50 rounded-xl border border-emerald-200 p-3 space-y-2">
-                            <div className="w-full h-1.5 bg-emerald-300 rounded" />
-                            <div className="w-3/4 h-1 bg-emerald-200 rounded" />
-                            <div className="flex justify-between pt-1">
-                                <div className="px-2 py-1 bg-emerald-500 rounded-lg text-[7px] text-white font-bold">Flip ↩</div>
-                                <div className="px-2 py-1 bg-slate-100 rounded-lg border border-slate-200 text-[7px] text-slate-500">Next</div>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                                            <div className="mb-4 flex items-center justify-between">
+                                                <p className="text-sm font-black text-slate-950">Quiz preview</p>
+                                                <GraduationCapIcon className="size-5 text-emerald-600" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                {["What does retrieval practice improve?", "Long term recall", "Page count", "File size"].map((item, index) => (
+                                                    <div
+                                                        key={item}
+                                                        className={`rounded-xl border px-3 py-2 text-xs font-bold ${index === 1 ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-slate-50 text-slate-600"}`}
+                                                    >
+                                                        {item}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                                            <div className="mb-3 flex items-center gap-2">
+                                                <MessageCircleIcon className="size-4 text-blue-600" />
+                                                <p className="text-sm font-black text-slate-950">AI explanation</p>
+                                            </div>
+                                            <p className="text-xs font-semibold leading-5 text-slate-600">
+                                                Retrieval practice strengthens memory by actively recalling ideas instead of rereading them.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                                <div className="rounded-2xl border border-lime-200 bg-lime-50 px-4 py-3 shadow-sm">
+                                    <p className="text-[11px] font-black uppercase tracking-wide text-lime-800">Study lift</p>
+                                    <p className="mt-1 text-2xl font-black text-slate-950">32%</p>
+                                    <p className="text-xs font-semibold text-slate-600">faster reviews</p>
+                                </div>
+
+                                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                                            <BrainCircuitIcon className="size-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-black text-slate-900">Gemini AI</p>
+                                            <p className="text-xs font-semibold text-slate-500">context aware</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Brain Icon — top-right */}
-                    <div className="absolute -top-5 -right-5 p-3 bg-white rounded-2xl shadow-xl shadow-slate-300/50 rotate-12 border border-slate-100 animate-float-slow" style={{ animationDelay: '1.5s' }}>
-                        <div className="size-14 rounded-2xl bg-linear-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/30">🧠</div>
-                    </div>
-
-                    {/* Quiz Checkboxes — bottom-left */}
-                    <div className="absolute -bottom-5 -left-5 p-3.5 bg-white rounded-2xl shadow-xl shadow-slate-300/50 -rotate-3 border border-slate-100 animate-float-slow" style={{ animationDelay: '2s' }}>
-                        <div className="flex flex-col gap-2">
-                            {[
-                                { checked: true, width: 'w-16' },
-                                { checked: false, width: 'w-11' },
-                                { checked: false, width: 'w-14' },
-                            ].map((row, i) => (
-                                <div key={i} className="flex items-center gap-2">
-                                    <div className={`size-5 rounded border ${row.checked ? 'bg-emerald-100 border-emerald-400' : 'bg-white border-slate-300'} flex items-center justify-center`}>
-                                        {row.checked && <CheckIcon className="size-3 text-emerald-600" strokeWidth={3} />}
-                                    </div>
-                                    <div className={`${row.width} h-1.5 bg-slate-200 rounded`} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Chat bubble — mid-left */}
-                    <div className="absolute top-[40%] -left-8 p-2.5 bg-white rounded-2xl shadow-xl shadow-slate-300/50 border border-slate-100 animate-float" style={{ animationDelay: '0.8s' }}>
-                        <div className="bg-teal-50 rounded-xl px-3.5 py-2.5 border border-teal-200">
-                            <p className="text-[9px] text-teal-800 font-semibold">What is AI?</p>
-                            <p className="text-[8px] text-teal-600 mt-1">AI stands for...</p>
-                        </div>
-                    </div>
-
-                    {/* Center badge */}
-                    <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border border-slate-200 text-center">
-                        <p className="text-sm font-bold text-slate-800">StudyFlow</p>
-                        <p className="text-[11px] text-slate-500 font-medium mt-0.5">AI Learning Engine</p>
-                        <div className="flex gap-1 justify-center mt-2">
-                            <span className="size-1.5 rounded-full bg-emerald-400" />
-                            <span className="size-1.5 rounded-full bg-teal-400" />
-                            <span className="size-1.5 rounded-full bg-blue-400" />
-                        </div>
-                    </div>
                 </div>
-
-                {/* Stat Badges */}
-                <div className="absolute right-0 lg:-right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2.5 z-10">
-                    {[
-                        { emoji: '⭐', label: '4.9 Rating', bg: 'bg-yellow-50', border: 'border-yellow-200' },
-                        { emoji: '📄', label: '10K+ Docs', bg: 'bg-blue-50', border: 'border-blue-200' },
-                        { emoji: '🧠', label: '50K+ Cards', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-                    ].map((stat, i) => (
-                        <div key={i} className={`px-3.5 py-2 bg-white rounded-full shadow-md border ${stat.border} flex items-center gap-2 text-[11px] font-bold text-slate-700 whitespace-nowrap hover:-translate-y-0.5 transition-transform duration-200`}>
-                            <span className={`size-5 rounded-full ${stat.bg} flex items-center justify-center text-[10px]`}>{stat.emoji}</span>
-                            {stat.label}
-                        </div>
-                    ))}
-                </div>
-
-                <p className="absolute -bottom-8 text-center text-[10px] font-semibold text-slate-500 w-full tracking-wide">
-                    Powered by Google Gemini AI · Secure Cloud Storage
-                </p>
             </div>
         </section>
     );
