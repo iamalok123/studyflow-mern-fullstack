@@ -2,7 +2,7 @@
   <img src="https://img.shields.io/badge/StudyFlow-AI%20Learning%20Platform-10B981?style=for-the-badge&logo=bookstack&logoColor=white" alt="StudyFlow" />
 </p>
 
-<h1 align="center">📚 StudyFlow — AI-Powered Document Learning Platform</h1>
+<h1 align="center">📚 StudyFlow — AI-Powered Document Learning Assistance</h1>
 
 <p align="center">
   <strong>Upload PDFs. Generate Flashcards & Quizzes. Chat with AI. Track Progress.</strong><br/>
