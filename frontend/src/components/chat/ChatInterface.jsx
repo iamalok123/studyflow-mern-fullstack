@@ -86,7 +86,7 @@ const ChatInterface = () => {
           ? 'bg-slate-950 text-white rounded-tr-none'
           : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
           }`}>
-          <div className={isUser ? '[&_*]:!text-white [&_a]:!text-white [&_code]:!bg-white/10 [&_code]:!text-white' : ''}>
+          <div className={isUser ? '**:text-white! [&_a]:text-white! [&_code]:bg-white/10! [&_code]:text-white!' : ''}>
             <MarkdownRenderer content={msg.content} />
           </div>
           <p className={`text-[10px] sm:text-xs mt-1 ${isUser ? 'text-slate-300' : 'text-slate-400'}`}>
