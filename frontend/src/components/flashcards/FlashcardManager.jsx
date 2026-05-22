@@ -169,12 +169,12 @@ const FlashcardManager = ({ documentId }) => {
             <button
               onClick={handlePreviousCard}
               disabled={selectedSet.cards.length <= 1}
-              className='group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 h-10 sm:h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 disabled:hover:text-slate-700'
+              className='group app-secondary-action gap-1.5 sm:gap-2 px-3 sm:px-5 h-10 sm:h-11 disabled:hover:bg-white disabled:hover:text-slate-800'
             >
               <ChevronLeft className='w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200' strokeWidth={2.5} />
               <span className='hidden sm:inline'>Previous</span>
             </button>
-            <div className='px-3 sm:px-4 py-2 bg-slate-50 rounded-lg border border-slate-200 font-medium'>
+            <div className='px-3 sm:px-4 py-2 bg-white rounded-full border border-slate-200 font-medium shadow-sm'>
               <span className='text-xs sm:text-sm font-semibold text-slate-700'>
                 {currentCardIndex + 1}{" "}
                 <span className='text-slate-400 font-normal'>/</span>{" "}
@@ -184,7 +184,7 @@ const FlashcardManager = ({ documentId }) => {
             <button
               onClick={handleNextCard}
               disabled={selectedSet.cards.length <= 1}
-              className='group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 h-10 sm:h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 disabled:hover:text-slate-700'
+              className='group app-secondary-action gap-1.5 sm:gap-2 px-3 sm:px-5 h-10 sm:h-11 disabled:hover:bg-white disabled:hover:text-slate-800'
             >
               <span className='hidden sm:inline'>Next</span>
               <ChevronRight className='w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200' strokeWidth={2.5} />
@@ -207,7 +207,7 @@ const FlashcardManager = ({ documentId }) => {
     if (flashcardSets.length === 0) {
       return (
         <div className='flex flex-col items-center justify-center py-16'>
-          <div className='inline-flex items-center justify-center h-16 w-16 rounded-xl bg-linear-to-r from-emerald-100 to-teal-100 mb-6'>
+          <div className='inline-flex items-center justify-center h-16 w-16 app-muted-icon-tile mb-6'>
             <Brain className='w-8 h-8 text-emerald-600' />
           </div>
           <h3 className='text-xl font-semibold text-slate-900 mb-2'>No Flashcards Yet</h3>
@@ -215,7 +215,7 @@ const FlashcardManager = ({ documentId }) => {
           <button
             onClick={handleGenerateFlashcards}
             disabled={generating}
-            className='group inline-flex items-center px-6 h-12  bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 gap-2 mx-auto'
+            className='group app-primary-action h-12 mx-auto'
           >
             {generating ? (
               <>
@@ -249,7 +249,7 @@ const FlashcardManager = ({ documentId }) => {
           <button
             onClick={handleGenerateFlashcards}
             disabled={generating}
-            className='group inline-flex items-center gap-2 px-5 h-11 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-300'
+            className='group app-primary-action h-11'
           >
             {generating ? (
               <>
@@ -271,7 +271,7 @@ const FlashcardManager = ({ documentId }) => {
             <div
               key={set._id}
               onClick={() => handleSelectedSet(set)}
-              className='group relative bg-white/80 backdrop-blur-xl border-2 border-slate-200/60 hover:border-emerald-300 rounded-2xl shadow-xl shadow-slate-200/50 p-6 hover:shadow-2xl transition-all duration-200 cursor-pointer'
+              className='group relative app-panel app-panel-hover p-6 cursor-pointer'
             >
               {/* Delete Button */}
               <button
@@ -283,7 +283,7 @@ const FlashcardManager = ({ documentId }) => {
 
               {/* Set Content */}
               <div className='space-y-4'>
-                <div className='inline-flex items-center justify-center h-12 w-12 rounded-xl bg-linear-to-r from-emerald-100 to-teal-100'>
+                <div className='inline-flex items-center justify-center h-12 w-12 app-muted-icon-tile'>
                   <Brain className='w-6 h-6 text-emerald-600' />
                 </div>
                 <div>
@@ -313,7 +313,7 @@ const FlashcardManager = ({ documentId }) => {
 
   return (
     <>
-      <div className='bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-xl shadow-slate-200/50 p-8'>
+      <div className='app-panel p-5 sm:p-8'>
         {selectedSet ? (
           renderFlashcardViewer()
         ) : (
@@ -336,7 +336,7 @@ const FlashcardManager = ({ documentId }) => {
               type='button'
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={deleting}
-              className='px-5 h-11 text-slate-100 hover:text-slate-200 bg-slate-700 hover:bg-slate-800 font-medium text-sm rounded-xl transition-all duration-200'
+              className='app-secondary-action h-11 px-5'
             >
               Cancel
             </button>

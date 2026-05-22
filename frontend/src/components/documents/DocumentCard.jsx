@@ -34,12 +34,12 @@ const DocumentCard = ({ document, onDelete }) => {
   return (
     <div
       onClick={handleNavigate}
-      className='relative group bg-white/80 backdrop-blur-xl border border-slate-200/50 rounded-xl p-5 hover:border-slate-300/60 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1'
+      className='relative group app-panel app-panel-hover p-5 flex flex-col justify-between cursor-pointer'
     >
       {/* Handle Selection */}
       <div>
         <div className='flex items-start justify-between gap-3 mb-4'>
-          <div className='shrink-0 w-12 h-12 bg-linear-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:scale-110 transition-transform duration-300'>
+          <div className='shrink-0 w-12 h-12 app-icon-tile group-hover:scale-110 transition-transform duration-300'>
             <FileText
               className='w-6 h-6 text-white'
               strokeWidth={2}
@@ -74,12 +74,12 @@ const DocumentCard = ({ document, onDelete }) => {
         {/* Stats Section */}
         <div className='flex items-center gap-3'>
           {document.flashcardCount !== undefined && (
-            <div className='flex items-center gap-1.5 px-2.5 py-1.5 bg-purple-50 rounded-lg'>
+            <div className='flex items-center gap-1.5 px-2.5 py-1.5 bg-[#EEF6F2] border border-emerald-100 rounded-lg'>
               <BookOpen
-                className='w-3.5 h-3.5 text-purple-700'
+                className='w-3.5 h-3.5 text-emerald-600'
                 strokeWidth={2}
               />
-              <span className='text-xs font-semibold text-purple-700'>{document.flashcardCount} Flashcards</span>
+              <span className='text-xs font-semibold text-emerald-700'>{document.flashcardCount} Flashcards</span>
             </div>
           )}
 

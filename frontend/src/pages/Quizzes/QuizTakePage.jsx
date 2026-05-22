@@ -102,7 +102,7 @@ const QuizTakePage = () => {
   const answeredCount = Object.keys(selectedAnswers).length;
 
   return (
-    <div className='max-w-4xl mx-auto px-4 sm:px-6'>
+    <div className='app-page max-w-4xl px-0 sm:px-2'>
       <PageHeader title={quiz?.title || "Take Quiz"} />
 
       {/* Progress Bar */}
@@ -126,7 +126,7 @@ const QuizTakePage = () => {
       </div>
 
       {/* Question Card */}
-      <div className='bg-white/80 backdrop-blur-xl border-2 border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 p-6 mb-8'>
+      <div className='app-panel p-6 mb-8'>
         <div className='inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl mb-6'>
           <div className='w-2 h-2 bg-emerald-500 rounded-full animate-pulse' />
           <span className='text-sm font-semibold text-emerald-700'>
@@ -146,8 +146,8 @@ const QuizTakePage = () => {
               <label
                 key={index}
                 className={`group relative flex items-center p-3 border-2 rounded-xl cursor-pointer transition-all duration-200 ${isSelected
-                  ? 'bg-emerald-50 border-emerald-500 shadow-lg shadow-emerald-500/20'
-                  : 'border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-white hover:shadow-md hover:shadow-slate-200/50'
+                ? 'bg-[#EEF6F2] border-emerald-500 shadow-lg shadow-emerald-500/15'
+                  : 'border-slate-200 bg-white hover:border-emerald-200 hover:bg-[#EEF6F2]/60 hover:shadow-md hover:shadow-emerald-500/10'
                   }`}
               >
                 <input
@@ -197,7 +197,7 @@ const QuizTakePage = () => {
         <button
           onClick={handlePreviousQuestion}
           disabled={currentQuestionIndex === 0 || submitting}
-          className='flex items-center gap-1 px-4 py-2.5 sm:px-6 sm:py-3 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium text-slate-700'
+          className='app-secondary-action gap-1 px-4 py-2.5 sm:px-6 sm:py-3 disabled:opacity-50 disabled:cursor-not-allowed'
         >
           <ChevronLeft className='w-4 h-4 sm:w-5 sm:h-5' strokeWidth={2.5} />
           <span>Previous</span>
@@ -207,7 +207,7 @@ const QuizTakePage = () => {
           <button
             onClick={handleSubmitQuiz}
             disabled={submitting}
-            className='flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium'
+            className='app-primary-action gap-2 px-4 py-2.5 sm:px-6 sm:py-3 disabled:opacity-50 disabled:cursor-not-allowed'
           >
             {submitting ? (
               <>
@@ -225,7 +225,7 @@ const QuizTakePage = () => {
           <button
             onClick={handleNextQuestion}
             disabled={submitting}
-            className='flex items-center gap-3 px-4 py-2.5 sm:px-6 sm:py-3 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-sm font-medium'
+            className='app-primary-action gap-3 px-4 py-2.5 sm:px-6 sm:py-3 disabled:opacity-50 disabled:cursor-not-allowed'
           >
             <span>Next</span>
             <ChevronRight className='w-4 h-4 sm:w-5 sm:h-5' strokeWidth={2.5} />

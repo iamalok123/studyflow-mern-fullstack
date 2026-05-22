@@ -54,18 +54,16 @@ const LoginPage = () => {
 
 
   return (
-    <div className='flex items-center justify-center min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100'>
-
-      <div className='absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] opacity-30' />
+    <div className='flex items-center justify-center min-h-screen app-bg'>
 
       <div className='relative px-6  w-full max-w-md'>
-        <div className='bg-white/20 backdrop-blur-xl border border-slate-200/20 rounded-3xl shadow-xl shadow-slate-200/50 p-10'>
+        <div className='app-panel rounded-3xl p-10'>
           {/* Header */}
           <div className='text-center mb-10'>
-            <div className='inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/25 mb-4'>
+            <div className='inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-950 shadow-lg shadow-slate-950/15 mb-4'>
               <img src="/logo2.svg" alt="logo2" />
             </div>
-            <h1 className='text-2xl font-medium text-slate-900 tracking-tight mb-2'>
+            <h1 className='text-2xl font-black text-slate-950 tracking-tight mb-2'>
               Welcome back
             </h1>
             <p className='text-slate-500 text-sm'>
@@ -92,7 +90,7 @@ const LoginPage = () => {
                   onBlur={() => setFocusedField(null)}
                   required
                   autoComplete="email"
-                  className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50  text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/20"
+                  className="app-input h-12 rounded-xl pl-12 pr-4"
                   placeholder='you@example.com'
                 />
               </div>
@@ -115,7 +113,7 @@ const LoginPage = () => {
                   onBlur={() => setFocusedField(null)}
                   required
                   autoComplete="current-password"
-                  className='w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50  text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/20'
+                  className='app-input h-12 rounded-xl pl-12 pr-4'
                   placeholder='••••••••'
                 />
               </div>
@@ -132,7 +130,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className='group relative w-full h-12 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-emerald-500/25 overflow-hidden'
+              className='group app-primary-action relative w-full h-12 overflow-hidden'
             >
               <span className='relative z-10 flex items-center justify-center gap-2'>
                 {loading ? (

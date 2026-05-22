@@ -142,7 +142,7 @@ const FlashcardPage = () => {
             <ChevronLeft size={16} />
             Previous
           </Button>
-          <span className='text-sm font-medium text-neutral-600'>
+          <span className='app-pill normal-case tracking-normal'>
             {currentCardIndex + 1} / {flashcards.length}
           </span>
           <Button
@@ -158,11 +158,11 @@ const FlashcardPage = () => {
   };
 
   return (
-    <div>
+    <div className='app-page'>
       <div className='mb-4'>
         <Link
           to={`/documents/${documentId}`}
-          className='inline-flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors'
+          className='inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-emerald-700 transition-colors'
         >
           <ArrowLeft size={20} />
           Back to Document
@@ -212,7 +212,7 @@ const FlashcardPage = () => {
         title="Confirm Delete Flashcard Set"
       >
         <div className='space-y-4'>
-          <p className='text-neutral-600 text-sm'>
+          <p className='text-slate-600 text-sm'>
             Are you sure you want to delete all flashcards for this document? This action can't be undone.
           </p>
 

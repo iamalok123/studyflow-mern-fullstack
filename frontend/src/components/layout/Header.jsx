@@ -6,12 +6,12 @@ const Header = ({ toggleSidebar }) => {
   const { user } = useAuth();
 
   return (
-    <header className='sticky top-0 z-40 w-full h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 '>
+    <header className='sticky top-0 z-40 w-full h-16 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl'>
       <div className='flex items-center justify-between h-full px-6'>
         {/* Mobile Menu Button */}
         <button
           onClick={toggleSidebar}
-          className='md:hidden inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all duration-200'
+          className='md:hidden inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-950 hover:bg-emerald-50 hover:border-emerald-200 border border-transparent rounded-xl transition-all duration-200'
           aria-label="Toggle Sidebar"
         >
           <Menu size={24} />
@@ -20,7 +20,7 @@ const Header = ({ toggleSidebar }) => {
         <div className='hidden md:block'></div>
 
         <div className='flex items-center gap-3'>
-          <button className='relative inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all duration-200 group'>
+          <button className='relative inline-flex items-center justify-center w-10 h-10 text-slate-600 hover:text-slate-950 hover:bg-emerald-50 hover:border-emerald-200 border border-transparent rounded-xl transition-all duration-200 group'>
             <Bell
               size={20}
               strokeWidth={2}
@@ -32,8 +32,8 @@ const Header = ({ toggleSidebar }) => {
 
           {/* User Profile */}
           <div className='flex items-center gap-3 pl-3 border-l border-slate-200/60'>
-            <div className='flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-colors duration-200 cursor-pointer group'>
-              <div className='w-9 h-9 rounded-xl overflow-hidden bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:shadow-lg group-hover:shadow-emerald-500/30 transition-all duration-200'>
+            <div className='flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-emerald-50/70 transition-colors duration-200 cursor-pointer group'>
+              <div className='w-9 h-9 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center text-white shadow-md shadow-slate-950/15 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-200'>
                 {user?.profileImage ? (
                   <img
                     src={user.profileImage}

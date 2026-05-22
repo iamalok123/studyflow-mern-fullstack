@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import React from 'react'
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, panelClassName = 'max-w-lg p-8' }) => {
   if (!isOpen) return null;
   return (
     <div className='fixed inset-0 z-50 overflow-y-auto'>
@@ -11,10 +11,10 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           onClick={onClose}
         >
         </div>
-        <div className='relative w-full max-w-lg bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-2xl shadow-slate-200/50 p-8 z-10 animate-in fade-in slide-in-from-bottom-4 duration-300'>
+        <div className={`relative w-full app-panel ${panelClassName} z-10 animate-in fade-in slide-in-from-bottom-4 duration-300`}>
           <button
             onClick={onClose}
-            className='absolute top-6 right-6 h-8 w-8 flex items-center justify-center rounded-lg text-slate-800 bg-slate-200 hover:bg-slate-300 transition-colors duration-300'
+            className='absolute top-6 right-6 h-8 w-8 flex items-center justify-center rounded-lg text-slate-600 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 transition-colors duration-300'
           >
             <X
               className='w-5 h-5'
@@ -23,7 +23,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
           </button>
 
           <div className='mb-6 pr-8'>
-            <h3 className='text-2xl font-medium text-slate-900 tracking-tight'>{title}</h3>
+            <h3 className='text-2xl font-black text-slate-950 tracking-tight'>{title}</h3>
           </div>
 
           <div>

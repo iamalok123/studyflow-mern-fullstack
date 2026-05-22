@@ -108,60 +108,55 @@ const QuizManager = ({ documentId }) => {
   };
 
   return (
-    <div className='bg-white border border-neutral-200 rounded-lg p-6'>
-      <div className='flex justify-end gap-2 mb-4'>
+    <div className='app-panel p-5 sm:p-6'>
+      <div className='relative flex justify-end gap-2 mb-4'>
         <button
           onClick={() => setIsGenerateModalOpen(true)}
-          className='group inline-flex items-center gap-2 px-5 h-11 bg-linear-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-300'
+          className='group app-primary-action h-11'
         >
           <Plus size={16} />
           Generate Quiz
         </button>
+
+        {isGenerateModalOpen && (
+          <div className='absolute right-0 top-14 z-20 w-full max-w-sm app-panel p-5'>
+            <form onSubmit={handleGenerateQuizzes} className='space-y-5'>
+              <div className='space-y-2'>
+                <label className='pl-1 block text-sm font-bold text-slate-700'>
+                  Number of Questions
+                </label>
+                <input
+                  type='number'
+                  value={numQuestions}
+                  onChange={(e) => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1))}
+                  min={1}
+                  max={20}
+                  required
+                  className='app-input rounded-xl px-4 py-3'
+                />
+              </div>
+              <div className='grid grid-cols-2 gap-2'>
+                <Button
+                  type='button'
+                  variant='secondary'
+                  onClick={() => setIsGenerateModalOpen(false)}
+                  disabled={generating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type='submit'
+                  disabled={generating}
+                >
+                  {generating ? "Generating..." : 'Generate'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
 
       {renderQuizContent()}
-
-      {/* Generate Quiz */}
-      <Modal
-        isOpen={isGenerateModalOpen}
-        onClose={() => setIsGenerateModalOpen(false)}
-        title="Generate New Quiz"
-      >
-        <form onSubmit={handleGenerateQuizzes} className='space-y-4'>
-          <div className='space-y-2'>
-            <label className='pl-1 block text-sm font-medium text-slate-700'>
-              Number of Questions
-            </label>
-            <input
-              type='number'
-              value={numQuestions}
-              onChange={(e) => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1))}
-              min={1}
-              max={20}
-              required
-              className='w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none'
-            />
-          </div>
-          <div className='flex justify-end gap-2'>
-            <Button
-              type='button'
-              variant='secondary'
-              onClick={() => setIsGenerateModalOpen(false)}
-              disabled={generating}
-              className='bg-slate-200 hover:bg-slate-300 hover:text-slate-900 text-slate-900 text-sm font-semibold'
-            >
-              Cancel
-            </Button>
-            <Button
-              type='submit'
-              disabled={generating}
-              className='bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
-            >
-              {generating ? "Generating..." : 'Generate'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal

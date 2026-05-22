@@ -1,24 +1,21 @@
 import React from 'react'
 
-const Tabs = ({ tabs, activeTab, onChange }) => {
+const Tabs = ({ tabs, activeTab, onChange, className = '' }) => {
   return (
-    <div className='w-full'>
-      <div className='relative border-b-2 border-slate-100'>
-        <nav className='flex'>
+    <div className={`w-full ${className}`}>
+      <div className='relative rounded-2xl border border-slate-200/80 bg-white/80 p-1 shadow-sm'>
+        <nav className='grid grid-cols-2 gap-1 min-[420px]:grid-cols-3 sm:flex sm:flex-wrap sm:overflow-visible'>
           {tabs.map((tab) => (
             <button
               key={tab.name}
               onClick={() => onChange(tab.name)}
-              className={`relative pb-4 px-2.5 md:px-6 text-sm font-semibold transition-all duration-200 ${activeTab === tab.name ? 'text-emerald-600' : 'text-gray-800'}`}
+              className={`relative min-w-0 rounded-xl px-2.5 py-2.5 text-center text-xs font-bold transition-all duration-200 sm:flex-1 sm:px-3 sm:text-sm md:px-5 ${activeTab === tab.name ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/10' : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'}`}
             >
-              <span className='relative z-10'>
+              <span className='relative z-10 block truncate'>
                 {tab.label}
               </span>
               {activeTab === tab.name && (
-                <div className='absolute left-0 right-0 bottom-0 h-0.5 bg-linear-to-r from-emerald-500 to-teal-500 rounded-full shadow-lg shadow-emerald-500/50'></div>
-              )}
-              {activeTab === tab.name && (
-                <div className='absolute inset-0 bg-linear-to-b from-emerald-50/50 to-transparent rounded-t-xl -z-10'></div>
+                <div className='absolute inset-x-4 bottom-1 h-0.5 rounded-full bg-emerald-400'></div>
               )}
             </button>
           ))}

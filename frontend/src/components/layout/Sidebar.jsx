@@ -47,7 +47,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white/90 backdrop-blur-lg border-r border-slate-200/60 z-50 md:relative md:w-64 md:shrink-0 md:flex md:flex-col md:translate-x-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed top-0 left-0 h-full w-64 border-r border-slate-200/80 bg-white/95 backdrop-blur-lg z-50 md:relative md:w-64 md:shrink-0 md:flex md:flex-col md:translate-x-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Logo and Close button for mobile */}
         <div className='flex items-center justify-between px-5 h-16 border-b border-slate-200/60'>
@@ -56,7 +56,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
           </div>
           <button
             onClick={toggleSidebar}
-            className='md:hidden text-slate-500 hover:text-slate-900'
+            className='md:hidden text-slate-500 hover:text-slate-950'
             aria-label="Close Sidebar"
           >
             <X size={24} />
@@ -72,8 +72,8 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
               onClick={toggleSidebar}
               className={({ isActive }) =>
                 `group flex items-center gap-3 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 ${isActive
-                  ? 'bg-linear-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20'
-                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/15'
+                  : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
                 }`
               }
             >
@@ -95,7 +95,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         <div className='px-4 py-4 border-t border-slate-200/60'>
           <button
             onClick={handleLogout}
-            className='group flex items-center gap-3 w-full px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+            className='group flex items-center gap-3 w-full px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
           >
             <LogOut
               size={20}

@@ -55,29 +55,29 @@ const AiActions = () => {
 
   return (
     <>
-      <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden">
+      <div className="app-panel overflow-hidden">
         {/* Header */}
-        <div className='px-6 py-5 border-b border-slate-200/60 bg-linear-to-r from-slate-50 to-white/50'>
+        <div className='px-6 py-5 border-b border-slate-200/80 bg-[#EEF6F2]/70'>
           <div className='flex items-center gap-3'>
-            <div className='h-10 w-10 flex items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-emerald-600'>
+            <div className='h-10 w-10 app-icon-tile'>
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className='text-neutral-800 font-semibold text-lg'>AI Assistant</h3>
-              <p className='text-neutral-600 text-xs'>Powered by advanced AI</p>
+              <h3 className='text-slate-950 font-black text-lg'>AI Assistant</h3>
+              <p className='text-slate-600 text-xs font-medium'>Powered by advanced AI</p>
             </div>
           </div>
         </div>
 
         <div className='p-6 space-y-6'>
           {/* Generate Summary */}
-          <div className='group p-5 bg-linear-to-br from-slate-50/50 to-white/50 rounded-xl border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:-translate-y-1'>
+          <div className='group app-soft-panel p-5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:bg-white'>
             <div className='flex items-center justify-between gap-4'>
               <div className='flex-1'>
                 <div className='flex items-start justify-start gap-2 mb-2'>
-                  <div className='h-8 w-8 rounded-lg bg-linear-to-br from-blue-100 to-cyan-100 flex items-center justify-center'>
+                  <div className='h-8 w-8 app-muted-icon-tile'>
                     <BookOpen
-                      className="w-4 h-4 text-blue-600"
+                      className="w-4 h-4 text-emerald-600"
                       strokeWidth={2}
                     />
                   </div>
@@ -92,7 +92,7 @@ const AiActions = () => {
               <button
                 onClick={handleGenerateSummary}
                 disabled={loadingAction === "summary"}
-                className='px-4 py-2 bg-linear-to-r from-teal-500 to-teal-600 text-white rounded-xl hover:shadow-lg hover:shadow-teal-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95'
+                className='app-primary-action h-10 px-4'
               >
                 {loadingAction === "summary" ? (
                   <span className='flex items-center gap-2'>
@@ -109,7 +109,7 @@ const AiActions = () => {
           </div>
 
           {/* Explain Concept */}
-          <div className='group p-5 bg-linear-to-br from-slate-50/50 to-white/50 rounded-xl border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:-translate-y-1'>
+          <div className='group app-soft-panel p-5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:bg-white'>
             <form onSubmit={handleExplainConcept}>
               <div className='flex items-center gap-2 mb-3'>
                 <div className='h-8 w-8 rounded-lg bg-linear-to-br from-amber-100 to-orange-100 flex items-center justify-center'>
@@ -131,14 +131,14 @@ const AiActions = () => {
                   value={concept}
                   onChange={(e) => setConcept(e.target.value)}
                   placeholder="e.g., 'React Hooks' or 'Promises'"
-                  className="flex-1 px-4 h-11 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-300 focus:outline-none focus:border-emerald-500"
+                  className="app-input flex-1 h-11 rounded-xl px-4"
                   disabled={loadingAction === "explain"}
                 />
 
                 <button
                   type="submit"
                   disabled={loadingAction === "explain" || !concept.trim()}
-                  className='shrink-0 px-5 h-11 bg-linear-to-r from-emerald-600 to-emerald-500 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95'
+                  className='app-primary-action shrink-0 h-11 px-5'
                 >
                   {loadingAction === "explain" ? (
                     <span className='flex items-center gap-2'>

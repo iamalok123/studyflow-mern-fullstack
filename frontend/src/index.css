@@ -30,6 +30,42 @@
 }
 
 @layer utilities {
+  .app-bg {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(16, 185, 129, 0.10), transparent 30%),
+      radial-gradient(circle at 78% 10%, rgba(20, 184, 166, 0.10), transparent 26%),
+      #F7FAF9;
+  }
+  .app-page {
+    @apply relative mx-auto w-full max-w-7xl;
+  }
+  .app-panel {
+    @apply rounded-2xl border border-slate-200/80 bg-white/90 shadow-[0_24px_70px_rgba(15,23,42,0.07)] backdrop-blur;
+  }
+  .app-panel-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_28px_80px_rgba(16,185,129,0.12)];
+  }
+  .app-soft-panel {
+    @apply rounded-2xl border border-slate-200 bg-[#EEF6F2]/70;
+  }
+  .app-icon-tile {
+    @apply flex items-center justify-center rounded-xl bg-slate-950 text-white shadow-lg shadow-slate-950/15;
+  }
+  .app-muted-icon-tile {
+    @apply flex items-center justify-center rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-600;
+  }
+  .app-primary-action {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-6 text-sm font-bold text-white shadow-xl shadow-slate-950/15 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .app-secondary-action {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-bold text-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .app-input {
+    @apply w-full border-2 border-slate-200 bg-slate-50/70 text-sm font-medium text-slate-900 placeholder:text-slate-400 transition-all duration-200 hover:border-emerald-300 hover:bg-white focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10;
+  }
+  .app-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-600;
+  }
   .font-serif-display {
     font-family: var(--font-display);
   }

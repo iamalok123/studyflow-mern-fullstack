@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { Star, RotateCcw } from 'lucide-react'
 
 const difficultyColors = {
-  Easy: 'bg-green-100 text-green-700 border border-green-200',
-  Medium: 'bg-orange-100 text-orange-700 border border-orange-200',
+  Easy: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  Medium: 'bg-lime-50 text-lime-800 border border-lime-200',
   Hard: 'bg-red-100 text-red-700 border border-red-200',
 };
 
@@ -26,7 +26,7 @@ const Flashcard = ({ flashcard, onToggleStar }) => {
       >
         {/* Front of the card (Question) */}
         <div
-          className='absolute inset-0 bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-xl shadow-slate-200/50 p-8 flex flex-col justify-between'
+          className='absolute inset-0 app-panel p-8 flex flex-col justify-between'
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden'
@@ -68,7 +68,7 @@ const Flashcard = ({ flashcard, onToggleStar }) => {
 
         {/* Back of the card (Answer) */}
         <div
-          className='absolute inset-0 bg-emerald-50/80 backdrop-blur-xl border border-emerald-200/60 rounded-2xl shadow-xl shadow-emerald-200/50 p-8 flex flex-col justify-between'
+          className='absolute inset-0 rounded-2xl border border-emerald-200 bg-[#EEF6F2]/95 shadow-[0_24px_70px_rgba(16,185,129,0.12)] backdrop-blur p-8 flex flex-col justify-between'
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',

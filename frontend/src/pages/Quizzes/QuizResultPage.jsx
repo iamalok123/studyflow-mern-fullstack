@@ -65,7 +65,7 @@ const QuizResultPage = () => {
   };
 
   return (
-    <div className='max-w-5xl mx-auto'>
+    <div className='app-page max-w-5xl'>
       {/* Back Button */}
       <div className='mb-6'>
         <Link
@@ -82,9 +82,9 @@ const QuizResultPage = () => {
       />
 
       {/* Score Card */}
-      <div className='bg-white/80 backdrop-blur-xl border-2 border-slate-200 rounded-2xl shadow-xl shadow-slate-200/50 p-8 mb-8'>
+      <div className='app-panel p-8 mb-8'>
         <div className='text-center space-y-6'>
-          <div className='inline-flex items-center justify-center h-15 w-15 rounded-2xl bg-linear-to-br from-emerald-100 to-teal-100 shadow-lg shadow-emerald-500/20'>
+          <div className='inline-flex items-center justify-center h-15 w-15 app-muted-icon-tile'>
             <Trophy className="h-7 w-7 text-emerald-700" strokeWidth={2} />
           </div>
 
@@ -141,7 +141,7 @@ const QuizResultPage = () => {
 
           return (
             <div key={index}
-              className='bg-white/80 backdrop-blur-xl border-2 border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50'
+              className='app-panel p-6'
             >
               <div className='flex items-start justify-between gap-4 mb-3'>
                 <div className='flex-1'>
@@ -213,7 +213,7 @@ const QuizResultPage = () => {
 
               {/* Explanation */}
               {result.explanation && (
-                <div className='p-4 bg-linear-to-br from-slate-50 to-slate-100/50 border border-slate-200 rounded-xl'>
+                <div className='p-4 bg-[#EEF6F2]/70 border border-emerald-100 rounded-xl'>
                   <div className='flex items-start gap-3'>
                     <div className='shrink-0 h-8 w-8 rounded-lg bg-slate-200 flex items-center justify-center mt-0.5'>
                       <BookOpen className='h-4 w-4 text-slate-600' strokeWidth={2} />
@@ -239,7 +239,7 @@ const QuizResultPage = () => {
           to={`/documents/${quiz.document._id}`}
         >
           <button
-            className="group relative px-8 h-12 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-sm font-semibold transition-all duration-200 shadow-xl shadow-emerald-500/20 active:scale-95 overflow-hidden"
+            className="group app-primary-action relative h-12 px-8 overflow-hidden"
           >
             <span className='relative z-10 flex items-center gap-2'>
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" strokeWidth={2.5} />

@@ -90,13 +90,11 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className='min-h-screen'>
-      <div className='absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px] opacity-30 pointer-events-none' />
-
-      <div className='relative max-w-3xl mx-auto'>
+    <div className='min-h-full'>
+      <div className='app-page max-w-3xl'>
         {/* Header */}
         <div className='mb-8'>
-          <h1 className='text-2xl font-medium text-slate-900 tracking-tight mb-2'>
+          <h1 className='text-2xl font-black text-slate-950 tracking-tight mb-2'>
             Profile Settings
           </h1>
           <p className='text-slate-500 text-sm'>
@@ -105,9 +103,9 @@ const ProfilePage = () => {
         </div>
 
         {/* Profile Card */}
-        <div className='bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-xl shadow-slate-200/50 p-8 mb-6'>
+        <div className='app-panel p-8 mb-6'>
           <div className='flex items-center gap-4 mb-8'>
-            <div className='w-16 h-16 rounded-2xl overflow-hidden bg-linear-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25'>
+            <div className='w-16 h-16 rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center shadow-lg shadow-slate-950/15'>
               {user?.profileImage ? (
                 <img
                   src={user.profileImage}
@@ -139,7 +137,7 @@ const ProfilePage = () => {
                   type='text'
                   value={profileData.username}
                   onChange={(e) => setProfileData({ ...profileData, username: e.target.value })}
-                  className='w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/20'
+                  className='app-input h-12 rounded-xl pl-12 pr-4'
                   placeholder='Your username'
                 />
               </div>
@@ -168,7 +166,7 @@ const ProfilePage = () => {
             <button
               type='submit'
               disabled={saving}
-              className='group relative w-full h-12 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-emerald-500/25 overflow-hidden'
+              className='group app-primary-action relative w-full h-12 overflow-hidden'
             >
               <span className='relative z-10 flex items-center justify-center gap-2'>
                 {saving ? (
@@ -189,9 +187,9 @@ const ProfilePage = () => {
         </div>
 
         {/* Change Password Card */}
-        <div className='bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl shadow-xl shadow-slate-200/50 p-8'>
+        <div className='app-panel p-8'>
           <div className='flex items-center gap-3 mb-6'>
-            <div className='h-10 w-10 rounded-xl bg-linear-to-br from-slate-100 to-slate-200 flex items-center justify-center shadow-lg shadow-slate-200/50'>
+            <div className='h-10 w-10 app-muted-icon-tile'>
               <Lock className='w-5 h-5 text-slate-600' strokeWidth={2} />
             </div>
             <h3 className='text-lg font-medium text-slate-900 tracking-tight'>Change Password</h3>
@@ -212,7 +210,7 @@ const ProfilePage = () => {
                   value={passwordData.currentPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                   required
-                  className='w-full h-12 pl-12 pr-12 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/20'
+                  className='app-input h-12 rounded-xl pl-12 pr-12'
                   placeholder='Enter current password'
                 />
                 <button
@@ -239,7 +237,7 @@ const ProfilePage = () => {
                   value={passwordData.newPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   required
-                  className='w-full h-12 pl-12 pr-12 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/20'
+                  className='app-input h-12 rounded-xl pl-12 pr-12'
                   placeholder='Enter new password (min 8 chars)'
                 />
                 <button
@@ -266,7 +264,7 @@ const ProfilePage = () => {
                   value={passwordData.confirmPassword}
                   onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   required
-                  className='w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/20'
+                  className='app-input h-12 rounded-xl pl-12 pr-4'
                   placeholder='Confirm new password'
                 />
               </div>
@@ -276,7 +274,7 @@ const ProfilePage = () => {
             <button
               type='submit'
               disabled={changingPassword}
-              className='group relative w-full h-12 bg-linear-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-emerald-500/25 overflow-hidden'
+              className='group app-primary-action relative w-full h-12 overflow-hidden'
             >
               <span className='relative z-10 flex items-center justify-center gap-2'>
                 {changingPassword ? (

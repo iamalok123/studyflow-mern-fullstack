@@ -16,11 +16,11 @@ const FlashcardSetCard = ({ flashcardSet }) => {
   const progressPercentage = totalCards > 0 ? Math.round((reviewedCount / totalCards) * 100) : 0;
 
   return (
-    <div className="group relative bg-white/80 backdrop-blur-xl border-2 border-slate-200 hover:border-emerald-300 rounded-2xl shadow-sm  overflow-hidden p-5 cursor-pointer hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-300 flex flex-col justify-between ">
+    <div className="group relative app-panel app-panel-hover overflow-hidden p-5 cursor-pointer flex flex-col justify-between">
       <div className="space-y-4">
         {/* Icon and Title */}
         <div className="flex items-start gap-4">
-          <div className="shrink-0 w-12 h-12 rounded-xl bg-linear-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+          <div className="shrink-0 w-12 h-12 app-muted-icon-tile">
             <BookOpen className="w-6 h-6 text-emerald-600" />
           </div>
           <div className="min-w-0 flex-1">
@@ -78,7 +78,7 @@ const FlashcardSetCard = ({ flashcardSet }) => {
             e.stopPropagation();
             handleStudyNow();
           }}
-          className="group/btn relative w-full h-11 bg-linear-to-r from-emerald-100 to-teal-200 text-emerald-600 hover:from-emerald-600 hover:to-teal-600 hover:text-white font-semibold rounded-lg transition-all duration-200 active:scale-95 overflow-hidden"
+          className="group/btn app-primary-action relative w-full h-11 overflow-hidden"
         >
           <span className="relative z-10 flex items-center justify-center gap-2">
             <Sparkles className="w-5 h-5" strokeWidth={2.5} />

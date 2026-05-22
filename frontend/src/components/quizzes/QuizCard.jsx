@@ -5,7 +5,7 @@ import moment from 'moment';
 
 const QuizCard = ({ quiz, onDelete }) => {
   return (
-    <div className='group relative bg-white/80 backdrop-blur-xl border-2 border-slate-200 hover:border-emerald-300 transition-all duration-200 rounded-2xl p-4 hover:shadow-lg hover:shadow-emerald-500/20 flex flex-col justify-between'>
+    <div className='group relative app-panel app-panel-hover p-4 flex flex-col justify-between'>
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -51,7 +51,7 @@ const QuizCard = ({ quiz, onDelete }) => {
         {quiz?.userAnswers?.length > 0 ? (
           <Link to={`/quizzes/${quiz._id}/results`} className='flex-1'>
             <button
-              className='group/btn w-full inline-flex items-center justify-center gap-2 h-11 bg-slate-200 hover:bg-slate-300 hover:text-slate-900 text-slate-900 text-sm font-semibold rounded-xl transition-all duration-300 active:scale-95 cursor-pointer'
+              className='group/btn app-secondary-action w-full h-11 cursor-pointer'
             >
               <BarChart2 className='h-4 w-4' strokeWidth={2.5} />
               View Results
@@ -60,7 +60,7 @@ const QuizCard = ({ quiz, onDelete }) => {
         ) : (
           <Link to={`/quizzes/${quiz._id}`} className='flex-1'>
             <button
-              className='group/btn relative w-full h-11 bg-linear-to-r from-emerald-400 to-teal-400 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm rounded-xl transition-all duration-200 shadow-emerald-500/30 active:scale-95 cursor-pointer overflow-hidden'
+              className='group/btn app-primary-action relative w-full h-11 cursor-pointer overflow-hidden'
             >
               <span className='relative z-10 flex items-center justify-center gap-2'>
                 <Play className='h-4 w-4' strokeWidth={2.5} />

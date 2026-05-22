@@ -55,11 +55,11 @@ const DocumentDetailPage = () => {
     const fileSizeMB = docData.fileSize ? (docData.fileSize / (1024 * 1024)).toFixed(2) : null;
 
     return (
-      <div className='bg-white border border-slate-300 rounded-lg overflow-hidden shadow-sm'>
+      <div className='app-panel overflow-hidden'>
         {/* Document info header */}
         <div className='p-6 border-b border-slate-200'>
           <div className='flex items-center gap-4'>
-            <div className='shrink-0 w-14 h-14 bg-emerald-50 rounded-xl flex items-center justify-center'>
+            <div className='shrink-0 w-14 h-14 app-muted-icon-tile'>
               <FileText size={28} className='text-emerald-600' />
             </div>
             <div className='flex-1 min-w-0'>
@@ -81,7 +81,7 @@ const DocumentDetailPage = () => {
         </div>
 
         {/* View PDF button */}
-        <div className='p-6 flex flex-col items-center gap-4 bg-slate-50'>
+        <div className='p-6 flex flex-col items-center gap-4 bg-[#EEF6F2]/70'>
           <p className='text-sm text-slate-600 text-center'>
             Your PDF is securely stored in the cloud. Click below to view it.
           </p>
@@ -89,7 +89,7 @@ const DocumentDetailPage = () => {
             href={pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className='inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 active:bg-emerald-800 transition-colors shadow-sm'
+            className='app-primary-action h-12'
           >
             <ExternalLink size={18} />
             View PDF
@@ -153,18 +153,18 @@ const DocumentDetailPage = () => {
   }
 
   return (
-    <div>
+    <div className='app-page'>
       <div className='mb-4'>
         <Link
           to="/documents"
-          className='inline-flex items-center gap-2 text-sm font-medium text-slate-800 hover:text-slate-900 transition-colors'
+          className='inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-emerald-700 transition-colors'
         >
           <ArrowLeft size={16} />
           Back to Documents
         </Link>
       </div>
       <PageHeader title={document.data.title} />
-      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className='overflow-x-hidden' />
     </div>
   )
 }
