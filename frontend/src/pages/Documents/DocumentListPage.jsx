@@ -109,14 +109,14 @@ const DocumentListPage = () => {
   const renderContent = () => {
     if (loading) {
       return (
-        <div className='flex items-center justify-center min-h-[400px]'>
+        <div className='flex items-center justify-center min-h-100'>
           <Spinner size='lg' />
         </div>
       )
     }
     if (documents.length === 0) {
       return (
-        <div className='flex items-center justify-center min-h-[400px]'>
+        <div className='flex items-center justify-center min-h-100'>
           <div className='text-center max-w-md'>
             <div className='inline-flex items-center justify-center w-20 h-20 app-muted-icon-tile mb-6'>
               <FileText

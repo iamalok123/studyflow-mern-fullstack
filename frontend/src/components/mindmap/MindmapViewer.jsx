@@ -89,7 +89,7 @@ const BranchCard = ({ item, side, connectorRef }) => {
   const connectorAnchor = side === 'left' ? '-right-2.5' : '-left-2.5';
 
   return (
-    <div className='relative w-[300px] text-left xl:w-[340px]'>
+    <div className='relative w-75 text-left xl:w-85'>
       <div className={`relative rounded-2xl border-2 ${color.border} bg-white p-4 shadow-[0_14px_40px_rgba(15,23,42,0.07)]`}>
         <span
           ref={connectorRef}
@@ -228,10 +228,10 @@ const DesktopMindmap = ({ mindmap }) => {
 
   return (
     <div className='hidden rounded-3xl border border-slate-200 bg-[#F7FAF9] p-3 lg:block'>
-      <div ref={frameRef} className='h-[72vh] min-h-[620px] max-h-[780px] overflow-auto overscroll-contain rounded-[1.35rem] border border-slate-200 bg-white shadow-inner shadow-slate-200/50'>
+      <div ref={frameRef} className='h-[72vh] min-h-155 max-h-195 overflow-auto overscroll-contain rounded-[1.35rem] border border-slate-200 bg-white shadow-inner shadow-slate-200/50'>
         <div
           ref={canvasRef}
-          className='relative min-w-[1480px] px-14 py-16'
+          className='relative min-w-370 px-14 py-16'
           style={{ minHeight: `${canvasMinHeight}px` }}
         >
           <ConnectorLayer paths={connectorState.paths} size={connectorState.size} />
