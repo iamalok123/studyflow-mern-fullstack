@@ -19,6 +19,24 @@ const generateQuiz = async (documentId, options) => {
   }
 };
 
+const generateMindmap = async (documentId) => {
+  try {
+    const response = await axiosInstance.post(API_PATHS.AI.GENERATE_MINDMAP, { documentId });
+    return response.data?.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to generate mindmap' };
+  }
+};
+
+const getMindmap = async (documentId) => {
+  try {
+    const response = await axiosInstance.get(API_PATHS.AI.GET_MINDMAP(documentId));
+    return response.data?.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch mindmap' };
+  }
+};
+
 const generateSummary = async (documentId) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.GENERATE_SUMMARY, { documentId });
@@ -58,6 +76,8 @@ const getChatHistory = async (documentId) => {
 const aiService = {
   generateFlashcards,
   generateQuiz,
+  generateMindmap,
+  getMindmap,
   generateSummary,
   chat,
   explainConcept,

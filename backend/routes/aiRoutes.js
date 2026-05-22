@@ -3,6 +3,8 @@ import { body, param } from "express-validator";
 import {
   generateFlashcards,
   generateQuiz,
+  generateMindmap,
+  getMindmap,
   generateSummary,
   chat,
   explainConcept,
@@ -38,6 +40,15 @@ router.post(
   ],
   validateRequest,
   generateQuiz
+);
+
+router.post("/generate-mindmap", documentBodyValidation, validateRequest, generateMindmap);
+
+router.get(
+  "/mindmap/:documentId",
+  [param("documentId").isMongoId().withMessage("Invalid document id")],
+  validateRequest,
+  getMindmap
 );
 
 router.post("/generate-summary", documentBodyValidation, validateRequest, generateSummary);

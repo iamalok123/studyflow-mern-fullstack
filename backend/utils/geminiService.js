@@ -62,6 +62,40 @@ const generateWithRetry = async (prompt) => {
     return response.text;
 };
 
+const stripJsonFence = (text) => {
+    const stripped = text
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+
+    const firstBrace = stripped.indexOf("{");
+    const lastBrace = stripped.lastIndexOf("}");
+
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        return stripped.slice(firstBrace, lastBrace + 1);
+    }
+
+    return stripped;
+};
+
+const normalizeMindmapNode = (node, depth = 0) => {
+    if (!node || typeof node !== "object" || typeof node.title !== "string" || !node.title.trim()) {
+        return null;
+    }
+
+    const children = Array.isArray(node.children) && depth < 3
+        ? node.children
+            .map((child) => normalizeMindmapNode(child, depth + 1))
+            .filter(Boolean)
+        : [];
+
+    return {
+        title: node.title.trim(),
+        children,
+    };
+};
+
 
 /**
  * Generate flashcards from text
@@ -228,6 +262,62 @@ ${text.substring(0, 15000)}`;
             throw new Error("Gemini API is temporarily unavailable due to high demand. Please try again in a moment.");
         }
         throw new Error(error?.message || "Failed to generate quiz");
+    }
+};
+
+
+
+/**
+ * Generate a structured mindmap from document text
+ * @param {string} text - Document text
+ * @returns {Promise<{title: string, children: Array}>}
+ */
+export const generateMindmap = async (text) => {
+    const prompt = `You are an expert study coach. Create a concise mindmap from the document text below.
+
+Rules:
+- Return ONLY valid JSON. Do not include markdown fences, prose, comments, or explanations.
+- The JSON root must be an object with: "title" and "children".
+- Keep labels concise: 2-7 words per node.
+- Use a maximum depth of 3 levels below the root.
+- Use 4-7 main branches when the document has enough material.
+- Each child must follow the same shape: { "title": string, "children": array }.
+- If a node has no children, use "children": [].
+- Do not invent facts not present in the text.
+
+Required JSON shape:
+{
+  "title": "Main Topic",
+  "children": [
+    {
+      "title": "Major Concept",
+      "children": [
+        { "title": "Supporting Detail", "children": [] }
+      ]
+    }
+  ]
+}
+
+Text:
+${text.substring(0, 15000)}`;
+
+    try {
+        const generatedText = await generateWithRetry(prompt);
+        const parsed = JSON.parse(stripJsonFence(generatedText));
+        const mindmap = normalizeMindmapNode(parsed);
+
+        if (!mindmap || !Array.isArray(mindmap.children)) {
+            throw new Error("Invalid mindmap JSON shape");
+        }
+
+        return mindmap;
+    } catch (error) {
+        console.error("Gemini API error (generateMindmap):", error?.message || error);
+        const statusCode = error?.status || error?.statusCode;
+        if ([429, 503].includes(statusCode)) {
+            throw new Error("Gemini API is temporarily unavailable due to high demand. Please try again in a moment.");
+        }
+        throw new Error("AI could not generate a valid mindmap from this document. Please try again.");
     }
 };
 

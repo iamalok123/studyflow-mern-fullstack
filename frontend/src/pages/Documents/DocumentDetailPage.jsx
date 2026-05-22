@@ -9,6 +9,7 @@ import Tabs from '../../components/common/Tabs';
 
 const ChatInterface = lazy(() => import('../../components/chat/ChatInterface'));
 const AiActions = lazy(() => import('../../components/ai/AIActions'));
+const MindmapViewer = lazy(() => import('../../components/mindmap/MindmapViewer'));
 const FlashcardManager = lazy(() => import('../../components/flashcards/FlashcardManager'));
 const QuizManager = lazy(() => import('../../components/quizzes/QuizManager'));
 
@@ -116,6 +117,14 @@ const DocumentDetailPage = () => {
     );
   };
 
+  const renderMindmapTab = () => {
+    return (
+      <Suspense fallback={<Spinner />}>
+        <MindmapViewer documentId={id} initialMindmap={document?.data?.mindmap} />
+      </Suspense>
+    );
+  };
+
   const renderFlashcardsTab = () => {
     return (
       <Suspense fallback={<Spinner />}>
@@ -136,6 +145,7 @@ const DocumentDetailPage = () => {
     { name: 'Content', label: 'Content', content: renderContent() },
     { name: 'Chat', label: 'Chat', content: renderChat() },
     { name: 'AI Actions', label: 'AI Actions', content: renderAIActions() },
+    { name: 'Mindmap', label: 'Mindmap', content: renderMindmapTab() },
     { name: 'Flashcards', label: 'Flashcards', content: renderFlashcardsTab() },
     { name: 'Quizzes', label: 'Quizzes', content: renderQuizzesTab() }
   ];

@@ -145,6 +145,123 @@ export const generateQuiz = async (req, res, next) => {
 };
 
 
+// @desc    Generate mindmap from document
+// @route   POST /api/ai/generate-mindmap
+// @access  Private
+export const generateMindmap = async (req, res, next) => {
+    try {
+        const { documentId } = req.body;
+
+        if (!documentId) {
+            return res.status(400).json({
+                success: false,
+                error: "Please provide documentID",
+                statusCode: 400
+            });
+        }
+
+        const document = await Document.findOne({
+            _id: documentId,
+            userId: req.user._id,
+            status: "Ready"
+        }).select('extractedText title mindmap');
+
+        if (!document) {
+            return res.status(404).json({
+                success: false,
+                error: "Document not found or not ready.",
+                statusCode: 404
+            });
+        }
+
+        const mindmap = await geminiService.generateMindmap(document.extractedText);
+
+        if (!mindmap?.title || !Array.isArray(mindmap.children)) {
+            return res.status(422).json({
+                success: false,
+                error: "AI could not generate a valid mindmap from this document. Please try again.",
+                statusCode: 422,
+            });
+        }
+
+        const savedMindmap = {
+            title: mindmap.title,
+            children: mindmap.children,
+            generatedAt: new Date(),
+            schemaVersion: 1,
+        };
+
+        await Document.updateOne(
+            { _id: document._id, userId: req.user._id },
+            { $set: { mindmap: savedMindmap } },
+            { runValidators: true }
+        );
+
+        res.status(201).json({
+            success: true,
+            data: {
+                documentId: document._id,
+                title: document.title,
+                mindmap: savedMindmap,
+            },
+            message: "Mindmap generated successfully"
+        });
+    } catch (error) {
+        if (error?.message?.includes("valid mindmap")) {
+            return res.status(422).json({
+                success: false,
+                error: error.message,
+                statusCode: 422,
+            });
+        }
+        next(error);
+    }
+};
+
+// @desc    Get saved mindmap for a document
+// @route   GET /api/ai/mindmap/:documentId
+// @access  Private
+export const getMindmap = async (req, res, next) => {
+    try {
+        const { documentId } = req.params;
+
+        if (!documentId) {
+            return res.status(400).json({
+                success: false,
+                error: "Please provide documentID",
+                statusCode: 400
+            });
+        }
+
+        const document = await Document.findOne({
+            _id: documentId,
+            userId: req.user._id,
+            status: "Ready"
+        }).select("title mindmap");
+
+        if (!document) {
+            return res.status(404).json({
+                success: false,
+                error: "Document not found or not ready.",
+                statusCode: 404
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                documentId: document._id,
+                title: document.title,
+                mindmap: document.mindmap || null,
+            },
+            message: document.mindmap ? "Mindmap retrieved successfully" : "No mindmap found for this document"
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 // @desc    Generate summary from document
 // @route   POST /api/ai/generate-summary
 // @access  Private
