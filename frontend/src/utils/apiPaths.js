@@ -12,6 +12,7 @@ export const API_PATHS = {
 
     DOCUMENTS: {
         UPLOAD: "/api/documents/upload",
+        GET_UPLOAD_SIGNATURE: "/api/documents/upload-signature",
         GET_DOCUMENTS: "/api/documents",
         GET_DOCUMENT_BY_ID: (id) => `/api/documents/${id}`,
         DELETE_DOCUMENT: (id) => `/api/documents/${id}`,

@@ -358,9 +358,9 @@ export const chat = async (req, res, next) => {
             });
         }
 
-        // Generate response using Gemini
+        // Generate response using Gemini (include previous conversation for context)
         const answer = await geminiService.chatWithContext(
-            question, relevantChunks
+            question, relevantChunks, chatHistory.messages
         );
 
         // Save conversation to chat history

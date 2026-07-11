@@ -42,8 +42,8 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+app.use(express.json({ limit: "4mb" }));
+app.use(express.urlencoded({ extended: true, limit: "4mb" }));
 
 const generalRateLimit = createRateLimiter({
   keyPrefix: "general",
@@ -99,6 +99,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api', ensureDbConnected);
 app.use('/api/auth', authRateLimit, authRoutes);
+app.use('/api/documents/upload-signature', uploadRateLimit);
 app.use('/api/documents/upload', uploadRateLimit);
 app.use('/api/documents', documentRoutes);
 app.use('/api/flashcards', flashcardRoutes);

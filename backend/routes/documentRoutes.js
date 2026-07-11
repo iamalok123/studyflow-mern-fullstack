@@ -1,8 +1,7 @@
 import express from "express";
 import { body, param } from "express-validator";
-import { uploadDocument, getDocuments, getDocument, deleteDocument } from "../controllers/documentController.js";
+import { uploadDocument, getDocuments, getDocument, deleteDocument, getUploadSignature } from "../controllers/documentController.js";
 import protect from "../middlewares/auth.js";
-import upload from "../config/multer.js"
 import { validateRequest } from "../middlewares/validateRequest.js";
 
 const router = express.Router();
@@ -21,7 +20,8 @@ const uploadValidation = [
         .withMessage("Document title must be between 1 and 120 characters"),
 ];
 
-router.post("/upload", upload.single("file"), uploadValidation, validateRequest, uploadDocument);
+router.get("/upload-signature", getUploadSignature);
+router.post("/upload", uploadValidation, validateRequest, uploadDocument);
 router.get("/", getDocuments);
 router.get("/:id", documentIdValidation, validateRequest, getDocument);
 router.delete("/:id", documentIdValidation, validateRequest, deleteDocument);

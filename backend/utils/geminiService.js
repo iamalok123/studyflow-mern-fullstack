@@ -366,26 +366,38 @@ ${text.substring(0, 20000)}`;
  * @param {Array<Object>} chunks - Relevant document chunks
  * @returns {Promise<string>}
  */
-export const chatWithContext = async (question, chunks) => {
+export const chatWithContext = async (question, chunks, history = []) => {
     const context = chunks
         .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
         .join("\n\n");
+
+    // Include the last 6 messages (3 Q&A pairs) for conversational context
+    let historyBlock = "";
+    if (history.length > 0) {
+        const recentMessages = history.slice(-6);
+        historyBlock = "\nRecent conversation history:\n" +
+            recentMessages.map(m =>
+                `${m.role === "user" ? "Student" : "Assistant"}: ${m.content.substring(0, 500)}`
+            ).join("\n") + "\n";
+    }
 
     const prompt = `You are an expert study assistant helping a student learn from their uploaded document.
 
 Context from the document:
 ${context}
-
-Student's question: ${question}
+${historyBlock}
+Student's current question: ${question}
 
 Instructions:
-- If the answer is found in or related to the context, answer based on the document. Start with: "**Based on the document:**"
+- Use the conversation history (if any) to understand follow-up questions and maintain context.
+- If the student says "explain more", "what about...", or similar follow-ups, refer to the conversation history for context.
+- If the answer is found in or related to the document context, answer based on the document. Start with: "**Based on the document:**"
 - If the question is completely unrelated to the context, answer from general knowledge. Start with: "**Not covered in the document. Based on general knowledge:**"
 - Structure your answer in clear **bullet points** (use "•" prefix) for readability.
 - For complex answers, use short **bold headings** to organize sections.
 - Include practical **examples** where they aid understanding.
 - If the question is about code: explain logic step-by-step, mention inputs/outputs, and highlight edge cases.
-- If the question is vague (e.g., "explain this", "tell me more"): cover the most important aspects of the document context.
+- If the question is vague (e.g., "explain this", "tell me more"): cover the most important aspects of the document context or continue from the previous conversation.
 - Keep answers educational but concise — no unnecessary repetition.
 - Use markdown formatting (bold, bullets, code blocks) for clarity.
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Upload, Trash2, FileText, X, Loader } from 'lucide-react'
+import { Plus, Upload, Trash2, FileText, X, Loader, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import documentService from '../../services/documentService'
+import { extractPdfText } from '../../utils/pdfExtractor'
 import Spinner from '../../components/common/Spinner'
 import Button from '../../components/common/Button'
 import DocumentCard from '../../components/documents/DocumentCard'
@@ -15,6 +16,9 @@ const DocumentListPage = () => {
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadStep, setUploadStep] = useState(null); // 'reading', 'signing', 'uploading', 'saving'
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [extractionProgress, setExtractionProgress] = useState('');
 
   // State for delete confirmation model
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -54,6 +58,9 @@ const DocumentListPage = () => {
 
       setUploadFile(file);
       setUploadTitle(file.name.replace(/\.[^/.]+$/, ""));
+      setUploadStep(null);
+      setUploadProgress(0);
+      setExtractionProgress('');
     }
   };
 
@@ -64,21 +71,64 @@ const DocumentListPage = () => {
       toast.error('Please select a file and enter a title');
       return;
     }
+    
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', uploadFile);
-    formData.append('title', uploadTitle);
-
+    
     try {
-      await documentService.uploadDocument(formData);
+      // Step 1: Extract Text
+      setUploadStep('reading');
+      setUploadProgress(0);
+      const { text, numPages, isLikelyScanned, chunks } = await extractPdfText(uploadFile, (current, total) => {
+        setExtractionProgress(`Page ${current} of ${total}`);
+        setUploadProgress(Math.round((current / total) * 100));
+      });
+      
+      const fileSize = uploadFile.size;
+      let attemptServerExtraction = false;
+      
+      if (isLikelyScanned) {
+        if (fileSize <= 15 * 1024 * 1024) {
+           attemptServerExtraction = true;
+           toast('Scanned PDF detected. Server will attempt extraction.', { icon: 'ℹ️' });
+        } else {
+           toast.error('Scanned PDFs over 15MB will be saved without AI features.', { duration: 5000 });
+        }
+      }
+
+      // Step 2: Get Signature
+      setUploadStep('signing');
+      const signatureData = await documentService.getUploadSignature();
+
+      // Step 3: Upload to Cloudinary
+      setUploadStep('uploading');
+      setUploadProgress(0);
+      const cloudinaryResult = await documentService.uploadToCloudinary(uploadFile, signatureData, (progress) => {
+        setUploadProgress(progress);
+      });
+
+      // Step 4: Save metadata to backend
+      setUploadStep('saving');
+      const documentData = await documentService.uploadDocument({
+        title: uploadTitle,
+        cloudinaryUrl: cloudinaryResult.secure_url,
+        cloudinaryPublicId: cloudinaryResult.public_id,
+        fileSize,
+        extractedText: text,
+        attemptServerExtraction,
+        fileName: uploadFile.name
+      });
+
       toast.success('Document uploaded successfully');
       setIsUploadModalOpen(false);
       setUploadFile(null);
       setUploadTitle('');
+      setUploadStep(null);
+      setUploadProgress(0);
       setLoading(true);
       fetchDocuments();
     } catch (error) {
       toast.error(error.message || 'Failed to upload document');
+      setUploadStep(null);
     } finally {
       setUploading(false);
     }
@@ -226,7 +276,8 @@ const DocumentListPage = () => {
                     onChange={handleFileChange}
                     accept='.pdf'
                     required
-                    className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
+                    disabled={uploading}
+                    className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed'
                   />
                   <div className='flex flex-col items-center justify-center py-10 px-6'>
                     <div className='p-2 bg-white rounded-lg mb-2 border border-emerald-100'>
@@ -238,7 +289,7 @@ const DocumentListPage = () => {
                     <p className='font-medium text-slate-700 text-sm mb-1'>
                       {uploadFile ? (
                         <span className='text-emerald-700'>
-                          {uploadFile.name}
+                          {uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)
                         </span>
                       ) : (
                         <>
@@ -257,6 +308,35 @@ const DocumentListPage = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Progress UI */}
+              {uploading && uploadStep && (
+                <div className='bg-slate-50 rounded-xl p-4 border border-slate-100'>
+                  <div className='flex items-center justify-between mb-2'>
+                    <span className='text-sm font-medium text-slate-700'>
+                      {uploadStep === 'reading' && `Reading PDF... ${extractionProgress}`}
+                      {uploadStep === 'signing' && 'Preparing upload...'}
+                      {uploadStep === 'uploading' && `Storing PDF... ${uploadProgress}%`}
+                      {uploadStep === 'saving' && 'Saving to database...'}
+                    </span>
+                    {uploadStep === 'uploading' && (
+                      <span className='text-xs font-semibold text-emerald-600'>{uploadProgress}%</span>
+                    )}
+                    {uploadStep === 'reading' && (
+                      <span className='text-xs font-semibold text-emerald-600'>{uploadProgress}%</span>
+                    )}
+                  </div>
+                  <div className='w-full bg-slate-200 rounded-full h-2 overflow-hidden'>
+                    <div 
+                      className='bg-emerald-500 h-2 rounded-full transition-all duration-300' 
+                      style={{ 
+                        width: (uploadStep === 'uploading' || uploadStep === 'reading') ? `${uploadProgress}%` : 
+                              (uploadStep === 'saving' ? '100%' : '10%') 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className='flex gap-3 pt-2'>

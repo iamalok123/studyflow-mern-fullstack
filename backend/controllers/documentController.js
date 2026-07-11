@@ -8,106 +8,101 @@ import getCloudinary from "../config/cloudinary.js";
 import mongoose from "mongoose";
 
 
-/**
- * Upload a PDF buffer to Cloudinary using upload_stream.
- * Returns { secure_url, public_id }.
- */
-const uploadToCloudinary = (buffer, originalName) => {
-    return new Promise((resolve, reject) => {
-        const safeName = originalName
-            .replace(/\.[^/.]+$/, "")
-            .replace(/[^a-zA-Z0-9-_]/g, "-")
-            .slice(0, 80);
-
-        const stream = getCloudinary().uploader.upload_stream(
+// @desc    Get Cloudinary signature for direct upload
+// @route   GET /api/documents/upload-signature
+// @access  Private
+export const getUploadSignature = (req, res, next) => {
+    try {
+        const timestamp = Math.round((new Date).getTime() / 1000);
+        const folder = "studyflow/documents";
+        
+        // Generate signature
+        const signature = getCloudinary().utils.api_sign_request(
             {
-                resource_type: "image",              // deliver PDFs via image pipeline (browser-viewable)
-                folder: "studyflow/documents",       // organized folder
-                public_id: `${Date.now()}-${safeName}`,
-                format: "pdf",
+                timestamp: timestamp,
+                folder: folder,
             },
-            (error, result) => {
-                if (error) return reject(error);
-                resolve(result);
-            }
+            process.env.CLOUDINARY_API_SECRET
         );
-        stream.end(buffer);
-    });
-};
 
-const isPdfBuffer = (buffer) => {
-    if (!Buffer.isBuffer(buffer) || buffer.length < 4) {
-        return false;
+        res.status(200).json({
+            success: true,
+            signature,
+            timestamp,
+            folder,
+            cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+            apiKey: process.env.CLOUDINARY_API_KEY
+        });
+    } catch (error) {
+        next(error);
     }
-
-    return buffer.subarray(0, 4).toString("utf8") === "%PDF";
 };
 
-
-// @desc    Upload PDF document
+// @desc    Upload PDF document metadata (file is uploaded directly to Cloudinary by frontend)
 // @route   POST /api/documents/upload
 // @access  Private
 export const uploadDocument = async (req, res, next) => {
     try {
-        if (!req.file) {
+        const { 
+            title, 
+            cloudinaryUrl, 
+            cloudinaryPublicId, 
+            fileSize, 
+            extractedText: clientExtractedText, 
+            attemptServerExtraction, 
+            fileName 
+        } = req.body;
+
+        if (!title?.trim() || !cloudinaryUrl || !cloudinaryPublicId || !fileName) {
             return res.status(400).json({
                 success: false,
-                error: "Please upload a PDF file",
+                error: "Missing required document data",
                 statusCode: 400,
             });
         }
 
-        if (!isPdfBuffer(req.file.buffer)) {
-            return res.status(400).json({
-                success: false,
-                error: "Invalid PDF file",
-                statusCode: 400,
-            });
-        }
-
-        const title = req.body.title?.trim();
-
-        if (!title) {
-            return res.status(400).json({
-                success: false,
-                error: "Please provide a document title",
-                statusCode: 400,
-            });
-        }
-
-        // 1. Upload PDF buffer to Cloudinary
-        const cloudinaryResult = await uploadToCloudinary(
-            req.file.buffer,
-            req.file.originalname
-        );
-
-        let extractedText = "";
+        let extractedText = clientExtractedText || "";
         let chunks = [];
         let status = "Ready";
         let message = "Document uploaded and processed successfully.";
 
-        try {
-            const { text } = await extractTextFromPDF(req.file.buffer);
-            extractedText = text;
-            chunks = chunkText(text, 500, 50);
+        // Server-side text chunking to keep frontend payload small
+        if (extractedText && extractedText.trim().length > 100) {
+            chunks = chunkText(extractedText, 500, 50);
+        }
 
-            if (chunks.length === 0) {
-                status = "Failed";
-                message = "Document uploaded, but no readable text could be extracted.";
+        // Tier 2 Fallback: If client says it might be a scanned PDF and requests server extraction
+        if (attemptServerExtraction) {
+            try {
+                const response = await fetch(cloudinaryUrl);
+                if (response.ok) {
+                    const arrayBuffer = await response.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    
+                    const { text } = await extractTextFromPDF(buffer);
+                    if (text && text.trim().length > 100) { 
+                        extractedText = text;
+                        chunks = chunkText(text, 500, 50);
+                        message = "Document uploaded and processed with server fallback.";
+                    }
+                }
+            } catch (processingError) {
+                console.error("Server fallback PDF processing failed:", processingError.message);
             }
-        } catch (processingError) {
-            status = "Failed";
-            message = "Document uploaded, but text extraction failed.";
-            console.error("PDF processing failed:", processingError.message);
+        }
+
+        if (chunks.length === 0) {
+            status = "no_text";
+            message = "Document uploaded, but no readable text could be extracted. AI features may not work.";
         }
 
         const document = await Document.create({
             userId: req.user._id,
-            title,
-            fileName: req.file.originalname,
-            filePath: cloudinaryResult.secure_url,
-            cloudinaryPublicId: cloudinaryResult.public_id,
-            fileSize: req.file.size,
+            title: title.trim(),
+            fileName,
+            filePath: cloudinaryUrl,
+            cloudinaryPublicId,
+            fileSize,
             extractedText,
             chunks,
             status,
@@ -242,9 +237,14 @@ export const deleteDocument = async (req, res, next) => {
         // Delete PDF from Cloudinary
         if (document.cloudinaryPublicId) {
             try {
-                await getCloudinary().uploader.destroy(document.cloudinaryPublicId, {
+                const result = await getCloudinary().uploader.destroy(document.cloudinaryPublicId, {
                     resource_type: "image",
                 });
+                if (result.result !== "ok") {
+                    await getCloudinary().uploader.destroy(document.cloudinaryPublicId, {
+                        resource_type: "raw",
+                    });
+                }
             } catch (cloudErr) {
                 console.warn("Could not delete Cloudinary file:", cloudErr.message);
             }
