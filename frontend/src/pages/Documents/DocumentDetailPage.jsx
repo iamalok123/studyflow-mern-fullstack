@@ -57,7 +57,7 @@ const DocumentDetailPage = () => {
     const fileSizeMB = docData.fileSize ? (docData.fileSize / (1024 * 1024)).toFixed(2) : null;
 
     return (
-      <div className='app-panel overflow-hidden flex flex-col h-full min-h-[600px]'>
+      <div className='app-panel overflow-hidden flex flex-col h-full min-h-[60vh]'>
         {/* Document info header */}
         <div className='p-6 border-b border-slate-200'>
           <div className='flex items-center gap-4'>

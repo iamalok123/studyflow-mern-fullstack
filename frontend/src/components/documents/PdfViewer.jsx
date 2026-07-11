@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, FileText, AlertCircle } from 'lucide-react';
 import Spinner from '../common/Spinner';
@@ -13,6 +13,24 @@ const PdfViewer = ({ url }) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
   const [error, setError] = useState(null);
+  
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(null);
+
+  // Responsive width calculation
+  useEffect(() => {
+    const observer = new ResizeObserver((entries) => {
+      if (entries[0]?.contentRect?.width) {
+        setContainerWidth(entries[0].contentRect.width);
+      }
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
@@ -69,13 +87,13 @@ const PdfViewer = ({ url }) => {
   }
 
   return (
-    <div className="flex flex-col bg-slate-100 rounded-lg border border-slate-200 overflow-hidden w-full h-full min-h-[500px]">
+    <div className="flex flex-col bg-slate-100 rounded-lg border border-slate-200 overflow-hidden w-full h-full min-h-[60vh] max-h-[85vh]">
       
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 shadow-sm z-10 shrink-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-3 bg-white border-b border-slate-200 shadow-sm z-10 shrink-0">
         
         {/* Pagination */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={previousPage}
             disabled={pageNumber <= 1}
@@ -85,7 +103,7 @@ const PdfViewer = ({ url }) => {
             <ChevronLeft size={20} />
           </button>
           
-          <span className="text-sm font-medium text-slate-700 tabular-nums">
+          <span className="text-xs sm:text-sm font-medium text-slate-700 tabular-nums whitespace-nowrap">
             {pageNumber} <span className="text-slate-400 font-normal">/</span> {numPages || '--'}
           </span>
           
@@ -110,7 +128,7 @@ const PdfViewer = ({ url }) => {
             <ZoomOut size={18} />
           </button>
           
-          <span className="text-xs font-medium text-slate-500 w-12 text-center tabular-nums">
+          <span className="text-xs font-medium text-slate-500 w-10 sm:w-12 text-center tabular-nums">
             {Math.round(scale * 100)}%
           </span>
           
@@ -138,7 +156,10 @@ const PdfViewer = ({ url }) => {
       </div>
 
       {/* PDF Container (Scrollable) */}
-      <div className="flex-1 overflow-auto bg-slate-100 p-4 custom-scrollbar relative flex justify-center items-start">
+      <div 
+        ref={containerRef}
+        className="flex-1 overflow-auto bg-slate-100 p-4 custom-scrollbar relative flex justify-center items-start"
+      >
         <Document
           file={url}
           onLoadSuccess={onDocumentLoadSuccess}
@@ -153,6 +174,7 @@ const PdfViewer = ({ url }) => {
           <Page 
             pageNumber={pageNumber} 
             scale={scale} 
+            width={containerWidth ? Math.min(containerWidth - 32, 1000) : undefined}
             renderTextLayer={true}
             renderAnnotationLayer={true}
             className="bg-white"
