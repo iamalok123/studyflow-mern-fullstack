@@ -12,6 +12,7 @@ const AiActions = lazy(() => import('../../components/ai/AIActions'));
 const MindmapViewer = lazy(() => import('../../components/mindmap/MindmapViewer'));
 const FlashcardManager = lazy(() => import('../../components/flashcards/FlashcardManager'));
 const QuizManager = lazy(() => import('../../components/quizzes/QuizManager'));
+const PdfViewer = lazy(() => import('../../components/documents/PdfViewer'));
 
 const DocumentDetailPage = () => {
 
@@ -56,7 +57,7 @@ const DocumentDetailPage = () => {
     const fileSizeMB = docData.fileSize ? (docData.fileSize / (1024 * 1024)).toFixed(2) : null;
 
     return (
-      <div className='app-panel overflow-hidden'>
+      <div className='app-panel overflow-hidden flex flex-col h-full min-h-[600px]'>
         {/* Document info header */}
         <div className='p-6 border-b border-slate-200'>
           <div className='flex items-center gap-4'>
@@ -80,21 +81,11 @@ const DocumentDetailPage = () => {
             </div>
           </div>
         </div>
-
-        {/* View PDF button */}
-        <div className='p-6 flex flex-col items-center gap-4 bg-[#EEF6F2]/70'>
-          <p className='text-sm text-slate-600 text-center'>
-            Your PDF is securely stored in the cloud. Click below to view it.
-          </p>
-          <a
-            href={pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className='app-primary-action h-12'
-          >
-            <ExternalLink size={18} />
-            View PDF
-          </a>
+        {/* PDF Viewer */}
+        <div className='flex-1 p-4 bg-slate-50 min-h-0'>
+          <Suspense fallback={<Spinner />}>
+            <PdfViewer url={pdfUrl} />
+          </Suspense>
         </div>
       </div>
     );
