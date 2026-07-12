@@ -38,13 +38,13 @@
 ## ✨ Features
 
 ### 📄 Document Management
-- **PDF Upload** — Upload PDFs up to 10 MB, securely stored on Cloudinary.
-- **Smart Chunking** — Auto text extraction split into chunks and stored in MongoDB.
-- **Cloud Viewer** — Built-in document viewer without iframe issues.
+- **PDF Upload** — Direct-to-Cloudinary frontend uploads for PDFs up to 10 MB, bypassing server limits.
+- **Smart Chunking** — Client-side PDF text extraction and chunking using `pdfjs-dist`.
+- **Integrated Viewer** — Built-in PDF viewer using `react-pdf` side-by-side with AI tools.
 
 ### 🤖 AI Features (Gemini 2.5)
 - **Chat with Document** — Context-aware AI answers based on your PDFs.
-- **Generate Mindmaps** — Auto-generated visual concept maps saved to the document.
+- **Generate Mindmaps** — Auto-generated interactive visual concept maps (React Flow) saved to the document.
 - **Flashcards & Quizzes** — Instant study material generation with difficulty levels.
 - **Summaries** — Get quick, concise overviews of any document.
 
@@ -55,8 +55,8 @@
 
 ## 🏗️ Architecture & Tech Stack
 
-- **Frontend:** React 19, Vite, TailwindCSS 4, React Router v7, Axios.
-- **Backend:** Node.js, Express 5, Mongoose 9, JWT, Multer, pdf-parse, Cloudinary.
+- **Frontend:** React 19, Vite, TailwindCSS 4, React Router v7, React Flow, pdfjs-dist.
+- **Backend:** Node.js, Express 5, Mongoose 9, JWT, Cloudinary SDK.
 - **AI & DB:** Google Gemini AI SDK, MongoDB Atlas.
 
 ## 🚀 Getting Started
@@ -90,7 +90,7 @@
 ## 🔌 Core API Endpoints
 
 - **Auth:** `/api/auth/register`, `/api/auth/login`, `/api/auth/google`, `/api/auth/profile`
-- **Documents:** `/api/documents/upload`, `/api/documents`, `/api/documents/:id`
+- **Documents:** `/api/documents/upload-signature`, `/api/documents/upload`, `/api/documents`, `/api/documents/:id`
 - **AI Tasks:** `/api/ai/chat`, `/api/ai/generate-mindmap`, `/api/ai/generate-flashcards`, `/api/ai/generate-quiz`
 - **Study:** `/api/flashcards/`, `/api/quizzes/:id/submit`, `/api/progress/dashboard`
 
