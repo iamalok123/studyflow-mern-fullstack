@@ -1,5 +1,5 @@
 import axiosInstance from '../utils/axiosInstance';
-import { API_PATHS } from '../utils/apiPaths';
+import { BASE_URL, API_PATHS } from '../utils/apiPaths';
 
 const generateFlashcards = async (documentId, options) => {
   try {
@@ -46,15 +46,6 @@ const generateSummary = async (documentId) => {
   }
 };
 
-const chat = async (documentId, message) => {
-  try {
-    const response = await axiosInstance.post(API_PATHS.AI.CHAT, { documentId, question: message }); // Removed history from payload
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Chat request failed' };
-  }
-};
-
 const explainConcept = async (documentId, concept) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.EXPLAIN_CONCEPT, { documentId, concept });
@@ -70,15 +61,6 @@ const getChatHistory = async (documentId) => {
     return response.data?.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch chat history' };
-  }
-};
-
-const workspaceChat = async (workspaceId, question) => {
-  try {
-    const response = await axiosInstance.post(API_PATHS.AI.WORKSPACE_CHAT, { workspaceId, question });
-    return response.data;
-  } catch (error) {
-    throw error.response?.data || { message: 'Workspace chat request failed' };
   }
 };
 
@@ -136,16 +118,85 @@ const workspaceGenerateQuiz = async (workspaceId, numQuestions) => {
   }
 };
 
+const streamFetch = async (url, body, onChunk) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: token ? `Bearer ${token}` : '',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    let errMessage = 'Streaming request failed';
+    try {
+      const errJson = await response.json();
+      errMessage = errJson.error || errJson.message || errMessage;
+    } catch {
+      // ignore
+    }
+    throw new Error(errMessage);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || ''; // Keep incomplete trailing line in buffer
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('data: ')) {
+        const dataStr = trimmed.replace('data: ', '').trim();
+        if (dataStr === '[DONE]') {
+          return;
+        }
+        try {
+          const parsed = JSON.parse(dataStr);
+          if (parsed.text && typeof onChunk === 'function') {
+            onChunk(parsed.text);
+          }
+          if (parsed.error) {
+            throw new Error(parsed.error);
+          }
+        } catch (e) {
+          if (e.message && !e.message.includes('JSON')) {
+            throw e;
+          }
+        }
+      }
+    }
+  }
+};
+
+const streamChat = async (documentId, question, onChunk) => {
+  const fullUrl = `${BASE_URL}${API_PATHS.AI.STREAM_CHAT}`;
+  await streamFetch(fullUrl, { documentId, question }, onChunk);
+};
+
+const streamWorkspaceChat = async (workspaceId, question, onChunk) => {
+  const fullUrl = `${BASE_URL}${API_PATHS.AI.WORKSPACE_STREAM_CHAT}`;
+  await streamFetch(fullUrl, { workspaceId, question }, onChunk);
+};
+
 const aiService = {
   generateFlashcards,
   generateQuiz,
   generateMindmap,
   getMindmap,
   generateSummary,
-  chat,
+  streamChat,
   explainConcept,
   getChatHistory,
-  workspaceChat,
+  streamWorkspaceChat,
   getWorkspaceChatHistory,
   workspaceGenerateSummary,
   workspaceGenerateMindmap,

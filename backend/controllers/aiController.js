@@ -312,12 +312,17 @@ export const generateSummary = async (req, res, next) => {
 };
 
 
-// @desc    Chat with document
+// @desc    Chat with document (SSE streaming)
 // @route   POST /api/ai/chat
 // @access  Private
-export const chat = async (req, res, next) => {
+export const chat = (req, res, next) => streamChat(req, res, next);
+
+// @desc    Stream chat with document (SSE)
+// @route   POST /api/ai/stream-chat
+// @access  Private
+export const streamChat = async (req, res, next) => {
     try {
-        const { documentId, question } = req.body;
+        const { documentId, question, isSocratic } = req.body;
 
         if (!documentId || !question) {
             return res.status(400).json({
@@ -341,11 +346,15 @@ export const chat = async (req, res, next) => {
             });
         }
 
-        // Find relevant chunks
+        // Setup SSE response headers for Vercel and browsers
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache, no-transform");
+        res.setHeader("Connection", "keep-alive");
+        res.setHeader("X-Accel-Buffering", "no");
+
         const relevantChunks = findRelevantChunks(document.chunks, question, 3);
         const chunkIndices = relevantChunks.map(chunk => chunk.chunkIndex);
 
-        // Get or create a chat history
         let chatHistory = await ChatHistory.findOne({
             userId: req.user._id,
             documentId: document._id,
@@ -359,12 +368,17 @@ export const chat = async (req, res, next) => {
             });
         }
 
-        // Generate response using Gemini (include previous conversation for context)
-        const answer = await geminiService.chatWithContext(
-            question, relevantChunks, chatHistory.messages
-        );
+        // Stream AI content chunks
+        const answer = await geminiService.streamChatWithContext({
+            question,
+            chunks: relevantChunks,
+            history: chatHistory.messages,
+            onChunk: (chunkText) => {
+                res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+            }
+        });
 
-        // Save conversation to chat history
+        // Persist conversation to MongoDB history
         chatHistory.messages.push(
             {
                 role: "user",
@@ -386,18 +400,136 @@ export const chat = async (req, res, next) => {
 
         await chatHistory.save();
 
-        res.status(201).json({
-            success: true,
-            data: {
-                question,
-                answer,
-                relevantChunks: chunkIndices,
-                chatHistoryId: chatHistory._id
-            },
-            message: "Response generated successfully"
-        });
+        res.write(`data: [DONE]\n\n`);
+        res.end();
     } catch (error) {
-        next(error);
+        console.error("streamChat error:", error);
+        if (!res.headersSent) {
+            next(error);
+        } else {
+            res.write(`data: ${JSON.stringify({ error: error.message || "Streaming failed" })}\n\n`);
+            res.end();
+        }
+    }
+};
+
+// @desc    Stream workspace multi-document chat (SSE)
+// @route   POST /api/ai/workspace-stream-chat
+// @access  Private
+export const workspaceStreamChat = async (req, res, next) => {
+    try {
+        const { workspaceId, question } = req.body;
+
+        if (!workspaceId || !question) {
+            return res.status(400).json({
+                success: false,
+                error: "Please provide workspaceId and question",
+                statusCode: 400
+            });
+        }
+
+        const workspace = await Workspace.findOne({
+            _id: workspaceId,
+            userId: req.user._id
+        }).populate({
+            path: "documents",
+            select: "title chunks status"
+        });
+
+        if (!workspace) {
+            return res.status(404).json({
+                success: false,
+                error: "Workspace not found.",
+                statusCode: 404
+            });
+        }
+
+        const readyDocs = (workspace.documents || []).filter(
+            doc => doc && doc.status === "Ready" && Array.isArray(doc.chunks) && doc.chunks.length > 0
+        );
+
+        if (readyDocs.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: "No ready documents found in this workspace to answer your question.",
+                statusCode: 400
+            });
+        }
+
+        // Setup SSE response headers
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache, no-transform");
+        res.setHeader("Connection", "keep-alive");
+        res.setHeader("X-Accel-Buffering", "no");
+
+        const allChunks = [];
+        let globalChunkIndex = 0;
+
+        for (const doc of readyDocs) {
+            for (const chunk of doc.chunks) {
+                allChunks.push({
+                    content: `[Source Document: "${doc.title}"]\n${chunk.content}`,
+                    pageNumber: chunk.pageNumber || 0,
+                    chunkIndex: globalChunkIndex++
+                });
+            }
+        }
+
+        const relevantChunks = findRelevantChunks(allChunks, question, 5);
+
+        let chatHistory = await ChatHistory.findOne({
+            userId: req.user._id,
+            workspaceId: workspace._id
+        });
+
+        if (!chatHistory) {
+            chatHistory = await ChatHistory.create({
+                userId: req.user._id,
+                workspaceId: workspace._id,
+                messages: []
+            });
+        }
+
+        const answer = await geminiService.streamChatWithContext({
+            question,
+            chunks: relevantChunks,
+            history: chatHistory.messages,
+            onChunk: (chunkText) => {
+                res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+            }
+        });
+
+        chatHistory.messages.push(
+            {
+                role: "user",
+                content: question,
+                timestamp: new Date(),
+                relevantChunks: []
+            },
+            {
+                role: "assistant",
+                content: answer,
+                timestamp: new Date(),
+                relevantChunks: relevantChunks.map(c => c.chunkIndex)
+            }
+        );
+
+        if (chatHistory.messages.length > 100) {
+            chatHistory.messages = chatHistory.messages.slice(-100);
+        }
+
+        await chatHistory.save();
+
+        res.write(`data: [DONE]\n\n`);
+        res.end();
+    } catch (error) {
+        console.error("workspaceStreamChat error:", error);
+        if (!res.headersSent) {
+            next(error);
+        } else {
+            res.write(`data: ${JSON.stringify({ error: error.message || "Streaming failed" })}\n\n`);
+            res.end();
+        }
     }
 };
 
@@ -494,122 +626,9 @@ export const getChatHistory = async (req, res, next) => {
     }
 };
 
-// @desc    Chat across multiple documents in a workspace
 // @route   POST /api/ai/workspace-chat
 // @access  Private
-export const workspaceChat = async (req, res, next) => {
-    try {
-        const { workspaceId, question } = req.body;
-
-        if (!workspaceId || !question) {
-            return res.status(400).json({
-                success: false,
-                error: "Please provide workspaceId and question",
-                statusCode: 400
-            });
-        }
-
-        const workspace = await Workspace.findOne({
-            _id: workspaceId,
-            userId: req.user._id
-        }).populate({
-            path: "documents",
-            select: "title chunks status"
-        });
-
-        if (!workspace) {
-            return res.status(404).json({
-                success: false,
-                error: "Workspace not found.",
-                statusCode: 404
-            });
-        }
-
-        const readyDocs = (workspace.documents || []).filter(
-            doc => doc && doc.status === "Ready" && Array.isArray(doc.chunks) && doc.chunks.length > 0
-        );
-
-        if (readyDocs.length === 0) {
-            return res.status(400).json({
-                success: false,
-                error: "No ready documents found in this workspace to answer your question.",
-                statusCode: 400
-            });
-        }
-
-        // Collect and tag chunks from all workspace documents
-        const allChunks = [];
-        let globalChunkIndex = 0;
-
-        for (const doc of readyDocs) {
-            for (const chunk of doc.chunks) {
-                allChunks.push({
-                    content: `[Source Document: "${doc.title}"]\n${chunk.content}`,
-                    pageNumber: chunk.pageNumber || 0,
-                    chunkIndex: globalChunkIndex++
-                });
-            }
-        }
-
-        // Find top relevant chunks across the multi-document workspace
-        const relevantChunks = findRelevantChunks(allChunks, question, 5);
-
-        // Fetch or create chat history for workspace
-        let chatHistory = await ChatHistory.findOne({
-            userId: req.user._id,
-            workspaceId: workspace._id
-        });
-
-        if (!chatHistory) {
-            chatHistory = await ChatHistory.create({
-                userId: req.user._id,
-                workspaceId: workspace._id,
-                messages: []
-            });
-        }
-
-        // Generate response using Gemini
-        const answer = await geminiService.chatWithContext(
-            question,
-            relevantChunks,
-            chatHistory.messages
-        );
-
-        chatHistory.messages.push(
-            {
-                role: "user",
-                content: question,
-                timestamp: new Date(),
-                relevantChunks: []
-            },
-            {
-                role: "assistant",
-                content: answer,
-                timestamp: new Date(),
-                relevantChunks: relevantChunks.map(c => c.chunkIndex)
-            }
-        );
-
-        if (chatHistory.messages.length > 100) {
-            chatHistory.messages = chatHistory.messages.slice(-100);
-        }
-
-        await chatHistory.save();
-
-        res.status(201).json({
-            success: true,
-            data: {
-                question,
-                answer,
-                workspaceId: workspace._id,
-                chatHistoryId: chatHistory._id
-            },
-            message: "Workspace response generated successfully"
-        });
-    } catch (error) {
-        next(error);
-    }
-};
+export const workspaceChat = (req, res, next) => workspaceStreamChat(req, res, next);
 
 // @desc    Get workspace chat history
 // @route   GET /api/ai/workspace-chat-history/:workspaceId

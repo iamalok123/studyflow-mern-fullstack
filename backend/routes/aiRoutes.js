@@ -7,9 +7,11 @@ import {
   getMindmap,
   generateSummary,
   chat,
+  streamChat,
   explainConcept,
   getChatHistory,
   workspaceChat,
+  workspaceStreamChat,
   getWorkspaceChatHistory,
   workspaceGenerateSummary,
   workspaceGenerateMindmap,
@@ -67,7 +69,17 @@ router.post(
     body("question").trim().isLength({ min: 1, max: 1000 }).withMessage("Question must be between 1 and 1000 characters"),
   ],
   validateRequest,
-  chat
+  streamChat
+);
+
+router.post(
+  "/stream-chat",
+  [
+    ...documentBodyValidation,
+    body("question").trim().isLength({ min: 1, max: 1000 }).withMessage("Question must be between 1 and 1000 characters"),
+  ],
+  validateRequest,
+  streamChat
 );
 
 router.post(
@@ -94,7 +106,17 @@ router.post(
     body("question").trim().isLength({ min: 1, max: 1000 }).withMessage("Question must be between 1 and 1000 characters"),
   ],
   validateRequest,
-  workspaceChat
+  workspaceStreamChat
+);
+
+router.post(
+  "/workspace-stream-chat",
+  [
+    body("workspaceId").isMongoId().withMessage("Invalid workspace id"),
+    body("question").trim().isLength({ min: 1, max: 1000 }).withMessage("Question must be between 1 and 1000 characters"),
+  ],
+  validateRequest,
+  workspaceStreamChat
 );
 
 router.get(

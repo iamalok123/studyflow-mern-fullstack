@@ -416,6 +416,73 @@ Answer:`;
     }
 };
 
+/**
+ * Stream chat with document/workspace context
+ * @param {Object} params
+ * @param {string} params.question - User question
+ * @param {Array<Object>} params.chunks - Relevant document/workspace chunks
+ * @param {Array<Object>} [params.history] - Chat history array
+ * @param {Function} params.onChunk - Callback invoked with each text token chunk
+ * @returns {Promise<string>} - Complete generated text response
+ */
+export const streamChatWithContext = async ({ question, chunks, history = [], onChunk }) => {
+    const context = chunks
+        .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
+        .join("\n\n");
+
+    let historyBlock = "";
+    if (history.length > 0) {
+        // Retain last 14 messages (last 7 Q&A pairs) to maintain deep conversational context
+        const recentMessages = history.slice(-14);
+        historyBlock = "\nRecent Conversation History (Last 5-7 questions & answers):\n" +
+            recentMessages.map(m =>
+                `${m.role === "user" ? "Student" : "Assistant"}: ${m.content.substring(0, 1000)}`
+            ).join("\n") + "\n";
+    }
+
+    const prompt = `You are an expert study assistant helping a student learn from their uploaded document(s).
+
+CRITICAL FORMATTING & VISUAL PRESENTATION RULES:
+1. CODE & SYNTAX: ALWAYS place code, queries, formulas, or syntax examples inside proper triple-backtick fenced code blocks with language identifier on a NEW line (e.g. \`\`\`sql\nSELECT * FROM table;\n\`\`\` or \`\`\`python\ndef example(): pass\n\`\`\`). NEVER put code or SQL on the same line as bullet text or prose.
+2. LISTS & BULLETS: ALWAYS put every bullet point on its own NEW line using "- " or "• ". Never squish multiple bullet points or sub-items onto a single line.
+3. HEADINGS: Use bold Markdown section headings (### Section Title) to cleanly divide topics, definitions, syntax, and practical examples.
+4. SPACING: Use blank lines between headings, bullet points, and code blocks for clean visual hierarchy.
+5. CONTEXT PRESERVATION: Refer to previous conversation history for context, follow-ups, and references.
+6. SOURCE TAGGING: If answer is found in document context, start with: "**Based on the document:**". If unrelated to context, start with: "**Not covered in the document. Based on general knowledge:**".
+
+Document Context:
+${context}
+${historyBlock}
+Student's current question: ${question}
+
+Response:`;
+
+    try {
+        const responseStream = await getAI().models.generateContentStream({
+            model: "gemini-2.5-flash-lite",
+            contents: prompt,
+        });
+
+        let fullText = "";
+        for await (const chunk of responseStream) {
+            if (chunk.text) {
+                fullText += chunk.text;
+                if (typeof onChunk === "function") {
+                    onChunk(chunk.text);
+                }
+            }
+        }
+        return fullText;
+    } catch (error) {
+        console.error("Gemini Streaming API error:", error);
+        const statusCode = error?.status || error?.statusCode;
+        if ([429, 503].includes(statusCode)) {
+            throw new Error("Gemini API is temporarily unavailable due to high demand. Please try again in a moment.");
+        }
+        throw new Error("Failed to stream chat response");
+    }
+};
+
 
 
 
