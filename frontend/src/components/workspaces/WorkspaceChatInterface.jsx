@@ -99,16 +99,16 @@ const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
   }
 
   return (
-    <div className="flex flex-col h-162.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <div className="flex flex-col h-162.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden w-full max-w-full min-w-0">
       {/* Chat Sub-header */}
-      <div className="px-6 py-3.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
+      <div className="px-6 py-3.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+          <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
             <Layers className="w-4 h-4" />
           </div>
-          <div>
-            <h3 className="text-xs font-bold text-slate-800">Workspace Multi-Doc Assistant</h3>
-            <p className="text-[11px] text-slate-500">
+          <div className="min-w-0">
+            <h3 className="text-xs font-bold text-slate-800 truncate">Workspace Multi-Doc Assistant</h3>
+            <p className="text-[11px] text-slate-500 truncate">
               Asking across all documents in "{workspaceTitle || 'Workspace'}"
             </p>
           </div>
@@ -116,7 +116,7 @@ const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#EEF6F2]/30">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-5 bg-[#EEF6F2]/30 min-w-0">
         {history.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center max-w-sm mx-auto">
             <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
@@ -133,7 +133,7 @@ const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
           history.map((msg, idx) => (
             <div
               key={idx}
-              className={`flex gap-3 max-w-[85%] ${
+              className={`flex gap-3 max-w-[90%] sm:max-w-[85%] min-w-0 ${
                 msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
               }`}
             >
@@ -148,7 +148,7 @@ const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
               </div>
 
               <div
-                className={`p-4 rounded-2xl text-xs leading-relaxed shadow-xs ${
+                className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs min-w-0 max-w-full overflow-hidden wrap-break-word ${
                   msg.role === 'user'
                     ? 'bg-slate-900 text-white rounded-tr-none'
                     : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'

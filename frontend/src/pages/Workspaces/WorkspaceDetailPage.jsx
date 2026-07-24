@@ -23,6 +23,7 @@ import flashcardService from '../../services/flashcardService';
 import quizService from '../../services/quizService';
 import Spinner from '../../components/common/Spinner';
 import Button from '../../components/common/Button';
+import Tabs from '../../components/common/Tabs';
 import Modal from '../../components/common/Modal';
 import CreateWorkspaceModal from '../../components/workspaces/CreateWorkspaceModal';
 import AddDocumentsModal from '../../components/workspaces/AddDocumentsModal';
@@ -229,6 +230,304 @@ const WorkspaceDetailPage = () => {
   const docs = workspace.documents || [];
   const docIds = docs.map(d => d._id);
 
+  const renderDocumentsTab = () => (
+    <div>
+      {docs.length === 0 ? (
+        <div className="app-panel p-12 text-center max-w-lg mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+            <FilePlus className="w-8 h-8" />
+          </div>
+          <h3 className="text-base font-bold text-slate-900 mb-1">
+            No Documents in this Workspace
+          </h3>
+          <p className="text-xs text-slate-500 mb-6">
+            Add uploaded PDFs to this folder to start asking cross-document questions and generating study materials.
+          </p>
+          <Button onClick={() => setIsAddDocsModalOpen(true)}>
+            <FilePlus className="w-4 h-4" /> Add Documents Now
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {docs.map((doc) => (
+            <div
+              key={doc._id}
+              className="app-panel p-5 flex flex-col justify-between group hover:border-emerald-300 transition-all shadow-xs"
+            >
+              <div>
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <button
+                    onClick={() => handleRemoveDocument(doc._id, doc.title)}
+                    title="Remove from Workspace"
+                    className="text-slate-400 hover:text-red-500 p-1 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <h4 className="text-sm font-bold text-slate-900 line-clamp-1 mb-1">
+                  {doc.title}
+                </h4>
+                <p className="text-[11px] text-slate-500 line-clamp-1 mb-3">
+                  {doc.fileName}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                    doc.status === 'Ready'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {doc.status}
+                </span>
+
+                <button
+                  onClick={() => navigate(`/documents/${doc._id}`)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-900 transition-colors cursor-pointer"
+                >
+                  View PDF <ExternalLink className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderSummaryTab = () => (
+    <div className="app-panel p-6 sm:p-8 space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+            <FileText className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Executive Workspace Summary</h3>
+            <p className="text-xs text-slate-500">
+              AI synthesis drawn from all PDFs in this folder
+            </p>
+          </div>
+        </div>
+
+        <Button
+          onClick={handleGenerateSummary}
+          disabled={generatingSummary || docs.length === 0}
+          className="text-xs py-2 px-4"
+        >
+          {generatingSummary ? (
+            <>
+              <Spinner size="sm" />
+              <span>Generating Summary...</span>
+            </>
+          ) : workspace.summary ? (
+            <>
+              <RefreshCw className="w-4 h-4" />
+              <span>Regenerate Summary</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" />
+              <span>Generate Summary</span>
+            </>
+          )}
+        </Button>
+      </div>
+
+      {generatingSummary ? (
+        <div className="py-12 text-center text-xs text-slate-500 space-y-2">
+          <Spinner size="lg" />
+          <p>Analyzing and synthesizing all PDFs in "{workspace.title}"...</p>
+        </div>
+      ) : workspace.summary ? (
+        <div className="prose prose-sm max-w-none text-xs leading-relaxed text-slate-700">
+          <MarkdownRenderer content={workspace.summary} />
+        </div>
+      ) : (
+        <div className="py-10 text-center text-xs text-slate-400">
+          Click "Generate Summary" to synthesize key takeaways across all PDFs in this folder!
+        </div>
+      )}
+    </div>
+  );
+
+  const renderMindmapTab = () => (
+    <div className="app-panel p-6 sm:p-8 space-y-4">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+            <BrainCircuit className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Cross-Document Concept Mindmap</h3>
+            <p className="text-xs text-slate-500">
+              Interactive visualization connecting themes across workspace files
+            </p>
+          </div>
+        </div>
+
+        <Button
+          onClick={handleGenerateMindmap}
+          disabled={generatingMindmap || docs.length === 0}
+          className="text-xs py-2 px-4"
+        >
+          {generatingMindmap ? (
+            <>
+              <Spinner size="sm" />
+              <span>Generating Mindmap...</span>
+            </>
+          ) : workspace.mindmap ? (
+            <>
+              <RotateCcw className="w-4 h-4" />
+              <span>Regenerate Mindmap</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4" />
+              <span>Generate Mindmap</span>
+            </>
+          )}
+        </Button>
+      </div>
+
+      {generatingMindmap ? (
+        <div className="py-16 text-center text-xs text-slate-500 space-y-2">
+          <Spinner size="lg" />
+          <p>Generating cross-document concept map...</p>
+        </div>
+      ) : workspace.mindmap ? (
+        <div className="h-125 rounded-2xl border border-slate-200/80 overflow-hidden bg-slate-50">
+          <MindmapCanvas mindmap={workspace.mindmap} />
+        </div>
+      ) : (
+        <div className="py-12 text-center text-xs text-slate-400">
+          Click "Generate Mindmap" to build an interactive concept diagram connecting all files in this workspace!
+        </div>
+      )}
+    </div>
+  );
+
+  const renderFlashcardsTab = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-slate-900">Workspace Flashcard Decks</h3>
+          <p className="text-xs text-slate-500">
+            Study sets covering all documents in "{workspace.title}"
+          </p>
+        </div>
+
+        <Button
+          onClick={handleGenerateFlashcards}
+          disabled={generatingFlashcards || docs.length === 0}
+          className="text-xs py-2 px-4"
+        >
+          {generatingFlashcards ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
+          Generate Workspace Flashcards
+        </Button>
+      </div>
+
+      {loadingFlashcards ? (
+        <div className="py-12 flex justify-center">
+          <Spinner size="lg" />
+        </div>
+      ) : flashcardSets.length === 0 ? (
+        <div className="app-panel p-12 text-center max-w-md mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="w-8 h-8" />
+          </div>
+          <h4 className="text-sm font-bold text-slate-900 mb-1">
+            No Workspace Flashcard Decks
+          </h4>
+          <p className="text-xs text-slate-500 mb-6">
+            Generate flashcards drawing questions across all PDFs in this folder!
+          </p>
+          <Button onClick={handleGenerateFlashcards} disabled={generatingFlashcards || docs.length === 0}>
+            Generate Flashcards
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {flashcardSets.map(set => (
+            <FlashcardSetCard
+              key={set._id}
+              flashcardSet={set}
+              onDelete={() => fetchWorkspaceStudyMaterials()}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderQuizzesTab = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-slate-900">Workspace Quizzes</h3>
+          <p className="text-xs text-slate-500">
+            Practice exams encompassing all documents in "{workspace.title}"
+          </p>
+        </div>
+
+        <Button
+          onClick={handleGenerateQuiz}
+          disabled={generatingQuiz || docs.length === 0}
+          className="text-xs py-2 px-4"
+        >
+          {generatingQuiz ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
+          Generate Workspace Quiz
+        </Button>
+      </div>
+
+      {loadingQuizzes ? (
+        <div className="py-12 flex justify-center">
+          <Spinner size="lg" />
+        </div>
+      ) : quizzes.length === 0 ? (
+        <div className="app-panel p-12 text-center max-w-md mx-auto">
+          <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-4">
+            <HelpCircle className="w-8 h-8" />
+          </div>
+          <h4 className="text-sm font-bold text-slate-900 mb-1">
+            No Workspace Quizzes Generated
+          </h4>
+          <p className="text-xs text-slate-500 mb-6">
+            Create a quiz testing your understanding across all workspace documents!
+          </p>
+          <Button onClick={handleGenerateQuiz} disabled={generatingQuiz || docs.length === 0}>
+            Generate Workspace Quiz
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {quizzes.map(quiz => (
+            <QuizCard
+              key={quiz._id}
+              quiz={quiz}
+              onDelete={handleDeleteQuizRequest}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const tabs = [
+    { name: 'documents', label: `Documents (${docs.length})`, content: renderDocumentsTab() },
+    { name: 'chat', label: 'Multi-Doc AI Chat', content: <WorkspaceChatInterface workspaceId={workspace._id} workspaceTitle={workspace.title} /> },
+    { name: 'summary', label: 'Summary', content: renderSummaryTab() },
+    { name: 'mindmap', label: 'Mindmap', content: renderMindmapTab() },
+    { name: 'flashcards', label: `Flashcards (${flashcardSets.length})`, content: renderFlashcardsTab() },
+    { name: 'quizzes', label: `Quizzes (${quizzes.length})`, content: renderQuizzesTab() }
+  ];
+
   return (
     <div className="app-page space-y-6">
       {/* Back button */}
@@ -261,10 +560,13 @@ const WorkspaceDetailPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={() => setIsAddDocsModalOpen(true)} className="text-xs py-2 px-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsAddDocsModalOpen(true)}
+              className="px-4 py-2.5 bg-slate-950 hover:bg-slate-900 active:bg-black text-white rounded-xl text-xs font-semibold shadow-md flex items-center gap-2 transition-all cursor-pointer"
+            >
               <FilePlus className="w-4 h-4" /> Add Documents
-            </Button>
+            </button>
             <button
               onClick={() => setIsEditModalOpen(true)}
               title="Edit Folder"
@@ -283,372 +585,8 @@ const WorkspaceDetailPage = () => {
         </div>
       </div>
 
-      {/* Workspace Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-0.5">
-        <button
-          onClick={() => setActiveTab('documents')}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'documents'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-        >
-          <FileText className="w-4 h-4" />
-          Documents ({docs.length})
-        </button>
-
-        <button
-          onClick={() => setActiveTab('chat')}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'chat'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          Multi-Doc AI Chat
-        </button>
-
-        <button
-          onClick={() => setActiveTab('summary')}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'summary'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-        >
-          <FileText className="w-4 h-4" />
-          Summary
-        </button>
-
-        <button
-          onClick={() => setActiveTab('mindmap')}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'mindmap'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-        >
-          <BrainCircuit className="w-4 h-4" />
-          Mindmap
-        </button>
-
-        <button
-          onClick={() => setActiveTab('flashcards')}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'flashcards'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          Flashcards ({flashcardSets.length})
-        </button>
-
-        <button
-          onClick={() => setActiveTab('quizzes')}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 whitespace-nowrap cursor-pointer ${activeTab === 'quizzes'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-            }`}
-        >
-          <HelpCircle className="w-4 h-4" />
-          Quizzes ({quizzes.length})
-        </button>
-      </div>
-
-      {/* Tab 1: Documents Grid */}
-      {activeTab === 'documents' && (
-        <div>
-          {docs.length === 0 ? (
-            <div className="app-panel p-12 text-center max-w-lg mx-auto">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">
-                <FilePlus className="w-8 h-8" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900 mb-1">
-                No Documents in this Workspace
-              </h3>
-              <p className="text-xs text-slate-500 mb-6">
-                Add uploaded PDFs to this folder to start asking cross-document questions and generating study materials.
-              </p>
-              <Button onClick={() => setIsAddDocsModalOpen(true)}>
-                <FilePlus className="w-4 h-4" /> Add Documents Now
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {docs.map((doc) => (
-                <div
-                  key={doc._id}
-                  className="app-panel p-5 flex flex-col justify-between group hover:border-emerald-300 transition-all shadow-xs"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <button
-                        onClick={() => handleRemoveDocument(doc._id, doc.title)}
-                        title="Remove from Workspace"
-                        className="text-slate-400 hover:text-red-500 p-1 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    <h4 className="text-sm font-bold text-slate-900 line-clamp-1 mb-1">
-                      {doc.title}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 line-clamp-1 mb-3">
-                      {doc.fileName}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <span
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${doc.status === 'Ready'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-amber-100 text-amber-800'
-                        }`}
-                    >
-                      {doc.status}
-                    </span>
-
-                    <button
-                      onClick={() => navigate(`/documents/${doc._id}`)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:text-emerald-900 transition-colors cursor-pointer"
-                    >
-                      View PDF <ExternalLink className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 2: Multi-Doc AI Chat */}
-      {activeTab === 'chat' && (
-        <WorkspaceChatInterface workspaceId={workspace._id} workspaceTitle={workspace.title} />
-      )}
-
-      {/* Tab 3: Executive Summary */}
-      {activeTab === 'summary' && (
-        <div className="app-panel p-6 sm:p-8 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Executive Workspace Summary</h3>
-                <p className="text-xs text-slate-500">
-                  AI synthesis drawn from all PDFs in this folder
-                </p>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleGenerateSummary}
-              disabled={generatingSummary || docs.length === 0}
-              className="text-xs py-2 px-4"
-            >
-              {generatingSummary ? (
-                <>
-                  <Spinner size="sm" />
-                  <span>Generating Summary...</span>
-                </>
-              ) : workspace.summary ? (
-                <>
-                  <RefreshCw className="w-4 h-4" />
-                  <span>Regenerate Summary</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  <span>Generate Summary</span>
-                </>
-              )}
-            </Button>
-          </div>
-
-          {generatingSummary ? (
-            <div className="py-12 text-center text-xs text-slate-500 space-y-2">
-              <Spinner size="lg" />
-              <p>Analyzing and synthesizing all PDFs in "{workspace.title}"...</p>
-            </div>
-          ) : workspace.summary ? (
-            <div className="prose prose-sm max-w-none text-xs leading-relaxed text-slate-700">
-              <MarkdownRenderer content={workspace.summary} />
-            </div>
-          ) : (
-            <div className="py-10 text-center text-xs text-slate-400">
-              Click "Generate Summary" to synthesize key takeaways across all PDFs in this folder!
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 4: Interactive Mindmap */}
-      {activeTab === 'mindmap' && (
-        <div className="app-panel p-6 sm:p-8 space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                <BrainCircuit className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Cross-Document Concept Mindmap</h3>
-                <p className="text-xs text-slate-500">
-                  Interactive visualization connecting themes across workspace files
-                </p>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleGenerateMindmap}
-              disabled={generatingMindmap || docs.length === 0}
-              className="text-xs py-2 px-4"
-            >
-              {generatingMindmap ? (
-                <>
-                  <Spinner size="sm" />
-                  <span>Generating Mindmap...</span>
-                </>
-              ) : workspace.mindmap ? (
-                <>
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Regenerate Mindmap</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  <span>Generate Mindmap</span>
-                </>
-              )}
-            </Button>
-          </div>
-
-          {generatingMindmap ? (
-            <div className="py-16 text-center text-xs text-slate-500 space-y-2">
-              <Spinner size="lg" />
-              <p>Generating cross-document concept map...</p>
-            </div>
-          ) : workspace.mindmap ? (
-            <div className="h-125 rounded-2xl border border-slate-200/80 overflow-hidden bg-slate-50">
-              <MindmapCanvas mindmap={workspace.mindmap} />
-            </div>
-          ) : (
-            <div className="py-12 text-center text-xs text-slate-400">
-              Click "Generate Mindmap" to build an interactive concept diagram connecting all files in this workspace!
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 4: Flashcards */}
-      {activeTab === 'flashcards' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">Workspace Flashcard Decks</h3>
-              <p className="text-xs text-slate-500">
-                Study sets covering all documents in "{workspace.title}"
-              </p>
-            </div>
-
-            <Button
-              onClick={handleGenerateFlashcards}
-              disabled={generatingFlashcards || docs.length === 0}
-              className="text-xs py-2 px-4"
-            >
-              {generatingFlashcards ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
-              Generate Workspace Flashcards
-            </Button>
-          </div>
-
-          {loadingFlashcards ? (
-            <div className="py-12 flex justify-center">
-              <Spinner size="lg" />
-            </div>
-          ) : flashcardSets.length === 0 ? (
-            <div className="app-panel p-12 text-center max-w-md mx-auto">
-              <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-8 h-8" />
-              </div>
-              <h4 className="text-sm font-bold text-slate-900 mb-1">
-                No Workspace Flashcard Decks
-              </h4>
-              <p className="text-xs text-slate-500 mb-6">
-                Generate flashcards drawing questions across all PDFs in this folder!
-              </p>
-              <Button onClick={handleGenerateFlashcards} disabled={generatingFlashcards || docs.length === 0}>
-                Generate Flashcards
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {flashcardSets.map(set => (
-                <FlashcardSetCard
-                  key={set._id}
-                  flashcardSet={set}
-                  onDelete={() => fetchWorkspaceStudyMaterials()}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 5: Quizzes */}
-      {activeTab === 'quizzes' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">Workspace Quizzes</h3>
-              <p className="text-xs text-slate-500">
-                Practice exams encompassing all documents in "{workspace.title}"
-              </p>
-            </div>
-
-            <Button
-              onClick={handleGenerateQuiz}
-              disabled={generatingQuiz || docs.length === 0}
-              className="text-xs py-2 px-4"
-            >
-              {generatingQuiz ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
-              Generate Workspace Quiz
-            </Button>
-          </div>
-
-          {loadingQuizzes ? (
-            <div className="py-12 flex justify-center">
-              <Spinner size="lg" />
-            </div>
-          ) : quizzes.length === 0 ? (
-            <div className="app-panel p-12 text-center max-w-md mx-auto">
-              <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-4">
-                <HelpCircle className="w-8 h-8" />
-              </div>
-              <h4 className="text-sm font-bold text-slate-900 mb-1">
-                No Workspace Quizzes Generated
-              </h4>
-              <p className="text-xs text-slate-500 mb-6">
-                Create a quiz testing your understanding across all workspace documents!
-              </p>
-              <Button onClick={handleGenerateQuiz} disabled={generatingQuiz || docs.length === 0}>
-                Generate Workspace Quiz
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {quizzes.map(quiz => (
-                <QuizCard
-                  key={quiz._id}
-                  quiz={quiz}
-                  onDelete={handleDeleteQuizRequest}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Workspace Tabs Navigation (Sleek Pill Styling matching Document Detail Page) */}
+      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {/* Modals */}
       <CreateWorkspaceModal

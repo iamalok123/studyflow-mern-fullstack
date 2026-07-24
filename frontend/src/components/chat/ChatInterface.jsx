@@ -97,7 +97,7 @@ const ChatInterface = () => {
   const renderMessage = (msg, index) => {
     const isUser = msg.role === 'user';
     return (
-      <div key={index} className={`flex items-start ${isUser ? 'justify-end' : ''} gap-3 my-4`}>
+      <div key={index} className={`flex items-start gap-3 my-4 max-w-[90%] sm:max-w-[85%] min-w-0 ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}>
         {!isUser && (
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 bg-white flex items-center justify-center shrink-0 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" strokeWidth={2} />
@@ -105,7 +105,7 @@ const ChatInterface = () => {
         )}
 
         <div
-          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs ${
+          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs min-w-0 max-w-full overflow-hidden wrap-break-word ${
             isUser
               ? 'bg-slate-900 text-white rounded-tr-none'
               : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
