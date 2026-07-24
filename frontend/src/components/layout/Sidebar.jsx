@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
-import { LayoutDashboard, User, FileText, BrainCircuit, BookOpen, LogOut, X } from 'lucide-react'
+import { LayoutDashboard, User, FileText, BrainCircuit, BookOpen, LogOut, X, Folder } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
@@ -17,6 +17,11 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
       path: '/dashboard',
       icon: LayoutDashboard,
       text: 'Dashboard'
+    },
+    {
+      path: '/workspaces',
+      icon: Folder,
+      text: 'Workspaces'
     },
     {
       path: '/documents',

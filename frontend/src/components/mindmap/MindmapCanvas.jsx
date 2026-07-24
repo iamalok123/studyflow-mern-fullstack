@@ -42,7 +42,6 @@ const BranchNode = ({ data }) => {
   const { color, direction, depth, label, hasChildren, isCollapsed, id } = data;
   
   // Depth-based sizing
-  const isLeaf = depth >= 3 || !hasChildren;
   const cardWidth = depth === 1 ? 'w-72' : depth === 2 ? 'w-60' : 'w-48';
   const textClass = depth === 1 ? 'text-xl font-black' : depth === 2 ? 'text-sm font-bold' : 'text-xs font-semibold text-slate-600';
   
@@ -150,11 +149,12 @@ const Flow = ({ mindmap }) => {
   );
 };
 
-const MindmapCanvas = ({ mindmap }) => {
+const MindmapCanvas = ({ mindmap, mindmapData }) => {
+  const targetMindmap = mindmap || mindmapData;
   return (
-    <div className="w-full h-[70vh] min-h-[500px] max-h-[800px] rounded-2xl border border-slate-200 overflow-hidden shadow-inner shadow-slate-200/50">
+    <div className="w-full h-[70vh] min-h-125 max-h-200 rounded-2xl border border-slate-200 overflow-hidden shadow-inner shadow-slate-200/50">
       <ReactFlowProvider>
-        <Flow mindmap={mindmap} />
+        <Flow mindmap={targetMindmap} />
       </ReactFlowProvider>
     </div>
   );

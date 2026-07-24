@@ -8,6 +8,8 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage'));
 const DocumentListPage = lazy(() => import('./pages/Documents/DocumentListPage'));
 const DocumentDetailPage = lazy(() => import('./pages/Documents/DocumentDetailPage'));
+const WorkspaceListPage = lazy(() => import('./pages/Workspaces/WorkspaceListPage'));
+const WorkspaceDetailPage = lazy(() => import('./pages/Workspaces/WorkspaceDetailPage'));
 const FlashcardListPage = lazy(() => import('./pages/Flashcards/FlashcardListPage'));
 const FlashcardPage = lazy(() => import('./pages/Flashcards/FlashcardPage'));
 const QuizTakePage = lazy(() => import('./pages/Quizzes/QuizTakePage'));
@@ -42,13 +44,16 @@ const App = () => {
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/workspaces" element={<WorkspaceListPage />} />
+          <Route path="/workspaces/:id" element={<WorkspaceDetailPage />} />
           <Route path="/documents" element={<DocumentListPage />} />
           <Route path="/documents/:id" element={<DocumentDetailPage />} />
           <Route path="/flashcards" element={<FlashcardListPage />} />
+          <Route path="/flashcards/set/:setId" element={<FlashcardPage />} />
           <Route path="/documents/:id/flashcards" element={<FlashcardPage />} />
           <Route path="/quizzes/:quizId" element={<QuizTakePage />} />
           <Route path="/quizzes/:quizId/results" element={<QuizResultPage />} />
-           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

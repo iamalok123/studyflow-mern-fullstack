@@ -46,9 +46,29 @@ const deleteFlashcardSet = async (id) => {
     }
 };
 
+const getFlashcardsForWorkspace = async (workspaceId) => {
+    try {
+        const response = await axiosInstance.get(API_PATHS.FLASHCARDS.GET_FLASHCARDS_FOR_WORKSPACE(workspaceId));
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Failed to fetch workspace flashcards' };
+    }
+};
+
+const getFlashcardSetById = async (setId) => {
+    try {
+        const response = await axiosInstance.get(API_PATHS.FLASHCARDS.GET_FLASHCARD_SET_BY_ID(setId));
+        return response.data;
+    } catch (error) {
+        throw error.response?.data || { message: 'Failed to fetch flashcard set' };
+    }
+};
+
 const flashcardService = {
     getAllFlashcardSets,
+    getFlashcardSetById,
     getFlashcardsForDocument,
+    getFlashcardsForWorkspace,
     reviewFlashcard,
     toggleStar,
     deleteFlashcardSet,

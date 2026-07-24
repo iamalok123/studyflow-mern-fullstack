@@ -27,11 +27,30 @@ export const API_PATHS = {
         CHAT: "/api/ai/chat",
         EXPLAIN_CONCEPT: "/api/ai/explain-concept",
         GET_CHAT_HISTORY: (documentId) => `/api/ai/chat-history/${documentId}`,
+        WORKSPACE_CHAT: "/api/ai/workspace-chat",
+        GET_WORKSPACE_CHAT_HISTORY: (workspaceId) => `/api/ai/workspace-chat-history/${workspaceId}`,
+        WORKSPACE_GENERATE_SUMMARY: "/api/ai/workspace-summary",
+        WORKSPACE_GENERATE_MINDMAP: "/api/ai/workspace-mindmap",
+        GET_WORKSPACE_MINDMAP: (workspaceId) => `/api/ai/workspace-mindmap/${workspaceId}`,
+        WORKSPACE_GENERATE_FLASHCARDS: "/api/ai/workspace-flashcards",
+        WORKSPACE_GENERATE_QUIZ: "/api/ai/workspace-quiz",
+    },
+
+    WORKSPACES: {
+        GET_ALL: "/api/workspaces",
+        CREATE: "/api/workspaces",
+        GET_BY_ID: (id) => `/api/workspaces/${id}`,
+        UPDATE: (id) => `/api/workspaces/${id}`,
+        DELETE: (id) => `/api/workspaces/${id}`,
+        ADD_DOCUMENTS: (id) => `/api/workspaces/${id}/documents`,
+        REMOVE_DOCUMENT: (id, docId) => `/api/workspaces/${id}/documents/${docId}`,
     },
 
     FLASHCARDS: {
         GET_ALL_FLASHCARD_SETS: "/api/flashcards",
+        GET_FLASHCARD_SET_BY_ID: (setId) => `/api/flashcards/set/${setId}`,
         GET_FLASHCARDS_FOR_DOC: (documentId) => `/api/flashcards/${documentId}`,
+        GET_FLASHCARDS_FOR_WORKSPACE: (workspaceId) => `/api/flashcards/workspace/${workspaceId}`,
         REVIEW_FLASHCARD: (cardId) => `/api/flashcards/${cardId}/review`,
         TOGGLE_STAR: (cardId) => `/api/flashcards/${cardId}/star`,
         DELETE_FLASHCARD_SET: (id) => `/api/flashcards/${id}`,
@@ -39,6 +58,7 @@ export const API_PATHS = {
 
     QUIZZES: {
         GET_QUIZZES_FOR_DOC: (documentId) => `/api/quizzes/${documentId}`,
+        GET_QUIZZES_FOR_WORKSPACE: (workspaceId) => `/api/quizzes/workspace/${workspaceId}`,
         GET_QUIZ_BY_ID: (id) => `/api/quizzes/quiz/${id}`,
         SUBMIT_QUIZ: (id) => `/api/quizzes/${id}/submit`,
         GET_QUIZ_RESULTS: (id) => `/api/quizzes/${id}/results`,

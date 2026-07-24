@@ -169,7 +169,7 @@ export const getQuizResults = async (req, res, next) => {
         const quiz = await Quiz.findOne({
             _id: req.params.id,
             userId: req.user._id
-        }).populate('documentId', 'title');
+        }).populate('documentId', 'title').populate('workspaceId', 'title');
 
         if (!quiz) {
             return res.status(404).json({
@@ -208,6 +208,7 @@ export const getQuizResults = async (req, res, next) => {
                     id: quiz._id,
                     title: quiz.title,
                     document: quiz.documentId,
+                    workspace: quiz.workspaceId,
                     score: quiz.score,
                     totalQuestions: quiz.totalQuestions,
                     completedAt: quiz.completedAt,
@@ -249,3 +250,26 @@ export const deleteQuiz = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Get all quizzes for a workspace
+// @route   GET /api/quizzes/workspace/:workspaceId
+// @access  Private
+export const getWorkspaceQuizzes = async (req, res, next) => {
+    try {
+        const quizzes = await Quiz.find({
+            userId: req.user._id,
+            workspaceId: req.params.workspaceId
+        })
+            .populate('workspaceId', 'title')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: quizzes.length,
+            data: quizzes
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+

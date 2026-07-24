@@ -35,6 +35,7 @@ export const getAllFlashcardSets = async (req, res, next) => {
             userId: req.user._id,
         })
             .populate("documentId", "title")
+            .populate("workspaceId", "title")
             .sort({ createdAt: -1 });
 
         res.status(200).json({
@@ -165,3 +166,56 @@ export const deleteFlashcardSet = async (req, res, next) => {
         next(error);
     }
 };
+
+// @desc    Get flashcards for a workspace
+// @route   GET /api/flashcards/workspace/:workspaceId
+// @access  Private
+export const getWorkspaceFlashcards = async (req, res, next) => {
+    try {
+        const flashcards = await Flashcard.find({
+            userId: req.user._id,
+            workspaceId: req.params.workspaceId,
+        })
+            .populate("workspaceId", "title")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: flashcards.length,
+            data: flashcards,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get a single flashcard set by set ID
+// @route   GET /api/flashcards/set/:setId
+// @access  Private
+export const getFlashcardSetById = async (req, res, next) => {
+    try {
+        const flashcardSet = await Flashcard.findOne({
+            _id: req.params.setId,
+            userId: req.user._id,
+        })
+            .populate("documentId", "title fileName")
+            .populate("workspaceId", "title");
+
+        if (!flashcardSet) {
+            return res.status(404).json({
+                success: false,
+                error: "Flashcard set not found",
+                statusCode: 404,
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: flashcardSet,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+

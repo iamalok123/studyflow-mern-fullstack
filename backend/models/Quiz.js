@@ -9,7 +9,12 @@ const quizSchema = new mongoose.Schema({
     documentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Document",
-        required: true
+        default: null
+    },
+    workspaceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Workspace",
+        default: null
     },
     title: {
         type: String,
@@ -76,8 +81,9 @@ const quizSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Index for faster queries
+// Indexes for faster queries
 quizSchema.index({ userId: 1, documentId: 1 });
+quizSchema.index({ userId: 1, workspaceId: 1 });
 
 const Quiz = mongoose.model("Quiz", quizSchema);
 

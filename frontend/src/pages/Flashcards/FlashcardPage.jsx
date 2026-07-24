@@ -13,9 +13,9 @@ import Modal from '../../components/common/Modal'
 import Flashcard from '../../components/flashcards/Flashcard'
 
 const FlashcardPage = () => {
-  const { id: documentId } = useParams();
+  const { id: documentId, setId } = useParams();
   const [flashcards, setFlashcards] = useState([]);
-  const [flashcardSets, setFlashcardSets] = useState([]);
+  const [flashcardSets, setFlashcardSets] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -25,20 +25,27 @@ const FlashcardPage = () => {
   const fetchFlashcards = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await flashcardService.getFlashcardsForDocument(documentId);
-      setFlashcardSets(response.data[0]);
-      setFlashcards(response.data[0]?.cards || []);
+      if (setId) {
+        const response = await flashcardService.getFlashcardSetById(setId);
+        setFlashcardSets(response.data);
+        setFlashcards(response.data?.cards || []);
+      } else if (documentId) {
+        const response = await flashcardService.getFlashcardsForDocument(documentId);
+        const setObj = response.data[0] || null;
+        setFlashcardSets(setObj);
+        setFlashcards(setObj?.cards || []);
+      }
     } catch (error) {
       console.error("Error fetching flashcards: ", error);
       toast.error("Failed to load flashcards");
     } finally {
       setLoading(false);
     }
-  }, [documentId]);
+  }, [documentId, setId]);
 
   useEffect(() => {
     fetchFlashcards();
-  }, [documentId, fetchFlashcards]);
+  }, [fetchFlashcards]);
 
   const handleGenerateFlashcards = async () => {
     try {
@@ -160,16 +167,26 @@ const FlashcardPage = () => {
   return (
     <div className='app-page'>
       <div className='mb-4'>
-        <Link
-          to={`/documents/${documentId}`}
-          className='inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-emerald-700 transition-colors'
-        >
-          <ArrowLeft size={20} />
-          Back to Document
-        </Link>
+        {flashcardSets?.workspaceId ? (
+          <Link
+            to={`/workspaces/${flashcardSets.workspaceId._id || flashcardSets.workspaceId}`}
+            className='inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-emerald-700 transition-colors'
+          >
+            <ArrowLeft size={20} />
+            Back to Workspace
+          </Link>
+        ) : (
+          <Link
+            to={documentId ? `/documents/${documentId}` : '/flashcards'}
+            className='inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-emerald-700 transition-colors'
+          >
+            <ArrowLeft size={20} />
+            {documentId ? 'Back to Document' : 'Back to Flashcards'}
+          </Link>
+        )}
       </div>
       <PageHeader
-        title="Flashcards"
+        title={flashcardSets?.workspaceId?.title ? `Flashcards - ${flashcardSets.workspaceId.title}` : flashcardSets?.documentId?.title ? `Flashcards - ${flashcardSets.documentId.title}` : "Flashcards"}
       >
         <div className='flex gap-2'>
           {!loading &&

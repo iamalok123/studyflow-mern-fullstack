@@ -8,9 +8,10 @@ const FlashcardSetCard = ({ flashcardSet }) => {
 
 
   const handleStudyNow = () => {
-    navigate(`/documents/${flashcardSet?.documentId?._id}/flashcards`);
+    navigate(`/flashcards/set/${flashcardSet._id}`);
   };
 
+  const title = flashcardSet?.documentId?.title || flashcardSet?.workspaceId?.title || flashcardSet?.title || 'Flashcard Set';
   const reviewedCount = flashcardSet.cards.filter(card => card.lastReviewed).length;
   const totalCards = flashcardSet.cards.length;
   const progressPercentage = totalCards > 0 ? Math.round((reviewedCount / totalCards) * 100) : 0;
@@ -25,7 +26,7 @@ const FlashcardSetCard = ({ flashcardSet }) => {
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-semibold text-slate-900 line-clamp-2 mb-1">
-              {flashcardSet?.documentId?.title}
+              {title}
             </h3>
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
               Created {moment(flashcardSet.createdAt).fromNow()}

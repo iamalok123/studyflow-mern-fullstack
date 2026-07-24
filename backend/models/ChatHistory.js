@@ -9,7 +9,12 @@ const chatHistorySchema = new mongoose.Schema({
     documentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Document",
-        required: true
+        default: null
+    },
+    workspaceId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Workspace",
+        default: null
     },
     messages: [{
         role: {
@@ -33,8 +38,9 @@ const chatHistorySchema = new mongoose.Schema({
     }]
 }, { timestamps: true });
 
-// Index for faster queries
+// Indexes for faster queries
 chatHistorySchema.index({ userId: 1, documentId: 1 });
+chatHistorySchema.index({ userId: 1, workspaceId: 1 });
 
 const ChatHistory = mongoose.model("ChatHistory", chatHistorySchema);
 

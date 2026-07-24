@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Upload, Trash2, FileText, X, Loader, CheckCircle2 } from 'lucide-react'
+import { Plus, Upload, Trash2, FileText, X, Loader, CheckCircle2, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import documentService from '../../services/documentService'
 import { extractPdfText } from '../../utils/pdfExtractor'
@@ -10,6 +10,7 @@ import DocumentCard from '../../components/documents/DocumentCard'
 const DocumentListPage = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // State for upload model
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -78,7 +79,7 @@ const DocumentListPage = () => {
       // Step 1: Extract Text
       setUploadStep('reading');
       setUploadProgress(0);
-      const { text, numPages, isLikelyScanned, chunks } = await extractPdfText(uploadFile, (current, total) => {
+      const { text, isLikelyScanned } = await extractPdfText(uploadFile, (current, total) => {
         setExtractionProgress(`Page ${current} of ${total}`);
         setUploadProgress(Math.round((current / total) * 100));
       });
@@ -108,7 +109,7 @@ const DocumentListPage = () => {
 
       // Step 4: Save metadata to backend
       setUploadStep('saving');
-      const documentData = await documentService.uploadDocument({
+      await documentService.uploadDocument({
         title: uploadTitle,
         cloudinaryUrl: cloudinaryResult.secure_url,
         cloudinaryPublicId: cloudinaryResult.public_id,
@@ -154,28 +155,30 @@ const DocumentListPage = () => {
     } finally {
       setDeleting(false);
     }
-  };
+  };  const filteredDocuments = (documents || []).filter((doc) => {
+    const titleMatch = doc.title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const fileMatch = doc.fileName?.toLowerCase().includes(searchQuery.toLowerCase());
+    return titleMatch || fileMatch;
+  });
 
   const renderContent = () => {
     if (loading) {
       return (
-        <div className='flex items-center justify-center min-h-100'>
-          <Spinner size='lg' />
+        <div className='flex items-center justify-center min-h-[60vh]'>
+          <Spinner />
         </div>
-      )
+      );
     }
+
     if (documents.length === 0) {
       return (
-        <div className='flex items-center justify-center min-h-100'>
-          <div className='text-center max-w-md'>
-            <div className='inline-flex items-center justify-center w-20 h-20 app-muted-icon-tile mb-6'>
-              <FileText
-                className='w-10 h-10'
-                strokeWidth={1.5}
-              />
+        <div className='flex items-center justify-center min-h-[60vh]'>
+          <div className='text-center max-w-md mx-auto'>
+            <div className='w-20 h-20 app-muted-icon-tile mb-6 mx-auto'>
+              <FileText className='w-10 h-10 text-emerald-600' strokeWidth={1.5} />
             </div>
-            <h3 className='text-xl font-medium text-slate-900 tracking-tight mb-2'>
-              No documents uploaded yet
+            <h3 className='text-xl font-bold text-slate-900 tracking-tight mb-2'>
+              No Documents Uploaded
             </h3>
             <p className='text-sm text-slate-500 mb-6'>
               Get started by uploading your first PDF document to begin learning.
@@ -191,9 +194,17 @@ const DocumentListPage = () => {
       );
     }
 
+    if (filteredDocuments.length === 0) {
+      return (
+        <div className='text-center py-16 text-slate-500 text-sm font-medium'>
+          No documents match "{searchQuery}"
+        </div>
+      );
+    }
+
     return (
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
-        {documents?.map((document) => (
+        {filteredDocuments.map((document) => (
           <DocumentCard
             key={document._id}
             document={document}
@@ -201,13 +212,14 @@ const DocumentListPage = () => {
           />
         ))}
       </div>
-    )
-  }
+    );
+  };
+
   return (
     <div>
       <div className='app-page'>
         {/* Header */}
-        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10'>
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8'>
           <div>
             <h1 className='text-2xl font-black text-slate-950 tracking-tight mb-2'>
               My Documents
@@ -223,6 +235,21 @@ const DocumentListPage = () => {
             </Button>
           )}
         </div>
+
+        {/* Search Bar */}
+        {documents.length > 0 && (
+          <div className="mb-6 max-w-md relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search documents by title or file name..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+            />
+          </div>
+        )}
+
         {renderContent()}
       </div>
 

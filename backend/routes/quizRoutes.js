@@ -5,7 +5,8 @@ import {
   getQuizById,
   submitQuiz,
   getQuizResults,
-  deleteQuiz
+  deleteQuiz,
+  getWorkspaceQuizzes
 } from '../controllers/quizController.js';
 import protect from '../middlewares/auth.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
@@ -20,6 +21,7 @@ const idValidation = [
 ];
 
 router.get('/quiz/:id', idValidation, validateRequest, getQuizById);
+router.get('/workspace/:workspaceId', [param('workspaceId').isMongoId().withMessage('Invalid workspace id')], validateRequest, getWorkspaceQuizzes);
 router.post(
   '/:id/submit',
   [

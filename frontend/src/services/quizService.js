@@ -46,8 +46,18 @@ const deleteQuiz = async (quizId) => {
   }
 };
 
+const getQuizzesForWorkspace = async (workspaceId) => {
+  try {
+    const response = await axiosInstance.get(API_PATHS.QUIZZES.GET_QUIZZES_FOR_WORKSPACE(workspaceId));
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch workspace quizzes' };
+  }
+};
+
 const quizService = {
   getQuizzesForDocument,
+  getQuizzesForWorkspace,
   getQuizById,
   submitQuiz,
   getQuizResults,

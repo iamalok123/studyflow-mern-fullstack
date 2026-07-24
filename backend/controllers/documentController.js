@@ -2,11 +2,29 @@ import Document from "../models/Document.js";
 import Flashcard from "../models/Flashcard.js";
 import Quiz from "../models/Quiz.js";
 import ChatHistory from "../models/ChatHistory.js";
+import Workspace from "../models/Workspace.js";
 import { extractTextFromPDF } from "../utils/pdfParser.js";
 import { chunkText } from "../utils/textChunker.js";
 import getCloudinary from "../config/cloudinary.js";
 import mongoose from "mongoose";
 
+const invalidateWorkspaceAiArtifacts = async (workspaceId, userId) => {
+    await Promise.all([
+        Workspace.updateOne(
+            { _id: workspaceId, userId },
+            {
+                $set: {
+                    summary: "",
+                    summaryGeneratedAt: null,
+                    mindmap: null
+                }
+            }
+        ),
+        Flashcard.deleteMany({ workspaceId, userId }),
+        Quiz.deleteMany({ workspaceId, userId }),
+        ChatHistory.deleteMany({ workspaceId, userId }),
+    ]);
+};
 
 // @desc    Get Cloudinary signature for direct upload
 // @route   GET /api/documents/upload-signature
@@ -50,7 +68,8 @@ export const uploadDocument = async (req, res, next) => {
             fileSize, 
             extractedText: clientExtractedText, 
             attemptServerExtraction, 
-            fileName 
+            fileName,
+            workspaceId
         } = req.body;
 
         if (!title?.trim() || !cloudinaryUrl || !cloudinaryPublicId || !fileName) {
@@ -107,6 +126,18 @@ export const uploadDocument = async (req, res, next) => {
             chunks,
             status,
         });
+
+        if (workspaceId && mongoose.Types.ObjectId.isValid(workspaceId)) {
+            const updatedWorkspace = await Workspace.findOneAndUpdate(
+                { _id: workspaceId, userId: req.user._id },
+                { $addToSet: { documents: document._id } },
+                { new: false }
+            );
+
+            if (updatedWorkspace) {
+                await invalidateWorkspaceAiArtifacts(workspaceId, req.user._id);
+            }
+        }
 
         res.status(201).json({
             success: true,
@@ -250,11 +281,42 @@ export const deleteDocument = async (req, res, next) => {
             }
         }
 
+        const affectedWorkspaces = await Workspace.find({
+            userId: req.user._id,
+            documents: document._id
+        }).select("_id");
+        const affectedWorkspaceIds = affectedWorkspaces.map(workspace => workspace._id);
+
         // Delete all associated DB records in parallel
         await Promise.all([
             Flashcard.deleteMany({ documentId: document._id, userId: req.user._id }),
             Quiz.deleteMany({ documentId: document._id, userId: req.user._id }),
             ChatHistory.deleteMany({ documentId: document._id, userId: req.user._id }),
+            Workspace.updateMany(
+                { userId: req.user._id, documents: document._id },
+                { $pull: { documents: document._id } }
+            ),
+            affectedWorkspaceIds.length > 0
+                ? Workspace.updateMany(
+                    { _id: { $in: affectedWorkspaceIds }, userId: req.user._id },
+                    {
+                        $set: {
+                            summary: "",
+                            summaryGeneratedAt: null,
+                            mindmap: null
+                        }
+                    }
+                )
+                : Promise.resolve(),
+            affectedWorkspaceIds.length > 0
+                ? Flashcard.deleteMany({ workspaceId: { $in: affectedWorkspaceIds }, userId: req.user._id })
+                : Promise.resolve(),
+            affectedWorkspaceIds.length > 0
+                ? Quiz.deleteMany({ workspaceId: { $in: affectedWorkspaceIds }, userId: req.user._id })
+                : Promise.resolve(),
+            affectedWorkspaceIds.length > 0
+                ? ChatHistory.deleteMany({ workspaceId: { $in: affectedWorkspaceIds }, userId: req.user._id })
+                : Promise.resolve(),
         ]);
 
         await document.deleteOne();
