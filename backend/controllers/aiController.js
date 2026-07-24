@@ -352,7 +352,7 @@ export const streamChat = async (req, res, next) => {
         res.setHeader("Connection", "keep-alive");
         res.setHeader("X-Accel-Buffering", "no");
 
-        const relevantChunks = findRelevantChunks(document.chunks, question, 3);
+        const relevantChunks = findRelevantChunks(document.chunks, question, 5);
         const chunkIndices = relevantChunks.map(chunk => chunk.chunkIndex);
 
         let chatHistory = await ChatHistory.findOne({

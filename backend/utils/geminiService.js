@@ -371,37 +371,43 @@ export const chatWithContext = async (question, chunks, history = []) => {
         .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
         .join("\n\n");
 
-    // Include the last 6 messages (3 Q&A pairs) for conversational context
     let historyBlock = "";
     if (history.length > 0) {
-        const recentMessages = history.slice(-6);
-        historyBlock = "\nRecent conversation history:\n" +
+        const recentMessages = history.slice(-14);
+        historyBlock = "\nRecent Conversation History:\n" +
             recentMessages.map(m =>
-                `${m.role === "user" ? "Student" : "Assistant"}: ${m.content.substring(0, 500)}`
+                `${m.role === "user" ? "Student" : "Assistant"}: ${m.content.substring(0, 1000)}`
             ).join("\n") + "\n";
     }
 
-    const prompt = `You are an expert study assistant helping a student learn from their uploaded document.
+    const prompt = `You are an expert study assistant helping a student learn from their uploaded document(s).
 
-Context from the document:
+CRITICAL FORMATTING & VISUAL PRESENTATION RULES:
+1. SOURCE TAGGING:
+   - If the answer is found in or derived from the document context, begin your response on line 1 with: "**Based on the document:**" followed by two newlines.
+   - If the question is completely unrelated to the context, begin line 1 with: "**Not covered in the document. Based on general knowledge:**" followed by two newlines.
+   - NEVER use single asterisks like "*Based on the document:*" or insert spaces inside double asterisks.
+
+2. CODE & SYNTAX EXAMPLES:
+   - ALWAYS place code, SQL queries, formulas, command lines, or syntax examples inside proper triple-backtick fenced code blocks with language identifier on a NEW line (e.g. \`\`\`sql\nSELECT * FROM table;\n\`\`\` or \`\`\`python\ndef example(): pass\n\`\`\`).
+   - NEVER write language names like "sql", "javascript", "python" inline right after "Syntax:" or "Example:" without code block fences.
+   - NEVER put bullet points (like "- " or "• ") inside a code snippet or in front of SQL clauses (e.g. NEVER write "- FROM table").
+   - NEVER put code on the same line as bullet text or prose headings. Always put fenced code blocks on new lines with blank lines around them.
+   - NEVER split a single code example or SQL query into half fenced code and half plain text. Put the ENTIRE query inside one single fenced code block.
+
+3. STRUCTURE & HEADINGS:
+   - Use bold Markdown section headings (### Section Title) to cleanly divide topics, definitions, syntax, and practical examples.
+   - Use blank lines between headings, list items, and code blocks for clear visual hierarchy.
+
+4. LISTS & BULLETS:
+   - Use standard Markdown hyphen bullet points ("- "). Put every bullet point on its own new line. Never squish multiple bullet points or sub-items onto a single line.
+
+Document Context:
 ${context}
 ${historyBlock}
 Student's current question: ${question}
 
-Instructions:
-- Use the conversation history (if any) to understand follow-up questions and maintain context.
-- If the student says "explain more", "what about...", or similar follow-ups, refer to the conversation history for context.
-- If the answer is found in or related to the document context, answer based on the document. Start with: "**Based on the document:**"
-- If the question is completely unrelated to the context, answer from general knowledge. Start with: "**Not covered in the document. Based on general knowledge:**"
-- Structure your answer in clear **bullet points** (use "•" prefix) for readability.
-- For complex answers, use short **bold headings** to organize sections.
-- Include practical **examples** where they aid understanding.
-- If the question is about code: explain logic step-by-step, mention inputs/outputs, and highlight edge cases.
-- If the question is vague (e.g., "explain this", "tell me more"): cover the most important aspects of the document context or continue from the previous conversation.
-- Keep answers educational but concise — no unnecessary repetition.
-- Use markdown formatting (bold, bullets, code blocks) for clarity.
-
-Answer:`;
+Response:`;
 
     try {
         const generatedText = await generateWithRetry(prompt);
@@ -443,12 +449,24 @@ export const streamChatWithContext = async ({ question, chunks, history = [], on
     const prompt = `You are an expert study assistant helping a student learn from their uploaded document(s).
 
 CRITICAL FORMATTING & VISUAL PRESENTATION RULES:
-1. CODE & SYNTAX: ALWAYS place code, queries, formulas, or syntax examples inside proper triple-backtick fenced code blocks with language identifier on a NEW line (e.g. \`\`\`sql\nSELECT * FROM table;\n\`\`\` or \`\`\`python\ndef example(): pass\n\`\`\`). NEVER put code or SQL on the same line as bullet text or prose.
-2. LISTS & BULLETS: ALWAYS put every bullet point on its own NEW line using "- " or "• ". Never squish multiple bullet points or sub-items onto a single line.
-3. HEADINGS: Use bold Markdown section headings (### Section Title) to cleanly divide topics, definitions, syntax, and practical examples.
-4. SPACING: Use blank lines between headings, bullet points, and code blocks for clean visual hierarchy.
-5. CONTEXT PRESERVATION: Refer to previous conversation history for context, follow-ups, and references.
-6. SOURCE TAGGING: If answer is found in document context, start with: "**Based on the document:**". If unrelated to context, start with: "**Not covered in the document. Based on general knowledge:**".
+1. SOURCE TAGGING:
+   - If the answer is found in or derived from the document context, begin your response on line 1 with: "**Based on the document:**" followed by two newlines.
+   - If the question is completely unrelated to the context, begin line 1 with: "**Not covered in the document. Based on general knowledge:**" followed by two newlines.
+   - NEVER use single asterisks like "*Based on the document:*" or insert spaces inside double asterisks.
+
+2. CODE & SYNTAX EXAMPLES:
+   - ALWAYS place code, SQL queries, formulas, command lines, or syntax examples inside proper triple-backtick fenced code blocks with language identifier on a NEW line (e.g. \`\`\`sql\nSELECT * FROM table;\n\`\`\` or \`\`\`python\ndef example(): pass\n\`\`\`).
+   - NEVER write language names like "sql", "javascript", "python" inline right after "Syntax:" or "Example:" without code block fences.
+   - NEVER put bullet points (like "- " or "• ") inside a code snippet or in front of SQL clauses (e.g. NEVER write "- FROM table").
+   - NEVER put code on the same line as bullet text or prose headings. Always put fenced code blocks on new lines with blank lines around them.
+   - NEVER split a single code example or SQL query into half fenced code and half plain text. Put the ENTIRE query inside one single fenced code block.
+
+3. STRUCTURE & HEADINGS:
+   - Use bold Markdown section headings (### Section Title) to cleanly divide topics, definitions, syntax, and practical examples.
+   - Use blank lines between headings, list items, and code blocks for clear visual hierarchy.
+
+4. LISTS & BULLETS:
+   - Use standard Markdown hyphen bullet points ("- "). Put every bullet point on its own new line. Never squish multiple bullet points or sub-items onto a single line.
 
 Document Context:
 ${context}

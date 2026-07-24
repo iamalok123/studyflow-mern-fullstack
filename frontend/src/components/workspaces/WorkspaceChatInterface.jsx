@@ -151,7 +151,7 @@ const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
                 className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs min-w-0 max-w-full overflow-hidden wrap-break-word ${
                   msg.role === 'user'
                     ? 'bg-slate-900 text-white rounded-tr-none'
-                    : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'
+                    : 'bg-white border border-slate-200 text-slate-900 rounded-tl-none'
                 }`}
               >
                 <div className={msg.role === 'user' ? '**:text-white! [&_a]:text-white! [&_code]:bg-white/10! [&_code]:text-white!' : ''}>

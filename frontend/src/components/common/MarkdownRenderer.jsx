@@ -63,17 +63,86 @@ const normalizeMarkdown = (raw) => {
 
   let str = raw;
 
-  // Fix squished code tags like "* Syntax: sql SELECT..." or "Example: python def..." into proper fenced code blocks
+  // 1. Cleanly normalize Source Tag at start of response into a styled blockquote callout
   str = str.replace(
-    /(\*?\s*(?:Syntax|Example|Code):\s*)(sql|javascript|js|python|html|css|json|java|cpp|csharp)\s+([^\n]+)/gi,
-    (match, prefix, lang, code) => {
-      if (code.includes('```')) return match;
-      return `${prefix}\n\n\`\`\`${lang.toLowerCase()}\n${code.trim()}\n\`\`\`\n`;
-    }
+    /^[ \t]*[-*•·]?\s*(?:\*|_)*Based on the document:?\s*(?:\*|_)*[ \t]*/im,
+    '> 📄 **Based on the document**\n\n'
+  );
+  str = str.replace(
+    /^[ \t]*[-*•·]?\s*(?:\*|_)*Not covered in the document\.?\s*Based on general knowledge:?\s*(?:\*|_)*[ \t]*/im,
+    '> 🌐 **Not covered in the document. Based on general knowledge:**\n\n'
   );
 
-  // Fix squished bullets where bullet markers (* or •) are joined without newlines
-  str = str.replace(/([^\n])(\s*[•*]\s+[A-Z0-9])/g, '$1\n$2');
+  // 2. Replace unicode bullet points (·, •) with standard Markdown list dash (- )
+  str = str.replace(/^[ \t]*[·•][ \t]*/gm, '- ');
+
+  // 3. Fix unclosed single asterisk section headings (e.g., "*Outer Joins" -> "### Outer Joins")
+  str = str.replace(/^[ \t]*\*([A-Za-z0-9\s()]+)$/gm, (match, title) => {
+    return `### ${title.trim()}`;
+  });
+
+  // 4. Fix bullet point items starting with an unclosed single asterisk (e.g. "- *Left Join:" -> "- **Left Join:**")
+  str = str.replace(/^([ \t]*[-*•·]\s+)\*([^*:\n]+:?)$/gm, (match, bullet, title) => {
+    return `${bullet}**${title.trim()}**`;
+  });
+
+  // 5. Convert unfenced inline code lines (e.g. "Syntax: sql SELECT...") into proper fenced code blocks
+  // ONLY run if the text doesn't ALREADY contain fenced code blocks (```)
+  if (!str.includes('```')) {
+    const lines = str.split('\n');
+    const outputLines = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+      const labelMatch = line.match(/^([ \t]*[-*•·]?\s*(?:Syntax|Example|Code|Query):\s*)(?:(sql|javascript|js|python|html|css|json|java|cpp|csharp|bash|sh|ts|typescript)\s+)?(.*)$/i);
+
+      if (labelMatch) {
+        const prefix = labelMatch[1].replace(/^[ \t]*[-*•·]\s*/, '').trim();
+        const lang = (labelMatch[2] || '').toLowerCase();
+        let inlineContent = (labelMatch[3] || '').trim();
+
+        const codeBuffer = [];
+        if (inlineContent) {
+          inlineContent = inlineContent.replace(/^[ \t]*[-*•·]\s*/, '');
+          codeBuffer.push(inlineContent);
+        }
+
+        let j = i + 1;
+        while (j < lines.length) {
+          const nextLine = lines[j];
+          const cleanedNext = nextLine.replace(/^[ \t]*[-*•·]\s*/, '').trim();
+          const isSqlClause = /^(SELECT|FROM|WHERE|INNER\s+JOIN|LEFT\s+JOIN|RIGHT\s+JOIN|FULL\s+JOIN|JOIN|ON|GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|WITH|SET|VALUES|AND|OR|--|;)\b/i.test(cleanedNext);
+          const isCodeClause = /^(function|def|const|let|var|class|import|export|return|if|for|while|try|catch)\b/i.test(cleanedNext);
+
+          if (isSqlClause || isCodeClause || (codeBuffer.length > 0 && cleanedNext.startsWith('--'))) {
+            codeBuffer.push(cleanedNext);
+            j++;
+          } else {
+            break;
+          }
+        }
+
+        if (codeBuffer.length > 0) {
+          const fullCode = codeBuffer.join('\n');
+          const finalLang = lang || (/SELECT|FROM|JOIN|WHERE/i.test(fullCode) ? 'sql' : 'code');
+          outputLines.push(prefix);
+          outputLines.push('');
+          outputLines.push(`\`\`\`${finalLang}`);
+          outputLines.push(fullCode);
+          outputLines.push('```');
+          outputLines.push('');
+          i = j;
+          continue;
+        }
+      }
+
+      outputLines.push(line);
+      i++;
+    }
+
+    str = outputLines.join('\n');
+  }
 
   return str;
 };
@@ -87,43 +156,43 @@ const MarkdownRenderer = ({ content }) => {
   if (!safeContent) return null;
 
   return (
-    <div className="text-slate-700 dark:text-slate-200 text-xs sm:text-sm leading-relaxed overflow-hidden">
+    <div className="text-slate-900 text-xs sm:text-sm leading-relaxed overflow-hidden">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           h1: (props) => (
-            <h1 className="text-lg sm:text-xl font-bold mt-4 mb-2 text-slate-900 pb-1 border-b border-slate-200/60" {...withoutNode(props)} />
+            <h1 className="text-lg sm:text-xl font-bold mt-4 mb-2 text-slate-950 pb-1 border-b border-slate-200" {...withoutNode(props)} />
           ),
           h2: (props) => (
-            <h2 className="text-base sm:text-lg font-bold mt-3.5 mb-2 text-slate-900" {...withoutNode(props)} />
+            <h2 className="text-base sm:text-lg font-bold mt-3.5 mb-2 text-slate-950" {...withoutNode(props)} />
           ),
           h3: (props) => (
-            <h3 className="text-sm sm:text-base font-semibold mt-3 mb-1.5 text-slate-850" {...withoutNode(props)} />
+            <h3 className="text-sm sm:text-base font-bold mt-3 mb-1.5 text-slate-900" {...withoutNode(props)} />
           ),
           h4: (props) => (
-            <h4 className="text-xs sm:text-sm font-semibold mt-2.5 mb-1 text-slate-800" {...withoutNode(props)} />
+            <h4 className="text-xs sm:text-sm font-semibold mt-2.5 mb-1 text-slate-900" {...withoutNode(props)} />
           ),
-          p: (props) => <p className="mb-2 leading-relaxed text-slate-800" {...withoutNode(props)} />,
+          p: (props) => <p className="mb-2 leading-relaxed text-slate-900" {...withoutNode(props)} />,
           a: (props) => (
             <a
-              className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium break-all"
+              className="text-emerald-700 hover:text-emerald-800 hover:underline font-semibold break-all"
               target="_blank"
               rel="noopener noreferrer"
               {...withoutNode(props)}
             />
           ),
           ul: (props) => (
-            <ul className="list-disc list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-slate-800" {...withoutNode(props)} />
+            <ul className="list-disc list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-slate-900" {...withoutNode(props)} />
           ),
           ol: (props) => (
-            <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-slate-800" {...withoutNode(props)} />
+            <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-slate-900" {...withoutNode(props)} />
           ),
-          li: (props) => <li className="mb-0.5 leading-relaxed" {...withoutNode(props)} />,
-          strong: (props) => <strong className="font-semibold text-slate-950" {...withoutNode(props)} />,
-          em: (props) => <em className="italic" {...withoutNode(props)} />,
+          li: (props) => <li className="mb-0.5 leading-relaxed text-slate-900" {...withoutNode(props)} />,
+          strong: (props) => <strong className="font-bold text-slate-950" {...withoutNode(props)} />,
+          em: (props) => <em className="italic text-slate-900 font-medium" {...withoutNode(props)} />,
           blockquote: (props) => (
             <blockquote
-              className="border-l-4 border-emerald-500 bg-emerald-50/50 dark:bg-slate-800/50 p-3 rounded-r-xl italic text-slate-700 my-3 text-xs sm:text-sm"
+              className="border-l-4 border-emerald-500 bg-emerald-50/70 p-3 rounded-r-xl font-medium text-slate-900 my-3 text-xs sm:text-sm shadow-2xs"
               {...withoutNode(props)}
             />
           ),
@@ -133,15 +202,15 @@ const MarkdownRenderer = ({ content }) => {
             </div>
           ),
           thead: (props) => (
-            <thead className="bg-slate-100/80 border-b border-slate-200 text-slate-900 font-bold" {...withoutNode(props)} />
+            <thead className="bg-slate-100 border-b border-slate-200 text-slate-950 font-bold" {...withoutNode(props)} />
           ),
           tbody: (props) => <tbody className="divide-y divide-slate-100 bg-white" {...withoutNode(props)} />,
           tr: (props) => <tr className="hover:bg-slate-50/60 transition-colors" {...withoutNode(props)} />,
           th: (props) => (
-            <th className="px-3.5 py-2.5 font-bold text-slate-900 text-xs sm:text-sm" {...withoutNode(props)} />
+            <th className="px-3.5 py-2.5 font-bold text-slate-950 text-xs sm:text-sm" {...withoutNode(props)} />
           ),
           td: (props) => (
-            <td className="px-3.5 py-2.5 text-slate-700 text-xs sm:text-sm" {...withoutNode(props)} />
+            <td className="px-3.5 py-2.5 text-slate-900 text-xs sm:text-sm" {...withoutNode(props)} />
           ),
           hr: (props) => <hr className="my-4 border-slate-200" {...withoutNode(props)} />,
           code: ({ className, children, ...props }) => {
@@ -152,7 +221,7 @@ const MarkdownRenderer = ({ content }) => {
             if (isInline) {
               return (
                 <code
-                  className="bg-slate-100 text-slate-900 border border-slate-200 px-1.5 py-0.5 rounded font-mono text-xs font-semibold"
+                  className="bg-slate-100 text-slate-950 border border-slate-300 px-1.5 py-0.5 rounded font-mono text-xs font-bold"
                   {...withoutNode(props)}
                 >
                   {children}
