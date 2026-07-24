@@ -52,35 +52,33 @@ const LoginPage = () => {
     }
   };
 
-
   return (
-    <div className='flex items-center justify-center min-h-screen app-bg'>
-
-      <div className='relative px-6  w-full max-w-md'>
-        <div className='app-panel rounded-3xl p-10'>
+    <div className='min-h-screen py-4 sm:py-6 flex items-center justify-center app-bg overflow-x-hidden'>
+      <div className='relative px-4 sm:px-0 w-full max-w-lg mx-auto'>
+        <div className='app-panel rounded-3xl p-6 sm:p-7 shadow-xl border border-slate-100'>
           {/* Header */}
-          <div className='text-center mb-10'>
-            <div className='inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-950 shadow-lg shadow-slate-950/15 mb-4'>
-              <img src="/logo2.svg" alt="logo2" />
+          <div className='text-center mb-5'>
+            <div className='inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-950 shadow-md shadow-slate-950/15 mb-2.5'>
+              <img src="/logo2.svg" alt="StudyFlow Logo" className="w-6 h-6" />
             </div>
-            <h1 className='text-2xl font-black text-slate-950 tracking-tight mb-2'>
+            <h1 className='text-2xl font-black text-slate-950 tracking-tight mb-1'>
               Welcome back
             </h1>
-            <p className='text-slate-500 text-sm'>
-              Sign in to continue your journey
+            <p className='text-slate-500 text-xs font-medium'>
+              Sign in to continue your AI-powered learning journey
             </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className='space-y-5'>
+          <form onSubmit={handleSubmit} className='space-y-3.5'>
             {/* Email Field */}
-            <div className='space-y-2'>
-              <label className='block text-xs font-semibold text-slate-700 uppercase tracking-wide'>
+            <div className='space-y-1'>
+              <label className='block text-[11px] font-bold text-slate-700 uppercase tracking-wider'>
                 Email
               </label>
               <div className='relative group'>
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === 'email' ? 'text-emerald-500' : 'text-slate-400'}`}>
-                  <Mail className='w-5 h-5' strokeWidth={2} />
+                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === 'email' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  <Mail className='w-4 h-4' strokeWidth={2} />
                 </div>
                 <input
                   type="email"
@@ -90,20 +88,20 @@ const LoginPage = () => {
                   onBlur={() => setFocusedField(null)}
                   required
                   autoComplete="email"
-                  className="app-input h-12 rounded-xl pl-12 pr-4"
+                  className="app-input h-11 rounded-xl pl-10 pr-4 text-xs font-medium"
                   placeholder='you@example.com'
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div className='space-y-2'>
-              <label className='block text-xs font-semibold text-slate-700 uppercase tracking-wide'>
+            <div className='space-y-1'>
+              <label className='block text-[11px] font-bold text-slate-700 uppercase tracking-wider'>
                 Password
               </label>
               <div className='relative group'>
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === 'password' ? 'text-emerald-500' : 'text-slate-400'}`}>
-                  <Lock className='w-5 h-5' strokeWidth={2} />
+                <div className={`absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === 'password' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  <Lock className='w-4 h-4' strokeWidth={2} />
                 </div>
                 <input
                   type="password"
@@ -113,7 +111,7 @@ const LoginPage = () => {
                   onBlur={() => setFocusedField(null)}
                   required
                   autoComplete="current-password"
-                  className='app-input h-12 rounded-xl pl-12 pr-4'
+                  className='app-input h-11 rounded-xl pl-10 pr-4 text-xs font-medium'
                   placeholder='••••••••'
                 />
               </div>
@@ -121,7 +119,7 @@ const LoginPage = () => {
 
             {/* Error Message */}
             {error && (
-              <div className='rounded-xl bg-red-50 border border-red-200 p-3'>
+              <div className='rounded-xl bg-red-50 border border-red-200 p-2.5'>
                 <p className='text-red-600 text-xs font-medium text-center'>{error}</p>
               </div>
             )}
@@ -130,7 +128,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className='group app-primary-action relative w-full h-12 overflow-hidden'
+              className='group app-primary-action relative w-full h-11 rounded-xl text-xs font-bold shadow-md cursor-pointer overflow-hidden mt-1'
             >
               <span className='relative z-10 flex items-center justify-center gap-2'>
                 {loading ? (
@@ -145,17 +143,16 @@ const LoginPage = () => {
                   </>
                 )}
               </span>
-
               <div className='absolute inset-0 bg-linear-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700' />
             </button>
           </form>
 
           {googleEnabled && (
             <>
-              <div className='flex items-center gap-3 my-6'>
-                <div className='flex-1 h-px bg-slate-200/60'></div>
-                <span className='text-xs font-medium text-slate-400 uppercase tracking-wide'>or continue with</span>
-                <div className='flex-1 h-px bg-slate-200/60'></div>
+              <div className='flex items-center gap-3 my-4'>
+                <div className='flex-1 h-px bg-slate-200/70'></div>
+                <span className='text-[11px] font-bold text-slate-400 uppercase tracking-wider'>or continue with</span>
+                <div className='flex-1 h-px bg-slate-200/70'></div>
               </div>
 
               <div className='flex justify-center'>
@@ -167,7 +164,7 @@ const LoginPage = () => {
                   }}
                   shape="rectangular"
                   size="large"
-                  width={350}
+                  width={380}
                   text="signin_with"
                   theme="outline"
                 />
@@ -175,25 +172,25 @@ const LoginPage = () => {
             </>
           )}
 
-          {/* Footer */}
-          <div className='mt-8 pt-6 border-t border-slate-200/60'>
-            <p className='text-center text-sm text-slate-500'>
+          {/* Footer Link */}
+          <div className='mt-5 pt-3.5 border-t border-slate-100 text-center'>
+            <p className='text-xs text-slate-500 font-medium'>
               Don't have an account?{" "}
-              <Link to="/register" className='font-semibold text-emerald-600 hover:text-emerald-700 transition-colors duration-700'>
+              <Link to="/register" className='font-bold text-emerald-600 hover:text-emerald-700 transition-colors'>
                 Sign up
               </Link>
             </p>
           </div>
         </div>
 
-        {/* Subtle footer text */}
-        <p className='text-center text-xs text-slate-400 mt-6'>
+        {/* Footer Terms */}
+        <p className='text-center text-[11px] text-slate-400 mt-3 font-medium'>
           By continuing, you agree to our{" "}
-          <Link to="/terms" className='font-semibold text-emerald-600 hover:text-emerald-700 transition-colors duration-700'>
+          <Link to="/terms" className='font-semibold text-slate-600 hover:text-emerald-600 transition-colors'>
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link to="/privacy" className='font-semibold text-emerald-600 hover:text-emerald-700 transition-colors duration-700'>
+          <Link to="/privacy" className='font-semibold text-slate-600 hover:text-emerald-600 transition-colors'>
             Privacy Policy
           </Link>
         </p>
