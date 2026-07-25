@@ -66,6 +66,8 @@ const WorkspaceDetailPage = () => {
   const [deleting, setDeleting] = useState(false);
   const [quizToDelete, setQuizToDelete] = useState(null);
   const [deletingQuiz, setDeletingQuiz] = useState(false);
+  const [flashcardSetToDelete, setFlashcardSetToDelete] = useState(null);
+  const [deletingFlashcardSet, setDeletingFlashcardSet] = useState(false);
 
   const fetchWorkspace = useCallback(async () => {
     try {
@@ -218,9 +220,29 @@ const WorkspaceDetailPage = () => {
       setQuizzes(prev => prev.filter(quiz => quiz._id !== quizToDelete._id));
       setQuizToDelete(null);
     } catch (err) {
-      toast.error(err.message || 'Failed to delete quiz');
+      toast.error(err?.error || err?.message || 'Failed to delete quiz');
     } finally {
       setDeletingQuiz(false);
+    }
+  };
+
+  const handleDeleteFlashcardSetRequest = (set) => {
+    setFlashcardSetToDelete(set);
+  };
+
+  const handleConfirmDeleteFlashcardSet = async () => {
+    if (!flashcardSetToDelete) return;
+
+    try {
+      setDeletingFlashcardSet(true);
+      await flashcardService.deleteFlashcardSet(flashcardSetToDelete._id);
+      toast.success('Flashcard set deleted successfully');
+      setFlashcardSets(prev => prev.filter(set => set._id !== flashcardSetToDelete._id));
+      setFlashcardSetToDelete(null);
+    } catch (err) {
+      toast.error(err?.error || err?.message || 'Failed to delete flashcard set');
+    } finally {
+      setDeletingFlashcardSet(false);
     }
   };
 
@@ -311,9 +333,9 @@ const WorkspaceDetailPage = () => {
 
   const renderSummaryTab = () => (
     <div className="app-panel p-6 sm:p-8 space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
             <FileText className="w-5 h-5" />
           </div>
           <div>
@@ -327,7 +349,7 @@ const WorkspaceDetailPage = () => {
         <Button
           onClick={handleGenerateSummary}
           disabled={generatingSummary || docs.length === 0}
-          className="text-xs py-2 px-4"
+          className="text-xs py-2.5 px-4 w-full sm:w-auto flex items-center justify-center gap-2"
         >
           {generatingSummary ? (
             <>
@@ -367,9 +389,9 @@ const WorkspaceDetailPage = () => {
 
   const renderMindmapTab = () => (
     <div className="app-panel p-6 sm:p-8 space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold shrink-0">
             <BrainCircuit className="w-5 h-5" />
           </div>
           <div>
@@ -383,7 +405,7 @@ const WorkspaceDetailPage = () => {
         <Button
           onClick={handleGenerateMindmap}
           disabled={generatingMindmap || docs.length === 0}
-          className="text-xs py-2 px-4"
+          className="text-xs py-2.5 px-4 w-full sm:w-auto flex items-center justify-center gap-2"
         >
           {generatingMindmap ? (
             <>
@@ -414,8 +436,22 @@ const WorkspaceDetailPage = () => {
           <MindmapCanvas mindmap={workspace.mindmap} />
         </div>
       ) : (
-        <div className="py-12 text-center text-xs text-slate-400">
-          Click "Generate Mindmap" to build an interactive concept diagram connecting all files in this workspace!
+        <div className='flex min-h-64 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-emerald-200 bg-[#EEF6F2]/60 px-5 text-center mt-4'>
+          <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-100 bg-white text-emerald-600 shadow-sm'>
+            <BrainCircuit className='h-8 w-8' strokeWidth={2} />
+          </div>
+          <h4 className='text-xl font-black text-slate-950'>No mindmap generated yet</h4>
+          <p className='mt-2 max-w-md text-sm font-medium text-slate-600'>
+            Create a compact concept tree connecting all files in this workspace at a glance.
+          </p>
+          <button
+            onClick={handleGenerateMindmap}
+            disabled={docs.length === 0}
+            className='app-primary-action mt-5 h-11 px-5'
+          >
+            <Sparkles className='h-4 w-4 mr-2' strokeWidth={2.5} />
+            Generate Mindmap
+          </button>
         </div>
       )}
     </div>
@@ -423,7 +459,7 @@ const WorkspaceDetailPage = () => {
 
   const renderFlashcardsTab = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-slate-900">Workspace Flashcard Decks</h3>
           <p className="text-xs text-slate-500">
@@ -434,7 +470,7 @@ const WorkspaceDetailPage = () => {
         <Button
           onClick={() => setIsFlashcardModalOpen(true)}
           disabled={generatingFlashcards || docs.length === 0}
-          className="text-xs py-2 px-4"
+          className="text-xs py-2.5 px-4 w-full sm:w-auto flex items-center justify-center gap-2"
         >
           {generatingFlashcards ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
           Generate Workspace Flashcards
@@ -457,7 +493,8 @@ const WorkspaceDetailPage = () => {
             <FlashcardSetCard
               key={set._id}
               flashcardSet={set}
-              onDelete={() => fetchWorkspaceStudyMaterials()}
+              onDelete={handleDeleteFlashcardSetRequest}
+              context="workspace"
             />
           ))}
         </div>
@@ -467,7 +504,7 @@ const WorkspaceDetailPage = () => {
 
   const renderQuizzesTab = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-slate-900">Workspace Quizzes</h3>
           <p className="text-xs text-slate-500">
@@ -478,7 +515,7 @@ const WorkspaceDetailPage = () => {
         <Button
           onClick={() => setIsQuizModalOpen(true)}
           disabled={generatingQuiz || docs.length === 0}
-          className="text-xs py-2 px-4"
+          className="text-xs py-2.5 px-4 w-full sm:w-auto flex items-center justify-center gap-2"
         >
           {generatingQuiz ? <Spinner size="sm" /> : <Plus className="w-4 h-4" />}
           Generate Workspace Quiz
@@ -502,6 +539,7 @@ const WorkspaceDetailPage = () => {
               key={quiz._id}
               quiz={quiz}
               onDelete={handleDeleteQuizRequest}
+              context="workspace"
             />
           ))}
         </div>
@@ -532,7 +570,7 @@ const WorkspaceDetailPage = () => {
 
       {/* Workspace Header Panel */}
       <div className="app-panel p-6 sm:p-8 border-l-4" style={{ borderLeftColor: accentColor }}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0"
@@ -541,7 +579,7 @@ const WorkspaceDetailPage = () => {
               <Folder className="w-7 h-7" strokeWidth={2.2} />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-950 tracking-tight mb-1">
+              <h1 className="text-2xl font-black text-slate-955 tracking-tight mb-1">
                 {workspace.title}
               </h1>
               <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
@@ -550,24 +588,24 @@ const WorkspaceDetailPage = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => setIsAddDocsModalOpen(true)}
-              className="px-4 py-2.5 bg-slate-950 hover:bg-slate-900 active:bg-black text-white rounded-xl text-xs font-semibold shadow-md flex items-center gap-2 transition-all cursor-pointer"
+              className="flex-1 sm:flex-initial justify-center px-4 py-2.5 bg-slate-950 hover:bg-slate-900 active:bg-black text-white rounded-xl text-xs font-semibold shadow-md flex items-center gap-2 transition-all cursor-pointer"
             >
               <FilePlus className="w-4 h-4" /> Add Documents
             </button>
             <button
               onClick={() => setIsEditModalOpen(true)}
               title="Edit Folder"
-              className="p-2 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
               <Edit className="w-4 h-4" />
             </button>
             <button
               onClick={() => setIsDeleteModalOpen(true)}
               title="Delete Folder"
-              className="p-2 text-slate-500 hover:text-red-500 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              className="p-2.5 text-slate-500 hover:text-red-500 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -597,7 +635,7 @@ const WorkspaceDetailPage = () => {
       <Modal
         isOpen={!!quizToDelete}
         onClose={() => setQuizToDelete(null)}
-        title="Confirm Delete Quiz"
+        title="Delete Quiz?"
       >
         <div className="space-y-4">
           <p className="text-slate-600 text-sm">
@@ -616,9 +654,39 @@ const WorkspaceDetailPage = () => {
               type="button"
               onClick={handleConfirmDeleteQuiz}
               disabled={deletingQuiz}
-              className="bg-red-500 hover:bg-red-600 active:bg-red-700 focus:ring-red-500"
+              className="bg-red-500 hover:bg-red-600 active:bg-red-700 focus:ring-red-500 text-white"
             >
               {deletingQuiz ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!flashcardSetToDelete}
+        onClose={() => setFlashcardSetToDelete(null)}
+        title="Delete Flashcard Set?"
+      >
+        <div className="space-y-4">
+          <p className="text-slate-600 text-sm">
+            Are you sure you want to delete <span className="font-semibold text-slate-900">{flashcardSetToDelete?.title || flashcardSetToDelete?.workspaceId?.title || 'this flashcard set'}</span>? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setFlashcardSetToDelete(null)}
+              disabled={deletingFlashcardSet}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmDeleteFlashcardSet}
+              disabled={deletingFlashcardSet}
+              className="bg-red-500 hover:bg-red-600 active:bg-red-700 focus:ring-red-500 text-white"
+            >
+              {deletingFlashcardSet ? 'Deleting...' : 'Delete'}
             </Button>
           </div>
         </div>

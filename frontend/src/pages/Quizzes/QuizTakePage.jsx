@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, CheckCircle2, ArrowLeft } from 'lucide-react'
 import quizService from '../../services/quizService'
 import PageHeader from '../../components/common/PageHeader'
 import Spinner from '../../components/common/Spinner'
@@ -70,7 +70,7 @@ const QuizTakePage = () => {
       });
       await quizService.submitQuiz(quizId, formattedAnswers);
       toast.success('Quiz submitted successfully');
-      navigate(`/quizzes/${quizId}/results`);
+      navigate(`/quizzes/${quizId}/results`, { state: { from: fromContext } });
     } catch (error) {
       const errMsg = error?.error || error?.message || 'Failed to submit quiz';
       toast.error(errMsg);
@@ -101,8 +101,29 @@ const QuizTakePage = () => {
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const answeredCount = Object.keys(selectedAnswers).length;
 
+  const location = useLocation();
+  const fromContext = location.state?.from || 'sidebar';
+
+  const backTarget = fromContext === 'workspace' && quiz.workspaceId
+    ? `/workspaces/${quiz.workspaceId._id || quiz.workspaceId}`
+    : fromContext === 'document' && quiz.documentId
+      ? `/documents/${quiz.documentId._id || quiz.documentId}`
+      : '/quizzes';
+  const backLabel = fromContext === 'workspace' ? 'Back to Workspace' : fromContext === 'document' ? 'Back to Document' : 'Back to Quizzes';
+
   return (
     <div className='app-page max-w-4xl px-0 sm:px-2'>
+      {/* Back Button */}
+      <div className='mb-6'>
+        <Link
+          to={backTarget}
+          className="group inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-emerald-600 transition-colors duration-200"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" strokeWidth={2.5} />
+          {backLabel}
+        </Link>
+      </div>
+
       <PageHeader title={quiz?.title || "Take Quiz"} />
 
       {/* Progress Bar */}

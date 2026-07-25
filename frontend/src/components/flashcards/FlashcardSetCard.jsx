@@ -1,14 +1,14 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Sparkles, TrendingUp } from 'lucide-react'
+import { BookOpen, Sparkles, TrendingUp, Trash2 } from 'lucide-react'
 import moment from 'moment'
 
-const FlashcardSetCard = ({ flashcardSet }) => {
+const FlashcardSetCard = ({ flashcardSet, onDelete, context = 'sidebar' }) => {
   const navigate = useNavigate();
 
 
   const handleStudyNow = () => {
-    navigate(`/flashcards/set/${flashcardSet._id}`);
+    navigate(`/flashcards/set/${flashcardSet._id}`, { state: { from: context } });
   };
 
   const title = flashcardSet?.documentId?.title || flashcardSet?.workspaceId?.title || flashcardSet?.title || 'Flashcard Set';
@@ -18,6 +18,17 @@ const FlashcardSetCard = ({ flashcardSet }) => {
 
   return (
     <div className="group relative app-panel app-panel-hover overflow-hidden p-5 cursor-pointer flex flex-col justify-between">
+      {onDelete && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(flashcardSet);
+          }}
+          className='absolute top-3 right-3 p-2 bg-slate-100 sm:bg-transparent text-slate-500 hover:text-red-500 hover:bg-red-50 sm:hover:bg-red-500/10 rounded-lg transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-20'
+        >
+          <Trash2 className='h-4 w-4' strokeWidth={2} />
+        </button>
+      )}
       <div className="space-y-4">
         {/* Icon and Title */}
         <div className="flex items-start gap-4">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import quizService from '../../services/quizService'
 import PageHeader from '../../components/common/PageHeader'
 import Spinner from '../../components/common/Spinner'
@@ -64,12 +64,15 @@ const QuizResultPage = () => {
     return 'Keep practicing! Consistency is the key to success.';
   };
 
-  const backTarget = quiz.workspace?._id
+  const location = useLocation();
+  const fromContext = location.state?.from || 'sidebar';
+
+  const backTarget = fromContext === 'workspace' && quiz.workspace?._id
     ? `/workspaces/${quiz.workspace._id}`
-    : quiz.document?._id
+    : fromContext === 'document' && quiz.document?._id
       ? `/documents/${quiz.document._id}`
       : '/quizzes';
-  const backLabel = quiz.workspace?._id ? 'Back to Workspace' : quiz.document?._id ? 'Back to Document' : 'Back to Quizzes';
+  const backLabel = fromContext === 'workspace' ? 'Back to Workspace' : fromContext === 'document' ? 'Back to Document' : 'Back to Quizzes';
 
   return (
     <div className='app-page max-w-5xl'>
@@ -242,27 +245,15 @@ const QuizResultPage = () => {
 
       {/* Action Button */}
       <div className='mt-8 flex justify-center'>
-        {quiz.workspace?._id ? (
-          <Link to={`/workspaces/${quiz.workspace._id}`}>
-            <button className="group app-primary-action relative h-12 px-8 overflow-hidden cursor-pointer">
-              <span className='relative z-10 flex items-center gap-2'>
-                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" strokeWidth={2.5} />
-                Return to Workspace
-              </span>
-              <div className='absolute inset-0 bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700' />
-            </button>
-          </Link>
-        ) : (
-          <Link to={quiz.document?._id ? `/documents/${quiz.document._id}` : '/workspaces'}>
-            <button className="group app-primary-action relative h-12 px-8 overflow-hidden cursor-pointer">
-              <span className='relative z-10 flex items-center gap-2'>
-                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" strokeWidth={2.5} />
-                {quiz.document?._id ? 'Return to Document' : 'Return to Workspaces'}
-              </span>
-              <div className='absolute inset-0 bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700' />
-            </button>
-          </Link>
-        )}
+        <Link to={backTarget}>
+          <button className="group app-primary-action relative h-12 px-8 overflow-hidden cursor-pointer">
+            <span className='relative z-10 flex items-center gap-2'>
+              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" strokeWidth={2.5} />
+              {backLabel}
+            </span>
+            <div className='absolute inset-0 bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700' />
+          </button>
+        </Link>
       </div>
     </div>
   )

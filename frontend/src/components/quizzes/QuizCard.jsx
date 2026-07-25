@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Play, BarChart2, Trash2, Award } from 'lucide-react';
 import moment from 'moment';
 
-const QuizCard = ({ quiz, onDelete }) => {
+const QuizCard = ({ quiz, onDelete, context = 'sidebar' }) => {
   return (
     <div className='group relative app-panel app-panel-hover p-4 flex flex-col justify-between'>
       <button
@@ -11,7 +11,7 @@ const QuizCard = ({ quiz, onDelete }) => {
           e.stopPropagation();
           onDelete(quiz);
         }}
-        className='absolute top-4 right-4 p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100'
+        className='absolute top-3 right-3 p-2 bg-slate-100 sm:bg-transparent text-slate-500 hover:text-red-500 hover:bg-red-50 sm:hover:bg-red-500/10 rounded-lg transition-all duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 z-10'
       >
         <Trash2 className='h-4 w-4' strokeWidth={2} />
       </button>
@@ -49,7 +49,7 @@ const QuizCard = ({ quiz, onDelete }) => {
       {/* Action Buttons */}
       <div className='mt-2 pt-4 border-t border-slate-100'>
         {quiz?.userAnswers?.length > 0 ? (
-          <Link to={`/quizzes/${quiz._id}/results`} className='flex-1'>
+          <Link to={`/quizzes/${quiz._id}/results`} state={{ from: context }} className='flex-1'>
             <button
               className='group/btn app-secondary-action w-full h-11 cursor-pointer'
             >
@@ -58,7 +58,7 @@ const QuizCard = ({ quiz, onDelete }) => {
             </button>
           </Link>
         ) : (
-          <Link to={`/quizzes/${quiz._id}`} className='flex-1'>
+          <Link to={`/quizzes/${quiz._id}`} state={{ from: context }} className='flex-1'>
             <button
               className='group/btn app-primary-action relative w-full h-11 cursor-pointer overflow-hidden'
             >

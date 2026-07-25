@@ -1,6 +1,8 @@
 import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import documentService from '../../services/documentService';
+import flashcardService from '../../services/flashcardService';
+import quizService from '../../services/quizService';
 import Spinner from '../../components/common/Spinner';
 import toast from 'react-hot-toast';
 import { ArrowLeft, ExternalLink, FileText } from 'lucide-react';
@@ -21,6 +23,9 @@ const DocumentDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Content');
 
+  const [flashcardCount, setFlashcardCount] = useState(0);
+  const [quizCount, setQuizCount] = useState(0);
+
   useEffect(() => {
     const fetchDocumentDetails = async () => {
       try {
@@ -33,7 +38,23 @@ const DocumentDetailPage = () => {
       }
     };
 
-    fetchDocumentDetails();
+    const fetchCounts = async () => {
+      try {
+        const [fcData, qzData] = await Promise.all([
+          flashcardService.getFlashcardsForDocument(id).catch(() => ({ data: [] })),
+          quizService.getQuizzesForDocument(id).catch(() => ({ data: [] })),
+        ]);
+        setFlashcardCount(fcData.data?.length || 0);
+        setQuizCount(qzData.data?.length || 0);
+      } catch (err) {
+        console.error('Failed to fetch counts:', err);
+      }
+    };
+
+    if (id) {
+      fetchDocumentDetails();
+      fetchCounts();
+    }
   }, [id]);
 
   // The filePath is a Cloudinary raw URL (opens in new tab)
@@ -119,7 +140,7 @@ const DocumentDetailPage = () => {
   const renderFlashcardsTab = () => {
     return (
       <Suspense fallback={<Spinner />}>
-        <FlashcardManager documentId={id} />
+        <FlashcardManager documentId={id} onCountUpdate={setFlashcardCount} />
       </Suspense>
     );
   };
@@ -127,7 +148,7 @@ const DocumentDetailPage = () => {
   const renderQuizzesTab = () => {
     return (
       <Suspense fallback={<Spinner />}>
-        <QuizManager documentId={id} />
+        <QuizManager documentId={id} onCountUpdate={setQuizCount} />
       </Suspense>
     );
   };
@@ -137,8 +158,8 @@ const DocumentDetailPage = () => {
     { name: 'Chat', label: 'Chat', content: renderChat() },
     { name: 'AI Actions', label: 'AI Actions', content: renderAIActions() },
     { name: 'Mindmap', label: 'Mindmap', content: renderMindmapTab() },
-    { name: 'Flashcards', label: 'Flashcards', content: renderFlashcardsTab() },
-    { name: 'Quizzes', label: 'Quizzes', content: renderQuizzesTab() }
+    { name: 'Flashcards', label: `Flashcards (${flashcardCount})`, content: renderFlashcardsTab() },
+    { name: 'Quizzes', label: `Quizzes (${quizCount})`, content: renderQuizzesTab() }
   ];
 
   if (loading) {

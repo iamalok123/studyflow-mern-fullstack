@@ -17,15 +17,13 @@ import Spinner from '../common/Spinner'
 import Modal from '../common/Modal'
 import EmptyState from '../common/EmptyState'
 import GenerateQuantityModal from '../common/GenerateQuantityModal'
-import Flashcard from './Flashcard'
+import FlashcardSetCard from './FlashcardSetCard'
 
-const FlashcardManager = ({ documentId }) => {
+const FlashcardManager = ({ documentId, onCountUpdate }) => {
   const [flashcardSets, setFlashcardSets] = useState([]);
-  const [selectedSet, setSelectedSet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [setToDelete, setSetToDelete] = useState(null);
@@ -35,6 +33,7 @@ const FlashcardManager = ({ documentId }) => {
       setLoading(true);
       const response = await flashcardService.getFlashcardsForDocument(documentId);
       setFlashcardSets(response.data || []);
+      if (onCountUpdate) onCountUpdate(response.data?.length || 0);
     } catch (error) {
       toast.error(error.message || 'Failed to fetch flashcards');
       console.error(error);
@@ -67,60 +66,7 @@ const FlashcardManager = ({ documentId }) => {
     }
   };
 
-  const handleNextCard = () => {
-    if (selectedSet) {
-      handleReview(currentCardIndex);
-      setCurrentCardIndex(
-        (prevIndex) => (prevIndex + 1) % selectedSet.cards.length
-      );
-    }
-  }
-  const handlePreviousCard = () => {
-    if (selectedSet) {
-      handleReview(currentCardIndex);
-      setCurrentCardIndex(
-        (prevIndex) => (prevIndex - 1 + selectedSet.cards.length) % selectedSet.cards.length
-      );
-    }
-  }
-
-  const handleReview = async (index) => {
-    const currentCard = selectedSet?.cards[currentCardIndex];
-    if (!currentCard) return;
-
-    try {
-      await flashcardService.reviewFlashcard(currentCard._id, index);
-      await fetchFlashcardSets();
-      toast.success("Flashcard Reviewed!");
-    } catch (error) {
-      toast.error(error.message);
-
-    }
-  }
-
-  const handleToggleStar = async (cardId) => {
-    try {
-      await flashcardService.toggleStar(cardId);
-      const updatedSets = flashcardSets.map(set => {
-        if (set._id === selectedSet._id) {
-          const updatedCards = set.cards.map((card) => {
-            return card._id === cardId ? { ...card, isStarred: !card.isStarred } : card;
-          });
-          return { ...set, cards: updatedCards };
-        }
-        return set;
-      });
-      setFlashcardSets(updatedSets);
-      setSelectedSet(updatedSets.find((set) => set._id === selectedSet._id));
-      toast.success("Flashcard starred!");
-    } catch (error) {
-      toast.error(error.message);
-
-    }
-  }
-
-  const handleDeleteRequest = (e, set) => {
-    e.stopPropagation();
+  const handleDeleteRequest = (set) => {
     setSetToDelete(set);
     setIsDeleteModalOpen(true);
   }
@@ -140,66 +86,6 @@ const FlashcardManager = ({ documentId }) => {
     } finally {
       setDeleting(false);
     }
-  }
-
-  const handleSelectedSet = (set) => {
-    setSelectedSet(set);
-    setCurrentCardIndex(0);
-  }
-
-  const renderFlashcardViewer = () => {
-    const currentCard = selectedSet.cards[currentCardIndex];
-
-    return (
-      <div className='space-y-8'>
-        {/* Back Button */}
-        <button
-          onClick={() => setSelectedSet(null)}
-          className='group inline-flex items-center text-slate-600 gap-2 text-sm hover:text-emerald-600 transition-colors duration-200'
-        >
-          <ArrowLeft className='w-6 h-6 group-hover:translate-x-1 transition-transform duration-200' strokeWidth={2} />
-          Back to Sets
-        </button>
-
-        {/* Flashcard Display*/}
-        <div className='flex flex-col items-center space-y-8'>
-          <div className='w-full max-w-2xl'>
-            <Flashcard
-              key={currentCard._id}
-              flashcard={currentCard}
-              onToggleStar={handleToggleStar}
-            />
-          </div>
-
-          {/* Navigation Controls */}
-          <div className='flex items-center gap-3 sm:gap-6'>
-            <button
-              onClick={handlePreviousCard}
-              disabled={selectedSet.cards.length <= 1}
-              className='group app-secondary-action gap-1.5 sm:gap-2 px-3 sm:px-5 h-10 sm:h-11 disabled:hover:bg-white disabled:hover:text-slate-800'
-            >
-              <ChevronLeft className='w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200' strokeWidth={2.5} />
-              <span className='hidden sm:inline'>Previous</span>
-            </button>
-            <div className='px-3 sm:px-4 py-2 bg-white rounded-full border border-slate-200 font-medium shadow-sm'>
-              <span className='text-xs sm:text-sm font-semibold text-slate-700'>
-                {currentCardIndex + 1}{" "}
-                <span className='text-slate-400 font-normal'>/</span>{" "}
-                {selectedSet.cards.length}
-              </span>
-            </div>
-            <button
-              onClick={handleNextCard}
-              disabled={selectedSet.cards.length <= 1}
-              className='group app-secondary-action gap-1.5 sm:gap-2 px-3 sm:px-5 h-10 sm:h-11 disabled:hover:bg-white disabled:hover:text-slate-800'
-            >
-              <span className='hidden sm:inline'>Next</span>
-              <ChevronRight className='w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200' strokeWidth={2.5} />
-            </button>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   const renderSetList = () => {
@@ -222,73 +108,40 @@ const FlashcardManager = ({ documentId }) => {
     }
 
     return (
-      <div className='space-y-6'>
-        {/* Flashcard set grid */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {flashcardSets.map((set) => (
-            <div
-              key={set._id}
-              onClick={() => handleSelectedSet(set)}
-              className='group relative app-panel app-panel-hover p-6 cursor-pointer'
-            >
-              {/* Delete Button */}
-              <button
-                onClick={(e) => handleDeleteRequest(e, set)}
-                className='absolute top-4 right-4 p-2 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-100 transition-all duration-200 opacity-0 group-hover:opacity-100'
-              >
-                <Trash2 className='w-4 h-4' strokeWidth={2} />
-              </button>
-
-              {/* Set Content */}
-              <div className='space-y-4'>
-                <div className='inline-flex items-center justify-center h-12 w-12 app-muted-icon-tile'>
-                  <Brain className='w-6 h-6 text-emerald-600' />
-                </div>
-                <div>
-                  <h4 className='text-base font-semibold text-slate-900 mb-1'>
-                    Flashcard Set
-                  </h4>
-                  <p className='text-xs font-medium text-slate-600 uppercase tracking-wide'>
-                    Created {moment(set.createdAt).format('MMM D, YYYY')}
-                  </p>
-                </div>
-
-                <div className='flex items-center gap-2 pt-2 border-t border-slate-100'>
-                  <div className='px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg'>
-                    <span className='text-sm font-semibold text-slate-700'>
-                      {set.cards.length}{" "}
-                      {set.cards.length !== 1 ? 'cards' : 'card'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5'>
+        {flashcardSets.map((set) => (
+          <FlashcardSetCard
+            key={set._id}
+            flashcardSet={set}
+            onDelete={handleDeleteRequest}
+            context="document"
+          />
+        ))}
       </div>
     )
   }
 
   return (
     <>
-      <div className='app-panel p-5 sm:p-6'>
-        {selectedSet ? (
-          renderFlashcardViewer()
-        ) : (
-          <>
-            <div className='relative flex justify-end gap-2 mb-4'>
-              <button
-                onClick={handleOpenGenerateModal}
-                disabled={generating}
-                className='group app-primary-action h-11'
-              >
-                <Plus size={16} />
-                Generate Flashcards
-              </button>
-            </div>
-            {renderSetList()}
-          </>
-        )}
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Document Flashcards</h3>
+            <p className="text-xs text-slate-500">
+              Study sets generated from this document
+            </p>
+          </div>
+          <button
+            onClick={handleOpenGenerateModal}
+            disabled={generating}
+            className='group app-primary-action h-11 px-4 text-sm'
+          >
+            {generating ? <Spinner size="sm" /> : <Plus size={16} />}
+            Generate Flashcards
+          </button>
+        </div>
+
+        {renderSetList()}
       </div>
 
       {/* Delete Confirmation Modal */}

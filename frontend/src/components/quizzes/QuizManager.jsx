@@ -11,7 +11,7 @@ import QuizCard from './QuizCard';
 import EmptyState from '../common/EmptyState';
 
 
-const QuizManager = ({ documentId }) => {
+const QuizManager = ({ documentId, onCountUpdate }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -26,7 +26,8 @@ const QuizManager = ({ documentId }) => {
     try {
       setLoading(true);
       const response = await quizService.getQuizzesForDocument(documentId);
-      setQuizzes(response.data);
+      setQuizzes(response.data || []);
+      if (onCountUpdate) onCountUpdate(response.data?.length || 0);
     } catch (error) {
       toast.error('Failed to fetch quizzes');
       console.error(error);
@@ -99,9 +100,9 @@ const QuizManager = ({ documentId }) => {
     }
 
     return (
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5'>
         {quizzes.map((quiz) => (
-          <QuizCard key={quiz._id} quiz={quiz} onDelete={handleDeleteRequest} />
+          <QuizCard key={quiz._id} quiz={quiz} onDelete={handleDeleteRequest} context="document" />
         ))}
       </div>
     )
@@ -109,13 +110,20 @@ const QuizManager = ({ documentId }) => {
 
   return (
     <>
-      <div className='app-panel p-5 sm:p-6'>
-        <div className='relative flex justify-end gap-2 mb-4'>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Document Quizzes</h3>
+            <p className="text-xs text-slate-500">
+              Practice exams generated from this document
+            </p>
+          </div>
           <button
             onClick={() => setIsGenerateModalOpen(true)}
-            className='group app-primary-action h-11'
+            disabled={generating}
+            className='group app-primary-action h-11 px-4 text-sm'
           >
-            <Plus size={16} />
+            {generating ? <Spinner size="sm" /> : <Plus size={16} />}
             Generate Quiz
           </button>
         </div>

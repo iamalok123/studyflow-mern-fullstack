@@ -48,7 +48,7 @@ const DocumentCard = ({ document, onDelete }) => {
 
           <button
             onClick={handleDelete}
-            className='opacity-0 group-hover:opacity-100 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-100 rounded-lg transition-all duration-300'
+            className='opacity-100 sm:opacity-0 sm:group-hover:opacity-100 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-100 rounded-lg transition-all duration-300'
           >
             <Trash2
               className='w-4 h-4'

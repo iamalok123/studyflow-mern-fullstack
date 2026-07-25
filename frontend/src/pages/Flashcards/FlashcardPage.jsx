@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeft, Plus, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -168,26 +168,27 @@ const FlashcardPage = () => {
     );
   };
 
+  const location = useLocation();
+  const fromContext = location.state?.from || 'sidebar';
+
+  const backTarget = fromContext === 'workspace' && flashcardSets?.workspaceId
+    ? `/workspaces/${flashcardSets.workspaceId._id || flashcardSets.workspaceId}`
+    : fromContext === 'document' && flashcardSets?.documentId
+      ? `/documents/${flashcardSets.documentId._id || flashcardSets.documentId}`
+      : '/flashcards';
+
+  const backLabel = fromContext === 'workspace' ? 'Back to Workspace' : fromContext === 'document' ? 'Back to Document' : 'Back to Flashcards';
+
   return (
     <div className='app-page'>
       <div className='mb-4'>
-        {flashcardSets?.workspaceId ? (
-          <Link
-            to={`/workspaces/${flashcardSets.workspaceId._id || flashcardSets.workspaceId}`}
-            className='inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-emerald-700 transition-colors'
-          >
-            <ArrowLeft size={20} />
-            Back to Workspace
-          </Link>
-        ) : (
-          <Link
-            to={documentId ? `/documents/${documentId}` : '/flashcards'}
-            className='inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-emerald-700 transition-colors'
-          >
-            <ArrowLeft size={20} />
-            {documentId ? 'Back to Document' : 'Back to Flashcards'}
-          </Link>
-        )}
+        <Link
+          to={backTarget}
+          className='inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-emerald-700 transition-colors'
+        >
+          <ArrowLeft size={20} />
+          {backLabel}
+        </Link>
       </div>
       <PageHeader
         title={flashcardSets?.workspaceId?.title ? `Flashcards - ${flashcardSets.workspaceId.title}` : flashcardSets?.documentId?.title ? `Flashcards - ${flashcardSets.documentId.title}` : "Flashcards"}
