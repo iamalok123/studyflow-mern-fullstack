@@ -55,12 +55,11 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
 
       </div>
 
-      {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 border-r border-slate-200/80 bg-white/95 backdrop-blur-lg z-50 md:relative md:w-64 md:shrink-0 md:flex md:flex-col md:translate-x-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed top-0 left-0 h-full w-64 border-r border-slate-200/80 bg-white/95 backdrop-blur-lg z-50 flex flex-col md:relative md:w-64 md:shrink-0 md:translate-x-0 transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Logo and Close button for mobile */}
-        <div className='flex items-center justify-between px-5 h-16 border-b border-slate-200/60'>
+        <div className='flex items-center justify-between px-5 h-16 border-b border-slate-200/60 shrink-0'>
           <div className='flex items-center gap-3'>
             <img src="/logo1.svg" alt="logo" />
           </div>
@@ -102,7 +101,7 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
         </nav>
 
         {/* Logout Section */}
-        <div className='px-4 py-4 border-t border-slate-200/60'>
+        <div className='px-4 py-4 border-t border-slate-200/60 shrink-0'>
           <button
             onClick={handleLogout}
             className='group flex items-center gap-3 w-full px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'
