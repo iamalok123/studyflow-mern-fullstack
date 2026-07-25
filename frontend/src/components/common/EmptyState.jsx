@@ -1,11 +1,11 @@
 import React from 'react'
 import { FileText, Plus } from 'lucide-react';
 
-const EmptyState = ({ onActionClick, title, description, buttonText }) => {
+const EmptyState = ({ onActionClick, title, description, buttonText, icon: Icon = FileText }) => {
   return (
     <div className='flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed border-emerald-200 bg-[#EEF6F2]/60'>
       <div className='inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-white border border-emerald-100 text-emerald-600 shadow-sm mb-4'>
-        <FileText className='w-8 h-8' />
+        <Icon className='w-8 h-8' />
       </div>
       <h3 className='text-xl font-black mb-2 text-slate-950'>{title}</h3>
       <p className='text-slate-600 font-medium'>{description}</p>

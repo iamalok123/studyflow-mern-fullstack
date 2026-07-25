@@ -108,18 +108,20 @@ const QuizManager = ({ documentId }) => {
   };
 
   return (
-    <div className='app-panel p-5 sm:p-6'>
-      <div className='relative flex justify-end gap-2 mb-4'>
-        <button
-          onClick={() => setIsGenerateModalOpen(true)}
-          className='group app-primary-action h-11'
-        >
-          <Plus size={16} />
-          Generate Quiz
-        </button>
-      </div>
+    <>
+      <div className='app-panel p-5 sm:p-6'>
+        <div className='relative flex justify-end gap-2 mb-4'>
+          <button
+            onClick={() => setIsGenerateModalOpen(true)}
+            className='group app-primary-action h-11'
+          >
+            <Plus size={16} />
+            Generate Quiz
+          </button>
+        </div>
 
-      {renderQuizContent()}
+        {renderQuizContent()}
+      </div>
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -163,7 +165,7 @@ const QuizManager = ({ documentId }) => {
         defaultCount={5}
         generating={generating}
       />
-    </div>
+    </>
   )
 }
 

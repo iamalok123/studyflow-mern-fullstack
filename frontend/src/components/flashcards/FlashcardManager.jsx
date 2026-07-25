@@ -15,6 +15,7 @@ import flashcardService from '../../services/flashcardService'
 import aiService from '../../services/aiService'
 import Spinner from '../common/Spinner'
 import Modal from '../common/Modal'
+import EmptyState from '../common/EmptyState'
 import GenerateQuantityModal from '../common/GenerateQuantityModal'
 import Flashcard from './Flashcard'
 
@@ -23,6 +24,30 @@ const FlashcardManager = ({ documentId }) => {
   const [selectedSet, setSelectedSet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [setToDelete, setSetToDelete] = useState(null);
+
+  const fetchFlashcardSets = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await flashcardService.getFlashcardsForDocument(documentId);
+      setFlashcardSets(response.data || []);
+    } catch (error) {
+      toast.error(error.message || 'Failed to fetch flashcards');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [documentId]);
+
+  useEffect(() => {
+    if (documentId) {
+      fetchFlashcardSets();
+    }
+  }, [documentId, fetchFlashcardSets]);
 
   const handleOpenGenerateModal = () => {
     setIsGenerateModalOpen(true);
@@ -188,65 +213,16 @@ const FlashcardManager = ({ documentId }) => {
 
     if (flashcardSets.length === 0) {
       return (
-        <div className='flex flex-col items-center justify-center py-16'>
-          <div className='inline-flex items-center justify-center h-16 w-16 app-muted-icon-tile mb-6'>
-            <Brain className='w-8 h-8 text-emerald-600' />
-          </div>
-          <h3 className='text-xl font-semibold text-slate-900 mb-2'>No Flashcards Yet</h3>
-          <p className='text-sm text-slate-600 mb-8 text-center max-w-sm'>Generate flashcards from your documents to start learning and reinforce your knowledge. </p>
-          <button
-            onClick={handleOpenGenerateModal}
-            disabled={generating}
-            className='group app-primary-action h-12 mx-auto'
-          >
-            {generating ? (
-              <>
-                <Spinner />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className='w-5 h-5 font-semibold' strokeWidth={2} />
-                Generate Flashcards
-              </>
-            )}
-          </button>
-        </div>
+        <EmptyState
+          title="No Flashcards Generated Yet"
+          description="Generate flashcards from your document to start learning and reinforce your knowledge."
+          icon={Brain}
+        />
       )
     }
 
     return (
       <div className='space-y-6'>
-        {/* Header with generate button */}
-        <div className='flex items-center justify-between'>
-          <div>
-            <h3 className='text-xl font-semibold text-slate-900'>
-              Your flashcard sets
-            </h3>
-            <p className='text-sm text-slate-600 mt-1'>
-              {flashcardSets.length} {" "}
-              {flashcardSets.length !== 1 ? 'sets' : 'set'} available
-            </p>
-          </div>
-          <button
-            onClick={handleOpenGenerateModal}
-            disabled={generating}
-            className='group app-primary-action h-11'
-          >
-            {generating ? (
-              <>
-                <Spinner />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Plus className='w-4 h-4' strokeWidth={2} />
-                Generate New Set
-              </>
-            )}
-          </button>
-        </div>
-
         {/* Flashcard set grid */}
         <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
           {flashcardSets.map((set) => (
@@ -295,11 +271,23 @@ const FlashcardManager = ({ documentId }) => {
 
   return (
     <>
-      <div className='app-panel p-5 sm:p-8'>
+      <div className='app-panel p-5 sm:p-6'>
         {selectedSet ? (
           renderFlashcardViewer()
         ) : (
-          renderSetList()
+          <>
+            <div className='relative flex justify-end gap-2 mb-4'>
+              <button
+                onClick={handleOpenGenerateModal}
+                disabled={generating}
+                className='group app-primary-action h-11'
+              >
+                <Plus size={16} />
+                Generate Flashcards
+              </button>
+            </div>
+            {renderSetList()}
+          </>
         )}
       </div>
 

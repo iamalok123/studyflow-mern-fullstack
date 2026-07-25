@@ -32,6 +32,7 @@ import MindmapCanvas from '../../components/mindmap/MindmapCanvas';
 import MarkdownRenderer from '../../components/common/MarkdownRenderer';
 import FlashcardSetCard from '../../components/flashcards/FlashcardSetCard';
 import QuizCard from '../../components/quizzes/QuizCard';
+import EmptyState from '../../components/common/EmptyState';
 import GenerateQuantityModal from '../../components/common/GenerateQuantityModal';
 
 const WorkspaceDetailPage = () => {
@@ -445,20 +446,11 @@ const WorkspaceDetailPage = () => {
           <Spinner size="lg" />
         </div>
       ) : flashcardSets.length === 0 ? (
-        <div className="app-panel p-12 text-center max-w-md mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4">
-            <BookOpen className="w-8 h-8" />
-          </div>
-          <h4 className="text-sm font-bold text-slate-900 mb-1">
-            No Workspace Flashcard Decks
-          </h4>
-          <p className="text-xs text-slate-500 mb-6">
-            Generate flashcards drawing questions across all PDFs in this folder!
-          </p>
-          <Button onClick={() => setIsFlashcardModalOpen(true)} disabled={generatingFlashcards || docs.length === 0}>
-            Generate Flashcards
-          </Button>
-        </div>
+        <EmptyState
+          title="No Workspace Flashcard Decks"
+          description="Generate flashcards drawing questions across all PDFs in this folder!"
+          icon={BookOpen}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {flashcardSets.map(set => (
@@ -498,20 +490,11 @@ const WorkspaceDetailPage = () => {
           <Spinner size="lg" />
         </div>
       ) : quizzes.length === 0 ? (
-        <div className="app-panel p-12 text-center max-w-md mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-4">
-            <HelpCircle className="w-8 h-8" />
-          </div>
-          <h4 className="text-sm font-bold text-slate-900 mb-1">
-            No Workspace Quizzes Generated
-          </h4>
-          <p className="text-xs text-slate-500 mb-6">
-            Create a quiz testing your understanding across all workspace documents!
-          </p>
-          <Button onClick={() => setIsQuizModalOpen(true)} disabled={generatingQuiz || docs.length === 0}>
-            Generate Workspace Quiz
-          </Button>
-        </div>
+        <EmptyState
+          title="No Workspace Quizzes Generated"
+          description="Create a quiz testing your understanding across all workspace documents!"
+          icon={HelpCircle}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {quizzes.map(quiz => (
