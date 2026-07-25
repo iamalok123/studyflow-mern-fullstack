@@ -1,6 +1,7 @@
 import express from 'express';
 import { body, param } from 'express-validator';
 import {
+  getAllQuizzes,
   getQuizzes,
   getQuizById,
   submitQuiz,
@@ -20,6 +21,7 @@ const idValidation = [
   param('id').isMongoId().withMessage('Invalid quiz id'),
 ];
 
+router.get('/', getAllQuizzes);
 router.get('/quiz/:id', idValidation, validateRequest, getQuizById);
 router.get('/workspace/:workspaceId', [param('workspaceId').isMongoId().withMessage('Invalid workspace id')], validateRequest, getWorkspaceQuizzes);
 router.post(

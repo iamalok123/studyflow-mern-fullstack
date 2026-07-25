@@ -57,6 +57,7 @@ export const API_PATHS = {
     },
 
     QUIZZES: {
+        GET_ALL_QUIZZES: "/api/quizzes",
         GET_QUIZZES_FOR_DOC: (documentId) => `/api/quizzes/${documentId}`,
         GET_QUIZZES_FOR_WORKSPACE: (workspaceId) => `/api/quizzes/workspace/${workspaceId}`,
         GET_QUIZ_BY_ID: (id) => `/api/quizzes/quiz/${id}`,

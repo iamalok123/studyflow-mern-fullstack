@@ -12,6 +12,7 @@ const WorkspaceListPage = lazy(() => import('./pages/Workspaces/WorkspaceListPag
 const WorkspaceDetailPage = lazy(() => import('./pages/Workspaces/WorkspaceDetailPage'));
 const FlashcardListPage = lazy(() => import('./pages/Flashcards/FlashcardListPage'));
 const FlashcardPage = lazy(() => import('./pages/Flashcards/FlashcardPage'));
+const QuizListPage = lazy(() => import('./pages/Quizzes/QuizListPage'));
 const QuizTakePage = lazy(() => import('./pages/Quizzes/QuizTakePage'));
 const QuizResultPage = lazy(() => import('./pages/Quizzes/QuizResultPage'));
 const ProfilePage = lazy(() => import('./pages/Profile/ProfilePage'));
@@ -51,6 +52,7 @@ const App = () => {
           <Route path="/flashcards" element={<FlashcardListPage />} />
           <Route path="/flashcards/set/:setId" element={<FlashcardPage />} />
           <Route path="/documents/:id/flashcards" element={<FlashcardPage />} />
+          <Route path="/quizzes" element={<QuizListPage />} />
           <Route path="/quizzes/:quizId" element={<QuizTakePage />} />
           <Route path="/quizzes/:quizId/results" element={<QuizResultPage />} />
           <Route path="/profile" element={<ProfilePage />} />

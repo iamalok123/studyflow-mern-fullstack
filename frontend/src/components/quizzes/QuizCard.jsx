@@ -28,7 +28,7 @@ const QuizCard = ({ quiz, onDelete }) => {
 
         <div>
           <h3 className='text-base font-semibold text-slate-900 mb-1 line-clamp-2'>
-            {quiz?.title || (quiz?.workspaceId?.title ? `Quiz - ${quiz.workspaceId.title}` : `Quiz - ${moment(quiz?.createdAt).format('MMM DD, YYYY')}`)}
+            {quiz?.title || quiz?.documentId?.title || quiz?.workspaceId?.title || `Quiz - ${moment(quiz?.createdAt).format('MMM DD, YYYY')}`}
           </h3>
           <p className='text-xs font-medium text-slate-500 uppercase tracking-wide'>
             Created {moment(quiz?.createdAt).format('MMM DD, YYYY')}
@@ -39,8 +39,8 @@ const QuizCard = ({ quiz, onDelete }) => {
         <div className='flex items-center gap-3 pt-2 border-t border-slate-200'>
           <div className='px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg'>
             <span className='text-sm font-semibold text-slate-700'>
-              {quiz.questions.length} {" "}
-              {quiz.questions.length === 1 ? 'Question' : 'Questions'}
+              {quiz?.questions?.length || 0} {" "}
+              {quiz?.questions?.length === 1 ? 'Question' : 'Questions'}
             </span>
           </div>
         </div>

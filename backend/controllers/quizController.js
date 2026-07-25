@@ -23,6 +23,29 @@ export const getQuizzes = async (req, res, next) => {
 };
 
 
+// @desc    Get all quizzes for a user across documents and workspaces
+// @route   GET /api/quizzes
+// @access  Private
+export const getAllQuizzes = async (req, res, next) => {
+    try {
+        const quizzes = await Quiz.find({
+            userId: req.user._id,
+        })
+            .populate('documentId', 'title fileName')
+            .populate('workspaceId', 'title')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: quizzes.length,
+            data: quizzes,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 // @desc    Get a single quiz by ID
 // @route   GET /api/quizzes/quiz/:id
 // @access  Private

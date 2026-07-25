@@ -81,6 +81,8 @@ const AddDocumentsModal = ({ isOpen, onClose, onAdd, workspaceId, existingDocIds
 
   const handleUploadNewFile = async (e) => {
     e.preventDefault();
+    if (uploading) return;
+
     if (!uploadFile || !uploadTitle.trim()) {
       setError('Please select a PDF file and enter a document title.');
       return;

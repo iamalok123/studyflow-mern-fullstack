@@ -66,7 +66,7 @@ const DashboardPage = () => {
 
   return (
     <div className='min-h-full'>
-      <div className='app-page'>
+      <div className='app-page pb-16'>
         {/* Header */}
         <div className='mb-6'>
           <h1 className='text-2xl font-black text-slate-950 tracking-tight mb-2'>
@@ -157,7 +157,6 @@ const DashboardPage = () => {
                         className='ml-4 px-4 py-2 text-xs font-bold text-slate-800 hover:text-slate-950 hover:bg-slate-100 rounded-lg transition-all duration-200 whitespace-nowrap'
                       >
                         View
-                        {/* <ArrowRight className='w-5 h-5' /> */}
                       </Link>
                     )}
                   </div>

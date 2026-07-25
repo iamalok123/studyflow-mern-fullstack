@@ -45,7 +45,7 @@ const FlashcardListPage = () => {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-16">
         {flashcardSets.map(set => (
           <FlashcardSetCard
             key={set._id}
@@ -57,7 +57,7 @@ const FlashcardListPage = () => {
   };
 
   return (
-    <div className="app-page flex flex-col w-full h-full">
+    <div className="app-page flex flex-col w-full h-full pb-16">
       <PageHeader title="Flashcard Sets" />
       {renderContent()}
     </div>

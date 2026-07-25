@@ -55,7 +55,17 @@ const getQuizzesForWorkspace = async (workspaceId) => {
   }
 };
 
+const getAllQuizzes = async () => {
+  try {
+    const response = await axiosInstance.get(API_PATHS.QUIZZES.GET_ALL_QUIZZES);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch quizzes' };
+  }
+};
+
 const quizService = {
+  getAllQuizzes,
   getQuizzesForDocument,
   getQuizzesForWorkspace,
   getQuizById,

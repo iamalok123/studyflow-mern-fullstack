@@ -34,6 +34,11 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
       text: 'Flashcards'
     },
     {
+      path: '/quizzes',
+      icon: BrainCircuit,
+      text: 'Quizzes'
+    },
+    {
       path: '/profile',
       icon: User,
       text: 'Profile'
