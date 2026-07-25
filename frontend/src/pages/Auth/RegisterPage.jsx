@@ -195,7 +195,7 @@ const RegisterPage = () => {
                 <div className="flex-1 h-px bg-slate-200/70"></div>
               </div>
 
-              <div className="flex justify-center">
+              <div className="w-full flex justify-center max-w-72.5 sm:max-w-95 mx-auto overflow-hidden">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={() => {
@@ -204,7 +204,7 @@ const RegisterPage = () => {
                   }}
                   shape="rectangular"
                   size="large"
-                  width={380}
+                  width="100%"
                   text="signup_with"
                   theme="outline"
                 />
