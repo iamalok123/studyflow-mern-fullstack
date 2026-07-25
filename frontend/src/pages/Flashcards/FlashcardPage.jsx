@@ -10,6 +10,7 @@ import Spinner from '../../components/common/Spinner'
 import EmptyState from '../../components/common/EmptyState'
 import Button from '../../components/common/Button'
 import Modal from '../../components/common/Modal'
+import GenerateQuantityModal from '../../components/common/GenerateQuantityModal'
 import Flashcard from '../../components/flashcards/Flashcard'
 
 const FlashcardPage = () => {
@@ -47,12 +48,15 @@ const FlashcardPage = () => {
     fetchFlashcards();
   }, [fetchFlashcards]);
 
-  const handleGenerateFlashcards = async () => {
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+
+  const handleConfirmGenerateFlashcards = async (count) => {
     try {
       setGenerating(true);
-      await aiService.generateFlashcards(documentId);
+      await aiService.generateFlashcards(documentId, { count });
       await fetchFlashcards();
       toast.success("Flashcards generated successfully");
+      setIsGenerateModalOpen(false);
     } catch (error) {
       console.error("Error generating flashcards: ", error);
       toast.error("Failed to generate flashcards");
@@ -202,7 +206,7 @@ const FlashcardPage = () => {
               </>
             ) : (
               <Button
-                onClick={handleGenerateFlashcards}
+                onClick={() => setIsGenerateModalOpen(true)}
                 disabled={generating}
               >
                 {generating ? (
@@ -252,6 +256,17 @@ const FlashcardPage = () => {
           </div>
         </div>
       </Modal>
+
+      <GenerateQuantityModal
+        isOpen={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        onConfirm={handleConfirmGenerateFlashcards}
+        title="Generate Document Flashcards"
+        description="Select how many flashcards you want to generate from this document."
+        type="flashcard"
+        defaultCount={5}
+        generating={generating}
+      />
     </div>
   )
 }

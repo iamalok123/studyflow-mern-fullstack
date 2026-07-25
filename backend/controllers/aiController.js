@@ -18,7 +18,7 @@ const clampInt = (value, fallback, min, max) => {
 export const generateFlashcards = async (req, res, next) => {
     try {
         const { documentId } = req.body;
-        const count = clampInt(req.body.count, 10, 1, 30);
+        const count = clampInt(req.body.count, 5, 5, 20);
 
         if (!documentId) {
             return res.status(400).json({
@@ -86,7 +86,7 @@ export const generateFlashcards = async (req, res, next) => {
 export const generateQuiz = async (req, res, next) => {
     try {
         const { documentId, title } = req.body;
-        const numQuestions = clampInt(req.body.numQuestions, 5, 1, 20);
+        const numQuestions = clampInt(req.body.numQuestions, 5, 5, 20);
 
         if (!documentId) {
             return res.status(400).json({
@@ -813,7 +813,7 @@ export const getWorkspaceMindmap = async (req, res, next) => {
 export const workspaceGenerateFlashcards = async (req, res, next) => {
     try {
         const { workspaceId } = req.body;
-        const count = clampInt(req.body.count, 10, 1, 30);
+        const count = clampInt(req.body.count, 5, 5, 20);
         if (!workspaceId) {
             return res.status(400).json({ success: false, error: "Please provide workspaceId" });
         }
@@ -824,7 +824,7 @@ export const workspaceGenerateFlashcards = async (req, res, next) => {
             return res.status(400).json({ success: false, error: "No ready documents in workspace to generate flashcards" });
         }
 
-        const cards = await geminiService.generateFlashcards(combinedText, Math.min(Math.max(count, 5), 25));
+        const cards = await geminiService.generateFlashcards(combinedText, count);
 
         if (!cards.length) {
             return res.status(422).json({ success: false, error: "AI could not generate valid flashcards for this workspace." });
@@ -859,7 +859,7 @@ export const workspaceGenerateFlashcards = async (req, res, next) => {
 export const workspaceGenerateQuiz = async (req, res, next) => {
     try {
         const { workspaceId, title } = req.body;
-        const numQuestions = clampInt(req.body.numQuestions, 5, 1, 20);
+        const numQuestions = clampInt(req.body.numQuestions, 5, 5, 20);
         if (!workspaceId) {
             return res.status(400).json({ success: false, error: "Please provide workspaceId" });
         }
@@ -870,7 +870,7 @@ export const workspaceGenerateQuiz = async (req, res, next) => {
             return res.status(400).json({ success: false, error: "No ready documents in workspace to generate quiz" });
         }
 
-        const questions = await geminiService.generateQuiz(combinedText, Math.min(Math.max(numQuestions, 3), 15));
+        const questions = await geminiService.generateQuiz(combinedText, numQuestions);
 
         if (!questions.length) {
             return res.status(422).json({ success: false, error: "AI could not generate a valid quiz for this workspace." });

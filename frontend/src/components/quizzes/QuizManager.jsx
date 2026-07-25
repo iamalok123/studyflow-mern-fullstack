@@ -6,6 +6,7 @@ import aiService from '../../services/aiService';
 import Spinner from '../common/Spinner';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
+import GenerateQuantityModal from '../common/GenerateQuantityModal';
 import QuizCard from './QuizCard';
 import EmptyState from '../common/EmptyState';
 
@@ -40,11 +41,10 @@ const QuizManager = ({ documentId }) => {
     }
   }, [documentId, fetchQuizzes]);
 
-  const handleGenerateQuizzes = async (e) => {
-    e.preventDefault();
+  const handleGenerateQuizzes = async (count) => {
     setGenerating(true);
     try {
-      await aiService.generateQuiz(documentId, { numQuestions });
+      await aiService.generateQuiz(documentId, { numQuestions: count });
       await fetchQuizzes();
       toast.success('Quizzes generated successfully');
       setIsGenerateModalOpen(false);
@@ -117,43 +117,6 @@ const QuizManager = ({ documentId }) => {
           <Plus size={16} />
           Generate Quiz
         </button>
-
-        {isGenerateModalOpen && (
-          <div className='absolute right-0 top-14 z-20 w-full max-w-sm app-panel p-5'>
-            <form onSubmit={handleGenerateQuizzes} className='space-y-5'>
-              <div className='space-y-2'>
-                <label className='pl-1 block text-sm font-bold text-slate-700'>
-                  Number of Questions
-                </label>
-                <input
-                  type='number'
-                  value={numQuestions}
-                  onChange={(e) => setNumQuestions(Math.max(1, parseInt(e.target.value) || 1))}
-                  min={1}
-                  max={20}
-                  required
-                  className='app-input rounded-xl px-4 py-3'
-                />
-              </div>
-              <div className='grid grid-cols-2 gap-2'>
-                <Button
-                  type='button'
-                  variant='secondary'
-                  onClick={() => setIsGenerateModalOpen(false)}
-                  disabled={generating}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type='submit'
-                  disabled={generating}
-                >
-                  {generating ? "Generating..." : 'Generate'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        )}
       </div>
 
       {renderQuizContent()}
@@ -189,6 +152,17 @@ const QuizManager = ({ documentId }) => {
           </div>
         </div>
       </Modal>
+
+      <GenerateQuantityModal
+        isOpen={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        onConfirm={handleGenerateQuizzes}
+        title="Generate Document Quiz"
+        description="Select how many quiz questions to generate from this document."
+        type="quiz"
+        defaultCount={5}
+        generating={generating}
+      />
     </div>
   )
 }

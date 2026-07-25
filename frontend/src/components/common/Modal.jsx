@@ -4,8 +4,8 @@ import React from 'react'
 const Modal = ({ isOpen, onClose, title, children, panelClassName = 'max-w-lg p-8' }) => {
   if (!isOpen) return null;
   return (
-    <div className='fixed inset-0 z-50 overflow-y-auto'>
-      <div className='flex items-center justify-center min-h-screen transition-opacity'>
+    <div className='fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6'>
+      <div className='flex items-center justify-center min-h-full transition-opacity'>
         <div
           className='fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity'
           onClick={onClose}

@@ -34,7 +34,7 @@ router.post(
   "/generate-flashcards",
   [
     ...documentBodyValidation,
-    body("count").optional().isInt({ min: 1, max: 30 }).withMessage("Flashcard count must be between 1 and 30"),
+    body("count").optional().isInt({ min: 5, max: 20 }).withMessage("Flashcard count must be between 5 and 20"),
   ],
   validateRequest,
   generateFlashcards
@@ -44,7 +44,7 @@ router.post(
   "/generate-quiz",
   [
     ...documentBodyValidation,
-    body("numQuestions").optional().isInt({ min: 1, max: 20 }).withMessage("Quiz question count must be between 1 and 20"),
+    body("numQuestions").optional().isInt({ min: 5, max: 20 }).withMessage("Quiz question count must be between 5 and 20"),
     body("title").optional().trim().isLength({ max: 120 }).withMessage("Quiz title cannot exceed 120 characters"),
   ],
   validateRequest,
@@ -151,7 +151,7 @@ router.post(
   "/workspace-flashcards",
   [
     body("workspaceId").isMongoId().withMessage("Invalid workspace id"),
-    body("count").optional().isInt({ min: 1, max: 30 }).withMessage("Flashcard count must be between 1 and 30"),
+    body("count").optional().isInt({ min: 5, max: 20 }).withMessage("Flashcard count must be between 5 and 20"),
   ],
   validateRequest,
   workspaceGenerateFlashcards
@@ -161,7 +161,7 @@ router.post(
   "/workspace-quiz",
   [
     body("workspaceId").isMongoId().withMessage("Invalid workspace id"),
-    body("numQuestions").optional().isInt({ min: 1, max: 20 }).withMessage("Quiz question count must be between 1 and 20"),
+    body("numQuestions").optional().isInt({ min: 5, max: 20 }).withMessage("Quiz question count must be between 5 and 20"),
     body("title").optional().trim().isLength({ max: 120 }).withMessage("Quiz title cannot exceed 120 characters"),
   ],
   validateRequest,

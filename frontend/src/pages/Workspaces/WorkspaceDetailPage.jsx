@@ -32,6 +32,7 @@ import MindmapCanvas from '../../components/mindmap/MindmapCanvas';
 import MarkdownRenderer from '../../components/common/MarkdownRenderer';
 import FlashcardSetCard from '../../components/flashcards/FlashcardSetCard';
 import QuizCard from '../../components/quizzes/QuizCard';
+import GenerateQuantityModal from '../../components/common/GenerateQuantityModal';
 
 const WorkspaceDetailPage = () => {
   const { id } = useParams();
@@ -46,6 +47,10 @@ const WorkspaceDetailPage = () => {
   const [generatingMindmap, setGeneratingMindmap] = useState(false);
   const [generatingFlashcards, setGeneratingFlashcards] = useState(false);
   const [generatingQuiz, setGeneratingQuiz] = useState(false);
+
+  // Quantity Modals State
+  const [isFlashcardModalOpen, setIsFlashcardModalOpen] = useState(false);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
 
   // Workspace Study Materials
   const [flashcardSets, setFlashcardSets] = useState([]);
@@ -124,11 +129,12 @@ const WorkspaceDetailPage = () => {
     }
   };
 
-  const handleGenerateFlashcards = async () => {
+  const handleGenerateFlashcards = async (count) => {
     try {
       setGeneratingFlashcards(true);
-      await aiService.workspaceGenerateFlashcards(id, 10);
+      await aiService.workspaceGenerateFlashcards(id, count);
       toast.success('Workspace flashcards generated successfully!');
+      setIsFlashcardModalOpen(false);
       fetchWorkspaceStudyMaterials();
     } catch (err) {
       toast.error(err.message || 'Failed to generate flashcards');
@@ -137,11 +143,12 @@ const WorkspaceDetailPage = () => {
     }
   };
 
-  const handleGenerateQuiz = async () => {
+  const handleGenerateQuiz = async (count) => {
     try {
       setGeneratingQuiz(true);
-      await aiService.workspaceGenerateQuiz(id, 5);
+      await aiService.workspaceGenerateQuiz(id, count);
       toast.success('Workspace quiz generated successfully!');
+      setIsQuizModalOpen(false);
       fetchWorkspaceStudyMaterials();
     } catch (err) {
       toast.error(err.message || 'Failed to generate quiz');
@@ -424,7 +431,7 @@ const WorkspaceDetailPage = () => {
         </div>
 
         <Button
-          onClick={handleGenerateFlashcards}
+          onClick={() => setIsFlashcardModalOpen(true)}
           disabled={generatingFlashcards || docs.length === 0}
           className="text-xs py-2 px-4"
         >
@@ -448,7 +455,7 @@ const WorkspaceDetailPage = () => {
           <p className="text-xs text-slate-500 mb-6">
             Generate flashcards drawing questions across all PDFs in this folder!
           </p>
-          <Button onClick={handleGenerateFlashcards} disabled={generatingFlashcards || docs.length === 0}>
+          <Button onClick={() => setIsFlashcardModalOpen(true)} disabled={generatingFlashcards || docs.length === 0}>
             Generate Flashcards
           </Button>
         </div>
@@ -477,7 +484,7 @@ const WorkspaceDetailPage = () => {
         </div>
 
         <Button
-          onClick={handleGenerateQuiz}
+          onClick={() => setIsQuizModalOpen(true)}
           disabled={generatingQuiz || docs.length === 0}
           className="text-xs py-2 px-4"
         >
@@ -501,7 +508,7 @@ const WorkspaceDetailPage = () => {
           <p className="text-xs text-slate-500 mb-6">
             Create a quiz testing your understanding across all workspace documents!
           </p>
-          <Button onClick={handleGenerateQuiz} disabled={generatingQuiz || docs.length === 0}>
+          <Button onClick={() => setIsQuizModalOpen(true)} disabled={generatingQuiz || docs.length === 0}>
             Generate Workspace Quiz
           </Button>
         </div>
@@ -661,6 +668,29 @@ const WorkspaceDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* Quantity Modals */}
+      <GenerateQuantityModal
+        isOpen={isFlashcardModalOpen}
+        onClose={() => setIsFlashcardModalOpen(false)}
+        onConfirm={handleGenerateFlashcards}
+        title="Generate Workspace Flashcards"
+        description="Select how many flashcards to generate across all documents in this workspace."
+        type="flashcard"
+        defaultCount={5}
+        generating={generatingFlashcards}
+      />
+
+      <GenerateQuantityModal
+        isOpen={isQuizModalOpen}
+        onClose={() => setIsQuizModalOpen(false)}
+        onConfirm={handleGenerateQuiz}
+        title="Generate Workspace Quiz"
+        description="Select how many quiz questions to generate across all documents in this workspace."
+        type="quiz"
+        defaultCount={5}
+        generating={generatingQuiz}
+      />
     </div>
   );
 };

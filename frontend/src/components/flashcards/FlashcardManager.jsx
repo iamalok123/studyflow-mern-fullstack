@@ -15,50 +15,32 @@ import flashcardService from '../../services/flashcardService'
 import aiService from '../../services/aiService'
 import Spinner from '../common/Spinner'
 import Modal from '../common/Modal'
+import GenerateQuantityModal from '../common/GenerateQuantityModal'
 import Flashcard from './Flashcard'
 
 const FlashcardManager = ({ documentId }) => {
   const [flashcardSets, setFlashcardSets] = useState([]);
   const [selectedSet, setSelectedSet] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [setToDelete, setSetToDelete] = useState(null);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
 
-  const fetchFlashcardSets = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await flashcardService.getFlashcardsForDocument(documentId);
-      setFlashcardSets(response.data);
-    } catch (error) {
-      toast.error(error.message);
+  const handleOpenGenerateModal = () => {
+    setIsGenerateModalOpen(true);
+  };
 
-    } finally {
-      setLoading(false);
-    }
-  }, [documentId]);
-
-  useEffect(() => {
-    if (documentId) {
-      fetchFlashcardSets();
-    }
-  }, [documentId, fetchFlashcardSets]);
-
-  const handleGenerateFlashcards = async () => {
+  const handleConfirmGenerateFlashcards = async (count) => {
     try {
       setGenerating(true);
-      await aiService.generateFlashcards(documentId);
+      await aiService.generateFlashcards(documentId, { count });
       await fetchFlashcardSets();
       toast.success("Flashcards generated successfully");
+      setIsGenerateModalOpen(false);
     } catch (error) {
       toast.error(error.error || error.message || "Failed to generate flashcards");
-
     } finally {
       setGenerating(false);
     }
-  }
+  };
 
   const handleNextCard = () => {
     if (selectedSet) {
@@ -213,7 +195,7 @@ const FlashcardManager = ({ documentId }) => {
           <h3 className='text-xl font-semibold text-slate-900 mb-2'>No Flashcards Yet</h3>
           <p className='text-sm text-slate-600 mb-8 text-center max-w-sm'>Generate flashcards from your documents to start learning and reinforce your knowledge. </p>
           <button
-            onClick={handleGenerateFlashcards}
+            onClick={handleOpenGenerateModal}
             disabled={generating}
             className='group app-primary-action h-12 mx-auto'
           >
@@ -247,7 +229,7 @@ const FlashcardManager = ({ documentId }) => {
             </p>
           </div>
           <button
-            onClick={handleGenerateFlashcards}
+            onClick={handleOpenGenerateModal}
             disabled={generating}
             className='group app-primary-action h-11'
           >
@@ -356,6 +338,17 @@ const FlashcardManager = ({ documentId }) => {
           </div>
         </div>
       </Modal>
+
+      <GenerateQuantityModal
+        isOpen={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        onConfirm={handleConfirmGenerateFlashcards}
+        title="Generate Document Flashcards"
+        description="Select how many flashcards you want to generate from this document."
+        type="flashcard"
+        defaultCount={5}
+        generating={generating}
+      />
     </>
   )
 }
