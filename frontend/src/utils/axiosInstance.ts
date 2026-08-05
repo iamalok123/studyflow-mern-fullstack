@@ -32,10 +32,12 @@ axiosInstance.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response) {
       if (error.response.status === 401) {
-        // Token expired or invalid — clear session and redirect to homepage
+        // Token expired or invalid signature — clear session
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        window.location.href = "/";
+        if (window.location.pathname !== "/" && window.location.pathname !== "/login") {
+          window.location.href = "/";
+        }
       }
       if (error.response.status === 500) {
         console.error("Server error. Please try again later.");

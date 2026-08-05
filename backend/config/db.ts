@@ -98,9 +98,13 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
       throw new Error("MONGODB_URI is not configured.");
     }
 
-    if (process.env.MONGODB_URI.startsWith("mongodb+srv://")) {
-      configureMongoDns();
-      await verifySrvRecord(process.env.MONGODB_URI);
+    if (process.env.MONGODB_URI.startsWith("mongodb+srv://") && process.env.VERCEL !== "1") {
+      try {
+        configureMongoDns();
+        await verifySrvRecord(process.env.MONGODB_URI);
+      } catch (dnsErr: any) {
+        console.warn("DNS pre-check warning:", dnsErr?.message || dnsErr);
+      }
     }
 
     const rawConnectionPromise = mongoose.connect(process.env.MONGODB_URI, MONGO_OPTIONS);

@@ -165,7 +165,7 @@ const LoginPage = () => {
                   }}
                   shape="rectangular"
                   size="large"
-                  width="100%"
+                  width="320"
                   text="signin_with"
                   theme="outline"
                 />

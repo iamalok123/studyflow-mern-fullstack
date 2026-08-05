@@ -204,7 +204,7 @@ const RegisterPage = () => {
                   }}
                   shape="rectangular"
                   size="large"
-                  width="100%"
+                  width="320"
                   text="signup_with"
                   theme="outline"
                 />
