@@ -1,12 +1,23 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { createContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { IUser } from '../types/models';
 
-const AuthContext = createContext();
+export interface AuthContextType {
+  user: IUser | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  login: (userData: IUser, token: string) => void;
+  logout: () => void;
+  updateUser: (updatedUserData: Partial<IUser>) => void;
+  checkAuthStatus: () => void;
+}
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<IUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const logout = useCallback(() => {
@@ -22,7 +33,7 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       const userStr = localStorage.getItem('user');
       if (token && userStr) {
-        const userData = JSON.parse(userStr);
+        const userData: IUser = JSON.parse(userStr);
         setUser(userData);
         setIsAuthenticated(true);
       } else {
@@ -30,7 +41,6 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
       }
     } catch (error) {
-      // Corrupted localStorage — clear it silently, no redirect needed
       console.error("Error checking auth status:", error);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -44,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   }, [checkAuthStatus]);
 
   useEffect(() => {
-    const handleStorageChange = (event) => {
+    const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'token' || event.key === 'user') {
         checkAuthStatus();
       }
@@ -54,20 +64,20 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [checkAuthStatus]);
 
-  const login = (userData, token) => {
+  const login = (userData: IUser, token: string) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
   };
 
-  const updateUser = (updatedUserData) => {
-    const newUserData = { ...user, ...updatedUserData };
+  const updateUser = (updatedUserData: Partial<IUser>) => {
+    const newUserData = user ? { ...user, ...updatedUserData } : (updatedUserData as IUser);
     setUser(newUserData);
     localStorage.setItem('user', JSON.stringify(newUserData));
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     loading,
     isAuthenticated,
@@ -84,4 +94,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export default AuthContext
+export default AuthContext;

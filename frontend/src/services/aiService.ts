@@ -1,124 +1,124 @@
 import axiosInstance from '../utils/axiosInstance';
 import { BASE_URL, API_PATHS } from '../utils/apiPaths';
 
-const generateFlashcards = async (documentId, options) => {
+const generateFlashcards = async (documentId: string, options?: any) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.GENERATE_FLASHCARDS, { documentId, ...options });
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to generate flashcards' };
   }
 };
 
-const generateQuiz = async (documentId, options) => {
+const generateQuiz = async (documentId: string, options?: any) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.GENERATE_QUIZ, { documentId, ...options });
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to generate quiz' };
   }
 };
 
-const generateMindmap = async (documentId) => {
+const generateMindmap = async (documentId: string) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.GENERATE_MINDMAP, { documentId });
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to generate mindmap' };
   }
 };
 
-const getMindmap = async (documentId) => {
+const getMindmap = async (documentId: string) => {
   try {
     const response = await axiosInstance.get(API_PATHS.AI.GET_MINDMAP(documentId));
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to fetch mindmap' };
   }
 };
 
-const generateSummary = async (documentId) => {
+const generateSummary = async (documentId: string) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.GENERATE_SUMMARY, { documentId });
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to generate summary' };
   }
 };
 
-const explainConcept = async (documentId, concept) => {
+const explainConcept = async (documentId: string, concept: string) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.EXPLAIN_CONCEPT, { documentId, concept });
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to explain concept' };
   }
 };
 
-const getChatHistory = async (documentId) => {
+const getChatHistory = async (documentId: string) => {
   try {
     const response = await axiosInstance.get(API_PATHS.AI.GET_CHAT_HISTORY(documentId));
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to fetch chat history' };
   }
 };
 
-const getWorkspaceChatHistory = async (workspaceId) => {
+const getWorkspaceChatHistory = async (workspaceId: string) => {
   try {
     const response = await axiosInstance.get(API_PATHS.AI.GET_WORKSPACE_CHAT_HISTORY(workspaceId));
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to fetch workspace chat history' };
   }
 };
 
-const workspaceGenerateSummary = async (workspaceId) => {
+const workspaceGenerateSummary = async (workspaceId: string) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.WORKSPACE_GENERATE_SUMMARY, { workspaceId });
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to generate workspace summary' };
   }
 };
 
-const workspaceGenerateMindmap = async (workspaceId) => {
+const workspaceGenerateMindmap = async (workspaceId: string) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.WORKSPACE_GENERATE_MINDMAP, { workspaceId });
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to generate workspace mindmap' };
   }
 };
 
-const getWorkspaceMindmap = async (workspaceId) => {
+const getWorkspaceMindmap = async (workspaceId: string) => {
   try {
     const response = await axiosInstance.get(API_PATHS.AI.GET_WORKSPACE_MINDMAP(workspaceId));
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to fetch workspace mindmap' };
   }
 };
 
-const workspaceGenerateFlashcards = async (workspaceId, count) => {
+const workspaceGenerateFlashcards = async (workspaceId: string, count?: number) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.WORKSPACE_GENERATE_FLASHCARDS, { workspaceId, count });
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to generate workspace flashcards' };
   }
 };
 
-const workspaceGenerateQuiz = async (workspaceId, numQuestions) => {
+const workspaceGenerateQuiz = async (workspaceId: string, numQuestions?: number) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AI.WORKSPACE_GENERATE_QUIZ, { workspaceId, numQuestions });
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to generate workspace quiz' };
   }
 };
 
-const streamFetch = async (url, body, onChunk) => {
+const streamFetch = async (url: string, body: any, onChunk: (text: string) => void) => {
   const token = localStorage.getItem('token');
   const response = await fetch(url, {
     method: 'POST',
@@ -138,6 +138,10 @@ const streamFetch = async (url, body, onChunk) => {
       // ignore
     }
     throw new Error(errMessage);
+  }
+
+  if (!response.body) {
+    throw new Error('Response body is null');
   }
 
   const reader = response.body.getReader();
@@ -167,7 +171,7 @@ const streamFetch = async (url, body, onChunk) => {
           if (parsed.error) {
             throw new Error(parsed.error);
           }
-        } catch (e) {
+        } catch (e: any) {
           if (e.message && !e.message.includes('JSON')) {
             throw e;
           }
@@ -177,12 +181,12 @@ const streamFetch = async (url, body, onChunk) => {
   }
 };
 
-const streamChat = async (documentId, question, onChunk) => {
+const streamChat = async (documentId: string, question: string, onChunk: (text: string) => void) => {
   const fullUrl = `${BASE_URL}${API_PATHS.AI.STREAM_CHAT}`;
   await streamFetch(fullUrl, { documentId, question }, onChunk);
 };
 
-const streamWorkspaceChat = async (workspaceId, question, onChunk) => {
+const streamWorkspaceChat = async (workspaceId: string, question: string, onChunk: (text: string) => void) => {
   const fullUrl = `${BASE_URL}${API_PATHS.AI.WORKSPACE_STREAM_CHAT}`;
   await streamFetch(fullUrl, { workspaceId, question }, onChunk);
 };

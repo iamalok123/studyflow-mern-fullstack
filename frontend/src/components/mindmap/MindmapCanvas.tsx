@@ -15,7 +15,7 @@ import { buildReactFlowGraph } from './mindmapLayout';
 
 // --- Custom Nodes ---
 
-const CenterNode = ({ data }) => {
+const CenterNode = ({ data }: { data: any }) => {
   return (
     <div className='relative flex flex-col items-center mx-auto w-64 rounded-3xl bg-[#63D0CE] px-6 py-5 text-center text-white shadow-[0_20px_56px_rgba(20,184,166,0.22)]'>
       <Handle type="source" position={Position.Left} id="left" style={{ opacity: 0 }} />
@@ -38,7 +38,7 @@ const CenterNode = ({ data }) => {
   );
 };
 
-const BranchNode = ({ data }) => {
+const BranchNode = ({ data }: { data: any }) => {
   const { color, direction, depth, label, hasChildren, isCollapsed, id } = data;
   
   // Depth-based sizing
@@ -85,11 +85,11 @@ const nodeTypes = {
 
 // --- Main Canvas Component ---
 
-const Flow = ({ mindmap }) => {
-  const [collapsedNodeIds, setCollapsedNodeIds] = React.useState(new Set());
+const Flow: React.FC<{ mindmap: any }> = ({ mindmap }) => {
+  const [collapsedNodeIds, setCollapsedNodeIds] = React.useState(new Set<string>());
   const { fitView } = useReactFlow();
 
-  const toggleCollapse = useCallback((nodeId) => {
+  const toggleCollapse = useCallback((nodeId: string) => {
     setCollapsedNodeIds((prev) => {
       const next = new Set(prev);
       if (next.has(nodeId)) {
@@ -105,7 +105,7 @@ const Flow = ({ mindmap }) => {
     const { nodes: rawNodes, edges: rawEdges } = buildReactFlowGraph(mindmap, collapsedNodeIds);
     
     // Inject the toggle function into all node data
-    const nodesWithCallbacks = rawNodes.map(node => ({
+    const nodesWithCallbacks = rawNodes.map((node: any) => ({
       ...node,
       data: {
         ...node.data,
@@ -138,7 +138,7 @@ const Flow = ({ mindmap }) => {
       <Background color="#ccc" gap={24} size={2} />
       <Controls className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" />
       <MiniMap 
-        nodeColor={(node) => {
+        nodeColor={(node: any) => {
           if (node.type === 'mindmapCenter') return '#63D0CE';
           return node.data?.color?.line || '#ccc';
         }}
@@ -149,7 +149,12 @@ const Flow = ({ mindmap }) => {
   );
 };
 
-const MindmapCanvas = ({ mindmap, mindmapData }) => {
+interface MindmapCanvasProps {
+  mindmap?: any;
+  mindmapData?: any;
+}
+
+const MindmapCanvas: React.FC<MindmapCanvasProps> = ({ mindmap, mindmapData }) => {
   const targetMindmap = mindmap || mindmapData;
   return (
     <div className="w-full h-[70vh] min-h-125 max-h-200 rounded-2xl border border-slate-200 overflow-hidden shadow-inner shadow-slate-200/50">

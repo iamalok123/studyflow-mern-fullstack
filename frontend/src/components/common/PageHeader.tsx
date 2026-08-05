@@ -1,6 +1,12 @@
-import React from 'react'
+import React, { ReactNode } from 'react';
 
-const PageHeader = ({ title, subtitle, children }) => {
+interface PageHeaderProps {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  children?: ReactNode;
+}
+
+const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, children }) => {
   return (
     <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6'>
       <div>
@@ -19,7 +25,7 @@ const PageHeader = ({ title, subtitle, children }) => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default PageHeader
+export default PageHeader;

@@ -1,15 +1,17 @@
+import { IChunk } from "../types/models";
+
 /**
  * Splits text file chunks for better ai processing (Mirror of backend logic)
  */
-export const chunkText = (text, chunkSize = 500, overlap = 50) => {
+export const chunkText = (text: string, chunkSize: number = 500, overlap: number = 50): IChunk[] => {
     overlap = Math.min(overlap, chunkSize - 1);
     if (!text || text.trim().length === 0) {
         return [];
     }
     const cleanedText = text.replace(/\r\n/g, '\n').replace(/[^\S\n]+/g, ' ').replace(/\n /g, '\n').replace(/ \n/g, '\n').trim();
     const paragraphs = cleanedText.split(/\n+/).filter(p => p.trim().length > 0);
-    const chunks = [];
-    let currentChunk = [];
+    const chunks: IChunk[] = [];
+    let currentChunk: string[] = [];
     let currentWordCount = 0;
     let chunkIndex = 0;
 
@@ -59,18 +61,22 @@ export const chunkText = (text, chunkSize = 500, overlap = 50) => {
     return chunks;
 };
 
+export interface PdfExtractResult {
+  text: string;
+  numPages: number;
+  isLikelyScanned: boolean;
+  chunks: IChunk[];
+}
+
 /**
  * Extracts text from PDF File object
- * @param {File} file 
- * @param {Function} onProgress callback for progress (currentPage, totalPages)
- * @returns {Promise<{text: string, numPages: number, isLikelyScanned: boolean, chunks: Array}>}
  */
-export const extractPdfText = async (file, onProgress) => {
+export const extractPdfText = async (
+    file: File,
+    onProgress?: (currentPage: number, totalPages: number) => void
+): Promise<PdfExtractResult> => {
     try {
-        // Dynamically import pdfjs-dist
         const pdfjsLib = await import('pdfjs-dist');
-        
-        // Use CDN worker to avoid bundler issues
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
         const arrayBuffer = await file.arrayBuffer();
@@ -85,7 +91,7 @@ export const extractPdfText = async (file, onProgress) => {
             if (onProgress) onProgress(i, numPages);
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items.map((item) => item.str).join(" ");
+            const pageText = textContent.items.map((item: any) => item.str).join(" ");
             fullText += pageText + "\n\n";
         }
 

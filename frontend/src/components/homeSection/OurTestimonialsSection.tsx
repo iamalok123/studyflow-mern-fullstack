@@ -111,7 +111,7 @@ const OurTestimonialsSection = () => {
                                                 className="relative h-full w-full rounded-full border-2 border-white object-cover"
                                                 src={current.image}
                                                 alt={current.name}
-                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                                onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                                             />
                                         </div>
                                         <div>

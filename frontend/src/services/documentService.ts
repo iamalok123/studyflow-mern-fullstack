@@ -1,11 +1,19 @@
 import axiosInstance from '../utils/axiosInstance';
 import { API_PATHS } from '../utils/apiPaths';
 
+export interface SignatureData {
+  cloudName: string;
+  apiKey: string;
+  timestamp: number;
+  signature: string;
+  folder: string;
+}
+
 const getDocuments = async () => {
   try {
     const response = await axiosInstance.get(API_PATHS.DOCUMENTS.GET_DOCUMENTS);
     return response.data?.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to fetch documents' };
   }
 };
@@ -14,12 +22,12 @@ const getUploadSignature = async () => {
   try {
     const response = await axiosInstance.get(API_PATHS.DOCUMENTS.GET_UPLOAD_SIGNATURE);
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to get upload signature' };
   }
 };
 
-const uploadToCloudinary = (file, signatureData, onProgress) => {
+const uploadToCloudinary = (file: File, signatureData: SignatureData, onProgress?: (percent: number) => void): Promise<any> => {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/auto/upload`;
@@ -48,43 +56,40 @@ const uploadToCloudinary = (file, signatureData, onProgress) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('api_key', signatureData.apiKey);
-    formData.append('timestamp', signatureData.timestamp);
+    formData.append('timestamp', signatureData.timestamp.toString());
     formData.append('signature', signatureData.signature);
     formData.append('folder', signatureData.folder);
-    // Note: resource_type is kept as 'image' automatically by the endpoint /image/upload
     
     xhr.send(formData);
   });
 };
 
-const uploadDocument = async (data) => {
+const uploadDocument = async (data: any) => {
   try {
-    // Send JSON metadata to backend instead of FormData
     const response = await axiosInstance.post(API_PATHS.DOCUMENTS.UPLOAD, data);
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to upload document' };
   }
 };
 
-const deleteDocument = async (id) => {
+const deleteDocument = async (id: string) => {
   try {
     const response = await axiosInstance.delete(API_PATHS.DOCUMENTS.DELETE_DOCUMENT(id));
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to delete document' };
   }
 };
 
-const getDocumentById = async (id) => {
+const getDocumentById = async (id: string) => {
   try {
     const response = await axiosInstance.get(API_PATHS.DOCUMENTS.GET_DOCUMENT_BY_ID(id));
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     throw error.response?.data || { message: 'Failed to fetch document details' };
   }
 };
-
 
 const documentService = {
   getDocuments,

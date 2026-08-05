@@ -8,14 +8,18 @@ import 'react-pdf/dist/Page/TextLayer.css';
 // Configure the worker to use the unpkg CDN for the matching pdfjs version
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-const PdfViewer = ({ url }) => {
-  const [numPages, setNumPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(1.0);
-  const [error, setError] = useState(null);
+interface PdfViewerProps {
+  url: string | null;
+}
+
+const PdfViewer: React.FC<PdfViewerProps> = ({ url }) => {
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [scale, setScale] = useState<number>(1.0);
+  const [error, setError] = useState<string | null>(null);
   
-  const containerRef = useRef(null);
-  const [containerWidth, setContainerWidth] = useState(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
 
   // Responsive width calculation
   useEffect(() => {
@@ -32,18 +36,18 @@ const PdfViewer = ({ url }) => {
     return () => observer.disconnect();
   }, []);
 
-  const onDocumentLoadSuccess = ({ numPages }) => {
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
     setPageNumber(1);
     setError(null);
   };
 
-  const onDocumentLoadError = (err) => {
+  const onDocumentLoadError = (err: Error) => {
     console.error('Failed to load PDF', err);
     setError(err.message || 'Failed to load the document.');
   };
 
-  const changePage = (offset) => {
+  const changePage = (offset: number) => {
     setPageNumber(prevPageNumber => {
       const newPageNumber = prevPageNumber + offset;
       return Math.min(Math.max(1, newPageNumber), numPages || 1);
@@ -179,7 +183,7 @@ const PdfViewer = ({ url }) => {
             renderAnnotationLayer={true}
             className="bg-white"
             loading={
-              <div className="flex items-center justify-center p-12 bg-white w-full h-full min-h-[400px]">
+              <div className="flex items-center justify-center p-12 bg-white w-full h-full min-h-100">
                 <Spinner />
               </div>
             }

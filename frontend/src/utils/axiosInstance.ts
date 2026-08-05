@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
 import { BASE_URL } from "./apiPaths";
 
 const axiosInstance = axios.create({
@@ -12,24 +12,24 @@ const axiosInstance = axios.create({
 
 // Request Interceptor — attach JWT token
 axiosInstance.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const accessToken = localStorage.getItem("token");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     return Promise.reject(error);
   }
 );
 
 // Response Interceptor
 axiosInstance.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     return response;
   },
-  (error) => {
+  (error: AxiosError) => {
     if (error.response) {
       if (error.response.status === 401) {
         // Token expired or invalid — clear session and redirect to homepage

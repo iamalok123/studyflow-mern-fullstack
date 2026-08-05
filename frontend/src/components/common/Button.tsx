@@ -1,6 +1,12 @@
-import React from "react";
+import React, { ReactNode, ButtonHTMLAttributes } from "react";
 
-const Button = ({
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+  variant?: 'primary' | 'secondary' | 'outline';
+  size?: 'sm' | 'md';
+}
+
+const Button: React.FC<ButtonProps> = ({
   children,
   onClick,
   type = "button",
@@ -8,6 +14,7 @@ const Button = ({
   className = "",
   variant = "primary",
   size = "md",
+  ...props
 }) => {
   const baseStyles = 'inline-flex items-center justify-center gap-2 font-bold rounded-full transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 whitespace-nowrap';
 
@@ -33,6 +40,7 @@ const Button = ({
         sizeStyles[size],
         className,
       ].join(' ')}
+      {...props}
     >
       {children}
     </button>

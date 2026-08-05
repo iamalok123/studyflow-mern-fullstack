@@ -1,19 +1,24 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { BookOpen, Sparkles, TrendingUp, Trash2 } from 'lucide-react'
-import moment from 'moment'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { BookOpen, Sparkles, TrendingUp, Trash2 } from 'lucide-react';
+import moment from 'moment';
 
-const FlashcardSetCard = ({ flashcardSet, onDelete, context = 'sidebar' }) => {
+interface FlashcardSetCardProps {
+  flashcardSet: any;
+  onDelete?: (flashcardSet: any) => void;
+  context?: string;
+}
+
+const FlashcardSetCard: React.FC<FlashcardSetCardProps> = ({ flashcardSet, onDelete, context = 'sidebar' }) => {
   const navigate = useNavigate();
-
 
   const handleStudyNow = () => {
     navigate(`/flashcards/set/${flashcardSet._id}`, { state: { from: context } });
   };
 
   const title = flashcardSet?.documentId?.title || flashcardSet?.workspaceId?.title || flashcardSet?.title || 'Flashcard Set';
-  const reviewedCount = flashcardSet.cards.filter(card => card.lastReviewed).length;
-  const totalCards = flashcardSet.cards.length;
+  const reviewedCount = flashcardSet.cards?.filter((card: any) => card.lastReviewed)?.length || 0;
+  const totalCards = flashcardSet.cards?.length || 0;
   const progressPercentage = totalCards > 0 ? Math.round((reviewedCount / totalCards) * 100) : 0;
 
   return (
@@ -101,7 +106,7 @@ const FlashcardSetCard = ({ flashcardSet, onDelete, context = 'sidebar' }) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default FlashcardSetCard
+export default FlashcardSetCard;

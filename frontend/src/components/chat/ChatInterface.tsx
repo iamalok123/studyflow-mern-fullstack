@@ -5,15 +5,16 @@ import aiService from '../../services/aiService';
 import { useAuth } from '../../context/useAuth';
 import Spinner from '../common/Spinner';
 import MarkdownRenderer from '../common/MarkdownRenderer';
+import { IChatMessage } from '../../types/models';
 
-const ChatInterface = () => {
-  const { id: documentId } = useParams();
+const ChatInterface: React.FC = () => {
+  const { id: documentId } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const [history, setHistory] = useState([]);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const messageEndRef = useRef();
+  const [history, setHistory] = useState<IChatMessage[]>([]);
+  const [message, setMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [initialLoading, setInitialLoading] = useState<boolean>(true);
+  const messageEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     if (messageEndRef.current) {
@@ -23,6 +24,7 @@ const ChatInterface = () => {
 
   useEffect(() => {
     const fetchHistory = async () => {
+      if (!documentId) return;
       try {
         setInitialLoading(true);
         const messages = await aiService.getChatHistory(documentId);
@@ -40,18 +42,18 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [history]);
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || loading) return;
+    if (!message.trim() || loading || !documentId) return;
 
     const userQuestion = message.trim();
-    const userMessage = { role: 'user', content: userQuestion, timestamp: new Date() };
+    const userMessage: IChatMessage = { role: 'user', content: userQuestion, timestamp: new Date().toISOString() as any };
     
     // Create streaming assistant placeholder message
-    const assistantPlaceholder = {
+    const assistantPlaceholder: IChatMessage = {
       role: 'assistant',
       content: '',
-      timestamp: new Date(),
+      timestamp: new Date().toISOString() as any,
     };
 
     setHistory(prev => [...prev, userMessage, assistantPlaceholder]);
@@ -76,7 +78,7 @@ const ChatInterface = () => {
           });
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Streaming Chat Error: ', error);
       setHistory(prev => {
         const updated = [...prev];
@@ -94,7 +96,7 @@ const ChatInterface = () => {
     }
   };
 
-  const renderMessage = (msg, index) => {
+  const renderMessage = (msg: IChatMessage, index: number) => {
     const isUser = msg.role === 'user';
     return (
       <div

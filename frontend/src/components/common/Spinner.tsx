@@ -1,7 +1,14 @@
-import React from 'react'
+import React from 'react';
 
-const Spinner = ({ className = '', inline = false }) => {
-  const svgClasses = `animate-spin ${inline ? 'h-4 w-4' : 'h-6 w-6'} text-emerald-500 ${className}`.trim();
+interface SpinnerProps {
+  className?: string;
+  inline?: boolean;
+  size?: 'sm' | 'md' | 'lg' | string;
+}
+
+const Spinner: React.FC<SpinnerProps> = ({ className = '', inline = false, size }) => {
+  const sizeClass = size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-8 w-8' : inline ? 'h-4 w-4' : 'h-6 w-6';
+  const svgClasses = `animate-spin ${sizeClass} text-emerald-500 ${className}`.trim();
 
   const spinner = (
     <svg
@@ -34,7 +41,7 @@ const Spinner = ({ className = '', inline = false }) => {
     <div className="flex items-center justify-center p-8">
       {spinner}
     </div>
-  )
-}
+  );
+};
 
-export default Spinner
+export default Spinner;

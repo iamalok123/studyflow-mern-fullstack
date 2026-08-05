@@ -3,13 +3,19 @@ import { Send, Sparkles, Layers } from 'lucide-react';
 import aiService from '../../services/aiService';
 import Spinner from '../common/Spinner';
 import MarkdownRenderer from '../common/MarkdownRenderer';
+import { IChatMessage } from '../../types/models';
 
-const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
-  const [history, setHistory] = useState([]);
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const messageEndRef = useRef();
+interface WorkspaceChatInterfaceProps {
+  workspaceId: string;
+  workspaceTitle?: string;
+}
+
+const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspaceId, workspaceTitle }) => {
+  const [history, setHistory] = useState<IChatMessage[]>([]);
+  const [message, setMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [initialLoading, setInitialLoading] = useState<boolean>(true);
+  const messageEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     if (messageEndRef.current) {
@@ -37,17 +43,17 @@ const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
     scrollToBottom();
   }, [history]);
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || loading) return;
 
     const userQuestion = message.trim();
-    const userMessage = { role: 'user', content: userQuestion, timestamp: new Date() };
+    const userMessage: IChatMessage = { role: 'user', content: userQuestion, timestamp: new Date().toISOString() as any };
 
-    const assistantPlaceholder = {
+    const assistantPlaceholder: IChatMessage = {
       role: 'assistant',
       content: '',
-      timestamp: new Date(),
+      timestamp: new Date().toISOString() as any,
     };
 
     setHistory(prev => [...prev, userMessage, assistantPlaceholder]);
@@ -72,7 +78,7 @@ const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
           });
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Workspace streaming chat failed:', error);
       setHistory(prev => {
         const updated = [...prev];
@@ -80,7 +86,7 @@ const WorkspaceChatInterface = ({ workspaceId, workspaceTitle }) => {
         if (lastIndex >= 0 && updated[lastIndex].role === 'assistant') {
           updated[lastIndex] = {
             ...updated[lastIndex],
-            content: updated[lastIndex].content || `⚠️ Error: ${error.message || 'Failed to stream response. Ensure workspace documents are processed.'}`,
+            content: updated[lastIndex].content || `⚠️ Error: ${error?.message || 'Failed to stream response. Ensure workspace documents are processed.'}`,
           };
         }
         return updated;

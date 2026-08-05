@@ -1,7 +1,15 @@
-import React from 'react'
+import React, { ElementType } from 'react';
 import { FileText, Plus } from 'lucide-react';
 
-const EmptyState = ({ onActionClick, title, description, buttonText, icon: Icon = FileText }) => {
+interface EmptyStateProps {
+  onActionClick?: () => void;
+  title: string;
+  description: string;
+  buttonText?: string;
+  icon?: ElementType;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ onActionClick, title, description, buttonText, icon: Icon = FileText }) => {
   return (
     <div className='flex flex-col items-center justify-center py-16 px-6 text-center rounded-3xl border-2 border-dashed border-emerald-200 bg-[#EEF6F2]/60'>
       <div className='inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-white border border-emerald-100 text-emerald-600 shadow-sm mb-4'>
@@ -22,7 +30,7 @@ const EmptyState = ({ onActionClick, title, description, buttonText, icon: Icon 
         </button>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default EmptyState
+export default EmptyState;
