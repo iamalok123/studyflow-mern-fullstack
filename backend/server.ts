@@ -22,9 +22,11 @@ const app = express();
 app.use(securityHeaders);
 
 // Middleware to handle CORS
-const allowedOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL, "http://localhost:5173"]
-  : ["http://localhost:5173", "http://localhost:3000"];
+const defaultAllowedOrigins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"];
+const configuredOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",").map((url) => url.trim())
+  : [];
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...configuredOrigins]));
 
 app.use(
   cors({
@@ -33,14 +35,30 @@ app.use(
       if (!origin) return callback(null, true);
       // Exact match against allowed origins
       if (allowedOrigins.includes(origin)) return callback(null, true);
-      // Allow any Vercel preview deployment (*.vercel.app)
-      if (/\.vercel\.app$/.test(origin)) return callback(null, true);
-      callback(new Error(`CORS: origin ${origin} not allowed`));
+      // Allow any Vercel deployment (*.vercel.app, *.vercel.com, vercel.com)
+      if (
+        origin.endsWith(".vercel.app") ||
+        origin.endsWith(".vercel.com") ||
+        origin === "https://vercel.com"
+      ) {
+        return callback(null, true);
+      }
+      callback(null, false);
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    credentials: true,
   })
 );
+
+// Immediately handle OPTIONS preflight requests before any auth or DB middlewares
+app.use((req: Request, res: Response, next: NextFunction): void => {
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
 
 app.use(express.json({ limit: "4mb" }));
 app.use(express.urlencoded({ extended: true, limit: "4mb" }));
