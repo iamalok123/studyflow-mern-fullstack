@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Layers } from 'lucide-react';
+import { Send, Sparkles, Layers, BookOpen } from 'lucide-react';
 import aiService from '../../services/aiService';
 import Spinner from '../common/Spinner';
 import MarkdownRenderer from '../common/MarkdownRenderer';
@@ -72,6 +72,19 @@ const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspa
               updated[lastIndex] = {
                 ...updated[lastIndex],
                 content: updated[lastIndex].content + chunkText,
+              };
+            }
+            return updated;
+          });
+        },
+        (citations) => {
+          setHistory(prev => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+            if (lastIndex >= 0 && updated[lastIndex].role === 'assistant') {
+              updated[lastIndex] = {
+                ...updated[lastIndex],
+                citations,
               };
             }
             return updated;
@@ -170,6 +183,26 @@ const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspa
                     </div>
                   )}
                 </div>
+
+                {msg.role !== 'user' && msg.citations && msg.citations.length > 0 && (
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                      <BookOpen className="w-3 h-3 text-emerald-600" />
+                      Sources:
+                    </span>
+                    {msg.citations.map((cit, citIdx) => (
+                      <span
+                        key={citIdx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs hover:bg-emerald-100/70 transition-colors"
+                        title={cit.documentTitle ? `${cit.documentTitle} • Page ${cit.pageNumber}` : `Page ${cit.pageNumber}`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        {cit.documentTitle ? `${cit.documentTitle} • ` : ''}Page {cit.pageNumber}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
                 {msg.timestamp && (
                   <p className={`text-[10px] mt-1.5 ${msg.role === 'user' ? 'text-slate-400' : 'text-slate-400'}`}>
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

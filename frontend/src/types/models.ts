@@ -28,6 +28,13 @@ export interface IChunk {
   chunkIndex: number;
 }
 
+export interface ICitation {
+  pageNumber: number;
+  documentTitle?: string;
+  chunkIndex?: number;
+  documentId?: string;
+}
+
 export interface IDocumentItem {
   _id: string;
   userId: string;
@@ -37,6 +44,8 @@ export interface IDocumentItem {
   cloudinaryPublicId?: string | null;
   fileSize: number;
   extractedText?: string;
+  totalChunks?: number;
+  vectorStatus?: "pending" | "indexed" | "failed" | "no_text";
   chunks?: IChunk[];
   uploadDate: string;
   lastAccessed: string;
@@ -117,6 +126,7 @@ export interface IChatMessage {
   timestamp?: string;
   relevantChunks?: number[];
   sources?: string[];
+  citations?: ICitation[];
 }
 
 export interface ApiResponse<T = any> {

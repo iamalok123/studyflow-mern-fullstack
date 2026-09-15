@@ -51,7 +51,7 @@ const retryWithBackoff = async <T>(fn: () => Promise<T>, maxRetries = 3, baseDel
 const generateWithRetry = async (prompt: string): Promise<string> => {
   const response = await retryWithBackoff(() =>
     getAI().models.generateContent({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-3.5-flash-lite",
       contents: prompt,
     })
   );
@@ -416,9 +416,16 @@ Response:`;
   }
 };
 
+export interface ChatContextChunk {
+  content: string;
+  pageNumber?: number;
+  chunkIndex?: number;
+  documentTitle?: string;
+}
+
 export interface StreamChatParams {
   question: string;
-  chunks: TextChunk[];
+  chunks: (TextChunk | ChatContextChunk)[];
   history?: IChatMessage[];
   onChunk?: (chunkText: string) => void;
 }
@@ -428,7 +435,11 @@ export interface StreamChatParams {
  */
 export const streamChatWithContext = async ({ question, chunks, history = [], onChunk }: StreamChatParams): Promise<string> => {
   const context = chunks
-    .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
+    .map((c, i) => {
+      const pageInfo = c.pageNumber ? ` | Page ${c.pageNumber}` : "";
+      const docInfo = (c as any).documentTitle ? ` | Document: "${(c as any).documentTitle}"` : "";
+      return `[Reference ${i + 1}${docInfo}${pageInfo}]\n${c.content}`;
+    })
     .join("\n\n");
 
   let historyBlock = "";
@@ -451,6 +462,7 @@ CRITICAL FORMATTING & VISUAL PRESENTATION RULES:
 1. SOURCE TAGGING:
    - If the answer is found in or derived from the document context, begin your response on line 1 with: "**Based on the document:**" followed by two newlines.
    - If the question is completely unrelated to the context, begin line 1 with: "**Not covered in the document. Based on general knowledge:**" followed by two newlines.
+   - When citing information from the document context, mention relevant page numbers if provided in the reference tags.
    - NEVER use single asterisks like "*Based on the document:*" or insert spaces inside double asterisks.
 
 2. CODE & SYNTAX EXAMPLES:

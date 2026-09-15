@@ -5,7 +5,7 @@ import Flashcard from "../models/Flashcard.js";
 import Quiz from "../models/Quiz.js";
 import ChatHistory from "../models/ChatHistory.js";
 import * as geminiService from "../utils/geminiService.js";
-import { findRelevantChunks, TextChunk } from "../utils/textChunker.js";
+import { searchSimilarChunks } from "../utils/vectorSearchService.js";
 import { IDocument } from "../types/models.js";
 
 const clampInt = (value: any, fallback: number, min: number, max: number): number => {
@@ -353,7 +353,7 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
       _id: documentId,
       userId: req.user._id,
       status: "Ready",
-    }).select("chunks");
+    }).select("title");
 
     if (!document) {
       return res.status(404).json({
@@ -369,8 +369,32 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
-    const relevantChunks = findRelevantChunks(document.chunks, question, 5);
+    // Vector retrieval for semantically relevant chunks
+    const relevantChunks = await searchSimilarChunks({
+      userId: req.user._id,
+      documentId: document._id,
+      query: question,
+      limit: 6,
+    });
+
     const chunkIndices = relevantChunks.map((chunk) => chunk.chunkIndex);
+
+    // Build distinct citations (by page number)
+    const citationMap = new Map<number, { pageNumber: number; documentTitle?: string; chunkIndex?: number; documentId?: any }>();
+    for (const chunk of relevantChunks) {
+      if (!citationMap.has(chunk.pageNumber)) {
+        citationMap.set(chunk.pageNumber, {
+          pageNumber: chunk.pageNumber,
+          documentTitle: document.title,
+          chunkIndex: chunk.chunkIndex,
+          documentId: document._id,
+        });
+      }
+    }
+    const citations = Array.from(citationMap.values()).sort((a, b) => a.pageNumber - b.pageNumber);
+
+    // Emit citations event before streaming response
+    res.write(`data: ${JSON.stringify({ type: "citations", citations })}\n\n`);
 
     let chatHistory = await ChatHistory.findOne({
       userId: req.user._id,
@@ -388,14 +412,19 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
     // Stream AI content chunks
     const answer = await geminiService.streamChatWithContext({
       question,
-      chunks: relevantChunks,
+      chunks: relevantChunks.map((c) => ({
+        content: c.content,
+        pageNumber: c.pageNumber,
+        chunkIndex: c.chunkIndex,
+        documentTitle: document.title,
+      })),
       history: chatHistory.messages,
       onChunk: (chunkText: string) => {
         res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
       },
     });
 
-    // Persist conversation to MongoDB history
+    // Persist conversation to MongoDB history with citations
     chatHistory.messages.push(
       {
         role: "user",
@@ -408,6 +437,7 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
         content: answer,
         timestamp: new Date(),
         relevantChunks: chunkIndices,
+        citations,
       }
     );
 
@@ -489,20 +519,34 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
-    const allChunks: TextChunk[] = [];
-    let globalChunkIndex = 0;
+    // 1. Vector search across all documents in this workspace
+    const relevantChunks = await searchSimilarChunks({
+      userId: req.user._id,
+      workspaceId: workspace._id,
+      query: question,
+      limit: 8,
+    });
 
-    for (const doc of readyDocs) {
-      for (const chunk of doc.chunks) {
-        allChunks.push({
-          content: `[Source Document: "${doc.title}"]\n${chunk.content}`,
-          pageNumber: chunk.pageNumber || 0,
-          chunkIndex: globalChunkIndex++,
+    const chunkIndices = relevantChunks.map((chunk) => chunk.chunkIndex);
+
+    // Build distinct citations (by document and page)
+    const citationKey = (c: any) => `${c.documentId?.toString() || ""}_${c.pageNumber}`;
+    const citationMap = new Map<string, { pageNumber: number; documentTitle?: string; chunkIndex?: number; documentId?: any }>();
+    for (const chunk of relevantChunks) {
+      const key = citationKey(chunk);
+      if (!citationMap.has(key)) {
+        citationMap.set(key, {
+          pageNumber: chunk.pageNumber,
+          documentTitle: chunk.documentTitle || "Document",
+          chunkIndex: chunk.chunkIndex,
+          documentId: chunk.documentId,
         });
       }
     }
+    const citations = Array.from(citationMap.values());
 
-    const relevantChunks = findRelevantChunks(allChunks, question, 5);
+    // Emit citations event before streaming
+    res.write(`data: ${JSON.stringify({ type: "citations", citations })}\n\n`);
 
     let chatHistory = await ChatHistory.findOne({
       userId: req.user._id,
@@ -519,7 +563,12 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
 
     const answer = await geminiService.streamChatWithContext({
       question,
-      chunks: relevantChunks,
+      chunks: relevantChunks.map((c) => ({
+        content: c.content,
+        pageNumber: c.pageNumber,
+        chunkIndex: c.chunkIndex,
+        documentTitle: c.documentTitle,
+      })),
       history: chatHistory.messages,
       onChunk: (chunkText: string) => {
         res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
@@ -537,7 +586,8 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
         role: "assistant",
         content: answer,
         timestamp: new Date(),
-        relevantChunks: relevantChunks.map((c) => c.chunkIndex),
+        relevantChunks: chunkIndices,
+        citations,
       }
     );
 
@@ -589,7 +639,7 @@ export const explainConcept = async (req: Request, res: Response, next: NextFunc
       _id: documentId,
       userId: req.user._id,
       status: "Ready",
-    }).select("chunks");
+    }).select("title");
 
     if (!document) {
       return res.status(404).json({
@@ -599,8 +649,13 @@ export const explainConcept = async (req: Request, res: Response, next: NextFunc
       });
     }
 
-    // Find relevant chunks for the concept
-    const relevantChunks = findRelevantChunks(document.chunks, concept, 3);
+    // Find relevant chunks for the concept using vector search
+    const relevantChunks = await searchSimilarChunks({
+      userId: req.user._id,
+      documentId: document._id,
+      query: concept,
+      limit: 3,
+    });
     const context = relevantChunks.map((chunk) => chunk.content).join("\n\n");
 
     // Generate explanation using Gemini

@@ -1,5 +1,6 @@
 import axiosInstance from '../utils/axiosInstance';
 import { BASE_URL, API_PATHS } from '../utils/apiPaths';
+import { ICitation } from '../types/models';
 
 const generateFlashcards = async (documentId: string, options?: any) => {
   try {
@@ -118,7 +119,12 @@ const workspaceGenerateQuiz = async (workspaceId: string, numQuestions?: number)
   }
 };
 
-const streamFetch = async (url: string, body: any, onChunk: (text: string) => void) => {
+const streamFetch = async (
+  url: string,
+  body: any,
+  onChunk: (text: string) => void,
+  onCitations?: (citations: ICitation[]) => void
+) => {
   const token = localStorage.getItem('token');
   const response = await fetch(url, {
     method: 'POST',
@@ -165,6 +171,9 @@ const streamFetch = async (url: string, body: any, onChunk: (text: string) => vo
         }
         try {
           const parsed = JSON.parse(dataStr);
+          if (parsed.type === 'citations' && Array.isArray(parsed.citations) && typeof onCitations === 'function') {
+            onCitations(parsed.citations);
+          }
           if (parsed.text && typeof onChunk === 'function') {
             onChunk(parsed.text);
           }
@@ -181,14 +190,24 @@ const streamFetch = async (url: string, body: any, onChunk: (text: string) => vo
   }
 };
 
-const streamChat = async (documentId: string, question: string, onChunk: (text: string) => void) => {
+const streamChat = async (
+  documentId: string,
+  question: string,
+  onChunk: (text: string) => void,
+  onCitations?: (citations: ICitation[]) => void
+) => {
   const fullUrl = `${BASE_URL}${API_PATHS.AI.STREAM_CHAT}`;
-  await streamFetch(fullUrl, { documentId, question }, onChunk);
+  await streamFetch(fullUrl, { documentId, question }, onChunk, onCitations);
 };
 
-const streamWorkspaceChat = async (workspaceId: string, question: string, onChunk: (text: string) => void) => {
+const streamWorkspaceChat = async (
+  workspaceId: string,
+  question: string,
+  onChunk: (text: string) => void,
+  onCitations?: (citations: ICitation[]) => void
+) => {
   const fullUrl = `${BASE_URL}${API_PATHS.AI.WORKSPACE_STREAM_CHAT}`;
-  await streamFetch(fullUrl, { workspaceId, question }, onChunk);
+  await streamFetch(fullUrl, { workspaceId, question }, onChunk, onCitations);
 };
 
 const aiService = {

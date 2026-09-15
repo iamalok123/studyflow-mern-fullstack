@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import Document from "../models/Document.js";
+import DocumentChunk from "../models/DocumentChunk.js";
 import Flashcard from "../models/Flashcard.js";
 import Quiz from "../models/Quiz.js";
 import ChatHistory from "../models/ChatHistory.js";
 import Workspace from "../models/Workspace.js";
 import { extractTextFromPDF } from "../utils/pdfParser.js";
-import { chunkText } from "../utils/textChunker.js";
+import { recursiveChunkText } from "../utils/textChunker.js";
+import { generateDocumentEmbeddings } from "../utils/embeddingService.js";
 import getCloudinary from "../config/cloudinary.js";
 import mongoose, { Types } from "mongoose";
 
@@ -90,14 +92,8 @@ export const uploadDocument = async ( req: Request, res: Response, next: NextFun
     }
 
     let extractedText = clientExtractedText || "";
-    let chunks: ReturnType<typeof chunkText> = [];
     let status: "Processing" | "Ready" | "Failed" | "no_text" = "Ready";
-    let message = "Document uploaded and processed successfully.";
-
-    // Server-side text chunking to keep frontend payload small
-    if (extractedText && extractedText.trim().length > 100) {
-      chunks = chunkText(extractedText, 500, 50);
-    }
+    let message = "Document uploaded and indexed into vector database successfully.";
 
     // Tier 2 Fallback: If client says it might be a scanned PDF and requests server extraction
     if (attemptServerExtraction) {
@@ -110,7 +106,6 @@ export const uploadDocument = async ( req: Request, res: Response, next: NextFun
           const { text } = await extractTextFromPDF(buffer);
           if (text && text.trim().length > 100) {
             extractedText = text;
-            chunks = chunkText(text, 500, 50);
             message = "Document uploaded and processed with server fallback.";
           }
         }
@@ -119,32 +114,69 @@ export const uploadDocument = async ( req: Request, res: Response, next: NextFun
       }
     }
 
-    if (chunks.length === 0) {
+    // Chunk text semantically with page retention
+    const rawChunks = extractedText && extractedText.trim().length > 50
+      ? recursiveChunkText(extractedText, 1500, 200)
+      : [];
+
+    if (rawChunks.length === 0) {
       status = "no_text" as any;
       message = "Document uploaded, but no readable text could be extracted. AI features may not work.";
     }
 
+    const validWorkspaceId = workspaceId && mongoose.Types.ObjectId.isValid(workspaceId)
+      ? new mongoose.Types.ObjectId(workspaceId)
+      : null;
+
+    // 1. Create document entry
     const document = await Document.create({
-      userId: req.user._id,
+      userId: req.user!._id,
       title: title.trim(),
       fileName,
       filePath: cloudinaryUrl,
       cloudinaryPublicId,
       fileSize,
       extractedText,
-      chunks,
+      totalChunks: rawChunks.length,
+      vectorStatus: rawChunks.length > 0 ? "indexed" : "no_text",
+      chunks: [],
       status: status as any,
     });
 
-    if (workspaceId && mongoose.Types.ObjectId.isValid(workspaceId)) {
+    // 2. Generate embeddings and store in DocumentChunk collection
+    if (rawChunks.length > 0) {
+      try {
+        const chunkTexts = rawChunks.map((c) => c.content);
+        const embeddings = await generateDocumentEmbeddings(chunkTexts);
+
+        const chunkDocuments = rawChunks.map((chunk, index) => ({
+          userId: req.user!._id,
+          documentId: document._id,
+          workspaceId: validWorkspaceId,
+          chunkIndex: chunk.chunkIndex,
+          pageNumber: chunk.pageNumber || 1,
+          content: chunk.content,
+          characterCount: chunk.characterCount || chunk.content.length,
+          embedding: embeddings[index] || new Array(768).fill(0),
+        }));
+
+        await DocumentChunk.insertMany(chunkDocuments);
+      } catch (embedError: any) {
+        console.error("Vector embedding failed during upload:", embedError?.message || embedError);
+        document.vectorStatus = "failed";
+        await document.save();
+      }
+    }
+
+    if (validWorkspaceId) {
       const updatedWorkspace = await Workspace.findOneAndUpdate(
-        { _id: workspaceId, userId: req.user._id },
+        { _id: validWorkspaceId, userId: req.user._id },
         { $addToSet: { documents: document._id } },
         { new: false }
       );
 
       if (updatedWorkspace) {
-        await invalidateWorkspaceAiArtifacts(workspaceId, req.user._id);
+        await invalidateWorkspaceAiArtifacts(validWorkspaceId, req.user._id);
       }
     }
 
@@ -307,6 +339,7 @@ export const deleteDocument = async ( req: Request, res: Response, next: NextFun
 
     // Delete all associated DB records in parallel
     await Promise.all([
+      DocumentChunk.deleteMany({ documentId: document._id }),
       Flashcard.deleteMany({ documentId: document._id, userId: req.user._id }),
       Quiz.deleteMany({ documentId: document._id, userId: req.user._id }),
       ChatHistory.deleteMany({ documentId: document._id, userId: req.user._id }),

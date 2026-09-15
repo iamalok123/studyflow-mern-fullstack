@@ -78,22 +78,34 @@ const documentSchema = new mongoose.Schema<IDocument>(
       maxlength: [4000000, "Extracted text is too large to store."],
       default: "",
     },
-    chunks: [
-      {
-        content: {
-          type: String,
-          required: true,
+    totalChunks: {
+      type: Number,
+      default: 0,
+    },
+    vectorStatus: {
+      type: String,
+      enum: ["pending", "indexed", "failed", "no_text"],
+      default: "pending",
+    },
+    chunks: {
+      type: [
+        {
+          content: {
+            type: String,
+            required: true,
+          },
+          pageNumber: {
+            type: Number,
+            default: 0,
+          },
+          chunkIndex: {
+            type: Number,
+            required: true,
+          },
         },
-        pageNumber: {
-          type: Number,
-          default: 0,
-        },
-        chunkIndex: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
+      ],
+      default: [],
+    },
     uploadDate: {
       type: Date,
       default: Date.now,

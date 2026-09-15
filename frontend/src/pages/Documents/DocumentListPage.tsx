@@ -344,7 +344,7 @@ const DocumentListPage = () => {
                       {uploadStep === 'reading' && `Reading PDF... ${extractionProgress}`}
                       {uploadStep === 'signing' && 'Preparing upload...'}
                       {uploadStep === 'uploading' && `Storing PDF... ${uploadProgress}%`}
-                      {uploadStep === 'saving' && 'Saving to database...'}
+                      {uploadStep === 'saving' && 'Generating vector embeddings & indexing...'}
                     </span>
                     {uploadStep === 'uploading' && (
                       <span className='text-xs font-semibold text-emerald-600'>{uploadProgress}%</span>

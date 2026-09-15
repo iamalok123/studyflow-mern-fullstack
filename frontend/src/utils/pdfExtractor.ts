@@ -92,7 +92,7 @@ export const extractPdfText = async (
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
             const pageText = textContent.items.map((item: any) => item.str).join(" ");
-            fullText += pageText + "\n\n";
+            fullText += `[--- Page ${i} ---]\n${pageText}\n\n`;
         }
 
         const isLikelyScanned = fullText.trim().length < 100;

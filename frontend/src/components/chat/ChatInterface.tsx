@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, MessageSquare, Sparkles } from 'lucide-react';
+import { Send, MessageSquare, Sparkles, BookOpen } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import aiService from '../../services/aiService';
 import { useAuth } from '../../context/useAuth';
@@ -17,7 +17,7 @@ const ChatInterface: React.FC = () => {
   const messageEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    if (messageEndRef.current) {
+    if (messageEndRef.current && typeof messageEndRef.current.scrollIntoView === 'function') {
       messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
@@ -72,6 +72,19 @@ const ChatInterface: React.FC = () => {
               updated[lastIndex] = {
                 ...updated[lastIndex],
                 content: updated[lastIndex].content + chunkText,
+              };
+            }
+            return updated;
+          });
+        },
+        (citations) => {
+          setHistory(prev => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+            if (lastIndex >= 0 && updated[lastIndex].role === 'assistant') {
+              updated[lastIndex] = {
+                ...updated[lastIndex],
+                citations,
               };
             }
             return updated;
@@ -132,6 +145,26 @@ const ChatInterface: React.FC = () => {
               </div>
             )}
           </div>
+
+          {!isUser && msg.citations && msg.citations.length > 0 && (
+            <div className="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                <BookOpen className="w-3 h-3 text-emerald-600" />
+                Sources:
+              </span>
+              {msg.citations.map((cit, citIdx) => (
+                <span
+                  key={citIdx}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs hover:bg-emerald-100/70 transition-colors"
+                  title={cit.documentTitle ? `${cit.documentTitle} - Page ${cit.pageNumber}` : `Page ${cit.pageNumber}`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Page {cit.pageNumber}
+                </span>
+              ))}
+            </div>
+          )}
+
           {msg.timestamp && (
             <p className={`text-[10px] sm:text-xs mt-1.5 ${isUser ? 'text-slate-300' : 'text-slate-400'}`}>
               {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

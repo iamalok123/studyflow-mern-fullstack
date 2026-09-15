@@ -21,6 +21,28 @@ export interface IChunk {
   _id?: Types.ObjectId;
 }
 
+export interface IDocumentChunk extends Document {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  documentId: Types.ObjectId;
+  workspaceId: Types.ObjectId | null;
+  chunkIndex: number;
+  pageNumber: number;
+  content: string;
+  characterCount: number;
+  embedding: number[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ── Citation Interface ──
+export interface ICitation {
+  pageNumber: number;
+  documentTitle?: string;
+  chunkIndex?: number;
+  documentId?: Types.ObjectId | string;
+}
+
 // ── User Interface ──
 export interface IUser extends Document {
   _id: Types.ObjectId;
@@ -45,7 +67,9 @@ export interface IDocument extends Document {
   cloudinaryPublicId: string | null;
   fileSize: number;
   extractedText: string;
-  chunks: IChunk[];
+  totalChunks: number;
+  vectorStatus: "pending" | "indexed" | "failed" | "no_text";
+  chunks?: IChunk[];
   uploadDate: Date;
   lastAccessed: Date;
   status: "Processing" | "Ready" | "Failed";
@@ -128,6 +152,7 @@ export interface IChatMessage {
   content: string;
   timestamp: Date;
   relevantChunks: number[];
+  citations?: ICitation[];
 }
 
 export interface IChatHistory extends Document {

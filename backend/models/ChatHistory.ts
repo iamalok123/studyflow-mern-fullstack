@@ -38,6 +38,14 @@ const chatHistorySchema = new mongoose.Schema<IChatHistory>(
           type: [Number],
           default: [],
         },
+        citations: [
+          {
+            pageNumber: { type: Number, default: 1 },
+            documentTitle: { type: String, default: "" },
+            chunkIndex: { type: Number },
+            documentId: { type: mongoose.Schema.Types.ObjectId, ref: "Document", default: null },
+          },
+        ],
       },
     ],
   },
