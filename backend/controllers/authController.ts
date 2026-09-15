@@ -56,6 +56,8 @@ export const register = async (req: Request, res: Response, next: NextFunction):
           username: user.username,
           email: user.email,
           profileImage: user.profileImage,
+          authProvider: user.authProvider || "local",
+          googleId: user.googleId,
           createdAt: user.createdAt,
         },
         token,
@@ -113,6 +115,8 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
           username: user.username,
           email: user.email,
           profileImage: user.profileImage,
+          authProvider: user.authProvider || (user.googleId ? "google" : "local"),
+          googleId: user.googleId,
           createdAt: user.createdAt,
         },
         token,
@@ -148,6 +152,8 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
         username: user.username,
         email: user.email,
         profileImage: user.profileImage,
+        authProvider: user.authProvider || (user.googleId ? "google" : "local"),
+        googleId: user.googleId,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -190,6 +196,8 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
         username: user.username,
         email: user.email,
         profileImage: user.profileImage,
+        authProvider: user.authProvider || (user.googleId ? "google" : "local"),
+        googleId: user.googleId,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -225,10 +233,10 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
     }
 
     // Google OAuth users cannot change password
-    if (user.authProvider === "google") {
+    if (user.authProvider === "google" || user.googleId || !user.password) {
       return res.status(400).json({
         success: false,
-        error: "Google account users cannot change password",
+        error: "Google account users cannot change password directly. Please manage your security in your Google Account.",
         statusCode: 400,
       });
     }
@@ -353,6 +361,7 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
           email: user.email,
           profileImage: user.profileImage,
           authProvider: user.authProvider,
+          googleId: user.googleId,
           createdAt: user.createdAt,
         },
         token,

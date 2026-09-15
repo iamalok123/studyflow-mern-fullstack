@@ -374,7 +374,7 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
       userId: req.user._id,
       documentId: document._id,
       query: question,
-      limit: 6,
+      limit: 10,
     });
 
     const chunkIndices = relevantChunks.map((chunk) => chunk.chunkIndex);
@@ -524,7 +524,7 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
       userId: req.user._id,
       workspaceId: workspace._id,
       query: question,
-      limit: 8,
+      limit: 12,
     });
 
     const chunkIndices = relevantChunks.map((chunk) => chunk.chunkIndex);

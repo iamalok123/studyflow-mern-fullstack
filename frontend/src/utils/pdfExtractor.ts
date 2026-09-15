@@ -91,8 +91,27 @@ export const extractPdfText = async (
             if (onProgress) onProgress(i, numPages);
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items.map((item: any) => item.str).join(" ");
-            fullText += `[--- Page ${i} ---]\n${pageText}\n\n`;
+            let pageText = "";
+            let lastY: number | null = null;
+            for (const item of textContent.items as any[]) {
+                if (item.str === undefined) continue;
+                const currentY = item.transform ? item.transform[5] : null;
+                if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 5) {
+                    if (!pageText.endsWith("\n")) {
+                        pageText += "\n";
+                    }
+                } else if (pageText.length > 0 && !pageText.endsWith("\n") && !pageText.endsWith(" ")) {
+                    pageText += " ";
+                }
+                pageText += item.str;
+                if (item.hasEOL && !pageText.endsWith("\n")) {
+                    pageText += "\n";
+                }
+                if (currentY !== null) {
+                    lastY = currentY;
+                }
+            }
+            fullText += `[--- Page ${i} ---]\n${pageText.trim()}\n\n`;
         }
 
         const isLikelyScanned = fullText.trim().length < 100;

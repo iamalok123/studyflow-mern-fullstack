@@ -72,16 +72,16 @@ const AiActions = () => {
         <div className='p-6 space-y-6'>
           {/* Generate Summary */}
           <div className='group app-soft-panel p-5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:bg-white'>
-            <div className='flex items-center justify-between gap-4'>
+            <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
               <div className='flex-1'>
-                <div className='flex items-start justify-start gap-2 mb-2'>
-                  <div className='h-8 w-8 app-muted-icon-tile'>
+                <div className='flex items-center gap-2.5 mb-2'>
+                  <div className='shrink-0 h-8 w-8 rounded-xl border border-emerald-200/70 bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-xs'>
                     <BookOpen
                       className="w-4 h-4 text-emerald-600"
                       strokeWidth={2}
                     />
                   </div>
-                  <h4 className='font-semibold text-slate-600 leading-relaxed'>
+                  <h4 className='font-bold text-slate-900 text-sm tracking-tight'>
                     Generate Summary
                   </h4>
                 </div>
@@ -92,17 +92,15 @@ const AiActions = () => {
               <button
                 onClick={handleGenerateSummary}
                 disabled={loadingAction === "summary"}
-                className='app-primary-action h-10 px-4'
+                className='app-primary-action shrink-0 h-10 px-5'
               >
                 {loadingAction === "summary" ? (
                   <span className='flex items-center gap-2'>
                     <div className='h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin' />
-                    Loading...
+                    <span>Summarizing...</span>
                   </span>
                 ) : (
-                  <span>
-                    Summarize
-                  </span>
+                  <span>Summarize</span>
                 )}
               </button>
             </div>
@@ -111,14 +109,14 @@ const AiActions = () => {
           {/* Explain Concept */}
           <div className='group app-soft-panel p-5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:bg-white'>
             <form onSubmit={handleExplainConcept}>
-              <div className='flex items-center gap-2 mb-3'>
-                <div className='h-8 w-8 rounded-lg bg-linear-to-br from-amber-100 to-orange-100 flex items-center justify-center'>
+              <div className='flex items-center gap-2.5 mb-2'>
+                <div className='shrink-0 h-8 w-8 rounded-xl bg-linear-to-br from-amber-100 to-orange-100 border border-amber-200/60 flex items-center justify-center text-amber-600 shadow-xs'>
                   <Lightbulb
                     className="w-4 h-4 text-amber-600"
                     strokeWidth={2}
                   />
                 </div>
-                <h4 className='font-semibold text-slate-900'>
+                <h4 className='font-bold text-slate-900 text-sm tracking-tight'>
                   Explain a concept
                 </h4>
               </div>
@@ -143,12 +141,10 @@ const AiActions = () => {
                   {loadingAction === "explain" ? (
                     <span className='flex items-center gap-2'>
                       <div className='h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin' />
-                      Loading...
+                      <span>Explaining...</span>
                     </span>
                   ) : (
-                    <span>
-                      Explain
-                    </span>
+                    <span>Explain</span>
                   )}
                 </button>
               </div>
