@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Lock, Save, Eye, EyeOff, ShieldCheck, ExternalLink } from 'lucide-react';
+import { User, Mail, Lock, Save, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import authService from '../../services/authService';
 import Spinner from '../../components/common/Spinner';
@@ -109,22 +109,13 @@ const ProfilePage = () => {
 
         {/* Profile Card */}
         <div className='app-panel p-8 mb-6'>
-          <div className='flex items-center gap-4 mb-8'>
-            <div className='w-16 h-16 rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center shadow-lg shadow-slate-950/15'>
-              {user?.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt={user.username}
-                  className='w-full h-full object-cover'
-                  referrerPolicy='no-referrer'
-                />
-              ) : (
-                <User className='w-8 h-8 text-white' strokeWidth={2} />
-              )}
+          <div className='flex items-center gap-3 mb-6'>
+            <div className='h-10 w-10 rounded-xl bg-slate-950 text-white flex items-center justify-center shadow-lg shadow-slate-950/15 shrink-0'>
+              <User className='w-5 h-5 text-emerald-400' strokeWidth={2} />
             </div>
             <div>
-              <h2 className='text-lg font-semibold text-slate-900'>{user?.username || 'User'}</h2>
-              <p className='text-sm text-slate-500'>{user?.email || 'user@example.com'}</p>
+              <h3 className='text-lg font-bold text-slate-900 tracking-tight'>Personal Information</h3>
+              <p className='text-xs text-slate-500'>Update your username and profile details</p>
             </div>
           </div>
 
@@ -239,15 +230,6 @@ const ProfilePage = () => {
                     <p className='text-xs text-slate-600 leading-relaxed max-w-xl'>
                       You are signed in with Google OAuth ({profileData.email || user?.email}). Password changes are disabled here because your account credentials and 2-step verification are secured directly by Google.
                     </p>
-                    <a
-                      href='https://myaccount.google.com/security'
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='inline-flex items-center gap-2 px-4 py-2 mt-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 shadow-xs hover:border-emerald-300 transition-all'
-                    >
-                      <span>Manage Google Security Settings</span>
-                      <ExternalLink className='w-3.5 h-3.5 text-slate-500' />
-                    </a>
                   </div>
                 </div>
               </div>

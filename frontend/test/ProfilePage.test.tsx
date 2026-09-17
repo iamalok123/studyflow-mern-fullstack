@@ -50,8 +50,9 @@ describe("Frontend ProfilePage Security & Password Management Tests", () => {
       expect(screen.getByText(/Password Managed by Google/i)).toBeDefined();
     });
 
+    expect(screen.getByText(/Personal Information/i)).toBeDefined();
     expect(screen.getByText(/Google Account/i)).toBeDefined();
-    expect(screen.getByText(/Manage Google Security Settings/i)).toBeDefined();
+    expect(screen.queryByText(/Manage Google Security Settings/i)).toBeNull();
 
     // Password input fields MUST NOT be present
     expect(screen.queryByPlaceholderText(/Enter current password/i)).toBeNull();
