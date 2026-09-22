@@ -19,12 +19,14 @@ const GenerateQuantityModal = ({
   const [count, setCount] = useState(() => {
     return Math.min(Math.max(defaultCount, MIN_LIMIT), MAX_LIMIT);
   });
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
-  useEffect(() => {
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setCount(Math.min(Math.max(defaultCount, MIN_LIMIT), MAX_LIMIT));
     }
-  }, [isOpen, defaultCount]);
+  }
 
   const handleDecrement = () => {
     setCount((prev) => Math.max(prev - 1, MIN_LIMIT));

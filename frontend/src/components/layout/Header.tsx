@@ -1,8 +1,13 @@
 import { Menu, User } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
 import React from 'react'
 
-const Header = ({ toggleSidebar }) => {
+interface HeaderProps {
+  toggleSidebar: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   const { user } = useAuth();
 
   return (
@@ -20,11 +25,13 @@ const Header = ({ toggleSidebar }) => {
         <div className='hidden md:block'></div>
 
         <div className='flex items-center gap-3'>
-
-
           {/* User Profile */}
           <div className='flex items-center gap-3'>
-            <div className='flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-emerald-50/70 transition-colors duration-200 cursor-pointer group'>
+            <Link
+              to="/profile"
+              className='flex items-center gap-3 px-3 py-1.5 rounded-xl hover:bg-emerald-50/70 transition-colors duration-200 cursor-pointer group'
+              aria-label="View Profile"
+            >
               <div className='w-9 h-9 rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center text-white shadow-md shadow-slate-950/15 group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-all duration-200'>
                 {user?.profileImage ? (
                   <img
@@ -38,14 +45,14 @@ const Header = ({ toggleSidebar }) => {
                 )}
               </div>
               <div>
-                <p className='text-sm font-semibold text-slate-900'>
+                <p className='text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors duration-200'>
                   {user?.username || 'User'}
                 </p>
                 <p className='text-xs text-slate-500'>
                   {user?.email || 'user@example.com'}
                 </p>
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </div>

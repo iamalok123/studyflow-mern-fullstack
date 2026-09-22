@@ -77,5 +77,40 @@ describe("Progress & Analytics Controller Unit Tests", () => {
       // (80 + 90 + 75) / 3 = 81.666 -> 82
       expect(avg).toBe(82);
     });
+
+    it("should preserve active streak before today's first session if studied yesterday", async () => {
+      const { calculateStudyStreak } = await import("../controllers/progressController.js");
+      const refDate = new Date("2026-09-23T10:00:00.000Z"); // Today is Sept 23
+
+      // User studied yesterday (Sept 22), Sept 21, and Sept 20, but not yet today (Sept 23)
+      const activityDates = new Set(["2026-09-22", "2026-09-21", "2026-09-20"]);
+      const streak = calculateStudyStreak(activityDates, refDate);
+      expect(streak).toBe(3);
+    });
+
+    it("should include today's session in streak when user completes session today", async () => {
+      const { calculateStudyStreak } = await import("../controllers/progressController.js");
+      const refDate = new Date("2026-09-23T10:00:00.000Z");
+
+      // User studied today (Sept 23) and past 2 days
+      const activityDates = new Set(["2026-09-23", "2026-09-22", "2026-09-21"]);
+      const streak = calculateStudyStreak(activityDates, refDate);
+      expect(streak).toBe(3);
+    });
+
+    it("should return 0 when last study session was 2 or more days ago", async () => {
+      const { calculateStudyStreak } = await import("../controllers/progressController.js");
+      const refDate = new Date("2026-09-23T10:00:00.000Z");
+
+      // User last studied Sept 21 (gap on Sept 22)
+      const activityDates = new Set(["2026-09-21", "2026-09-20"]);
+      const streak = calculateStudyStreak(activityDates, refDate);
+      expect(streak).toBe(0);
+    });
+
+    it("should return 0 when there are no activity dates", async () => {
+      const { calculateStudyStreak } = await import("../controllers/progressController.js");
+      expect(calculateStudyStreak(new Set())).toBe(0);
+    });
   });
 });

@@ -1,10 +1,10 @@
 import Footer from "../../components/homeComponents/Footer";
 import LenisScroller from "../../components/homeComponents/LenisScroller";
 import NavBar from "../../components/homeComponents/NavBar";
-import AiCapabilitiesSection from "../../components/homeSection/FreqSection";
+import AiCapabilitiesSection from "../../components/homeSection/AiCapabilitiesSection";
 import HeroSection from "../../components/homeSection/HeroSection";
-import CtaSection from "../../components/homeSection/NewsSection";
-import FeaturesGrid from "../../components/homeSection/OurLatestCreations";
+import CtaSection from "../../components/homeSection/CtaSection";
+import FeaturesGrid from "../../components/homeSection/FeaturesGrid";
 import OurTestimonialsSection from "../../components/homeSection/OurTestimonialsSection";
 import WhatWeDoSection from "../../components/homeSection/WhatWeDoSection";
 

@@ -3,6 +3,43 @@ import Document from "../models/Document.js";
 import Flashcard from "../models/Flashcard.js";
 import Quiz from "../models/Quiz.js";
 
+/**
+ * Calculates continuous study streak in days.
+ * If the user has studied today, the streak counts today and consecutive past days.
+ * If the user has NOT studied yet today, but studied yesterday, the streak is kept active
+ * and counts yesterday and consecutive past days (preserving the streak before today's first session).
+ * If the user did not study today or yesterday, streak is 0.
+ */
+export const calculateStudyStreak = (
+  activityDates: Set<string>,
+  referenceDate: Date = new Date()
+): number => {
+  const today = new Date(referenceDate);
+  today.setUTCHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().slice(0, 10);
+
+  const yesterday = new Date(today);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+  let cursor: Date;
+  if (activityDates.has(todayStr)) {
+    cursor = new Date(today);
+  } else if (activityDates.has(yesterdayStr)) {
+    cursor = new Date(yesterday);
+  } else {
+    return 0;
+  }
+
+  let streak = 0;
+  while (activityDates.has(cursor.toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
+
+  return streak;
+};
+
 // @desc    Get user dashboard with progress statistics
 // @route   GET /api/progress/dashboard
 // @access  Private
@@ -23,6 +60,7 @@ export const getDashboard = async ( req: Request, res: Response, next: NextFunct
       flashcardSets,
       completedQuizList,
       recentDocuments,
+      allDocumentDates,
       recentQuizzes,
     ] = await Promise.all([
       Document.countDocuments({ userId }),
@@ -35,6 +73,7 @@ export const getDashboard = async ( req: Request, res: Response, next: NextFunct
         .sort({ lastAccessed: -1 })
         .limit(5)
         .select("title fileName lastAccessed status"),
+      Document.find({ userId, lastAccessed: { $ne: null } }).select("lastAccessed"),
       Quiz.find({ userId })
         .sort({ createdAt: -1 })
         .limit(5)
@@ -68,7 +107,7 @@ export const getDashboard = async ( req: Request, res: Response, next: NextFunct
       activityDates.add(new Date(date).toISOString().slice(0, 10));
     };
 
-    recentDocuments.forEach((doc) => {
+    allDocumentDates.forEach((doc) => {
       addActivityDate(doc.lastAccessed);
     });
     completedQuizList.forEach((quiz) => {
@@ -80,14 +119,7 @@ export const getDashboard = async ( req: Request, res: Response, next: NextFunct
       });
     });
 
-    let studyStreak = 0;
-    const cursor = new Date();
-    cursor.setUTCHours(0, 0, 0, 0);
-
-    while (activityDates.has(cursor.toISOString().slice(0, 10))) {
-      studyStreak += 1;
-      cursor.setUTCDate(cursor.getUTCDate() - 1);
-    }
+    const studyStreak = calculateStudyStreak(activityDates);
 
     res.json({
       success: true,
