@@ -15,6 +15,9 @@ import Flashcard from '../../components/flashcards/Flashcard'
 
 const FlashcardPage = () => {
   const { id: documentId, setId } = useParams();
+  const location = useLocation();
+  const fromContext = location.state?.from || 'sidebar';
+
   const [flashcards, setFlashcards] = useState([]);
   const [flashcardSets, setFlashcardSets] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -167,9 +170,6 @@ const FlashcardPage = () => {
       </div>
     );
   };
-
-  const location = useLocation();
-  const fromContext = location.state?.from || 'sidebar';
 
   const backTarget = fromContext === 'workspace' && flashcardSets?.workspaceId
     ? `/workspaces/${flashcardSets.workspaceId._id || flashcardSets.workspaceId}`

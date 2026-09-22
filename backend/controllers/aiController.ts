@@ -490,7 +490,7 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
       userId: req.user._id,
     }).populate({
       path: "documents",
-      select: "title chunks status",
+      select: "title extractedText totalChunks status",
     });
 
     if (!workspace) {
@@ -502,7 +502,7 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
     }
 
     const readyDocs = ((workspace.documents as unknown as IDocument[]) || []).filter(
-      (doc) => doc && doc.status === "Ready" && Array.isArray(doc.chunks) && doc.chunks.length > 0
+      (doc) => doc && doc.status === "Ready" && (doc.totalChunks > 0 || (doc.extractedText && doc.extractedText.trim().length > 0))
     );
 
     if (readyDocs.length === 0) {
@@ -519,10 +519,13 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
+    const readyDocIds = readyDocs.map((doc) => doc._id);
+
     // 1. Vector search across all documents in this workspace
     const relevantChunks = await searchSimilarChunks({
       userId: req.user._id,
       workspaceId: workspace._id,
+      documentIds: readyDocIds,
       query: question,
       limit: 12,
     });

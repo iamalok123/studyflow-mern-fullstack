@@ -83,31 +83,46 @@ const getMongoErrorHint = (error: unknown): string => {
   return "Check MongoDB availability and connection settings.";
 };
 
+const getMongoUri = (): string => {
+  return (process.env.MONGODB_URI || process.env.MONGO_URI || "").trim();
+};
+
+mongoose.connection.on("disconnected", () => {
+  connectionPromise = null;
+});
+
 const connectDB = async (): Promise<typeof mongoose.connection> => {
   if (mongoose.connection.readyState === 1) {
     return mongoose.connection;
   }
 
   if (connectionPromise) {
-    await connectionPromise;
-    return mongoose.connection;
+    try {
+      await connectionPromise;
+      if ((mongoose.connection.readyState as number) === 1) {
+        return mongoose.connection;
+      }
+    } catch {
+      connectionPromise = null;
+    }
   }
 
   try {
-    if (!process.env.MONGODB_URI) {
+    const mongoUri = getMongoUri();
+    if (!mongoUri) {
       throw new Error("MONGODB_URI is not configured.");
     }
 
-    if (process.env.MONGODB_URI.startsWith("mongodb+srv://") && process.env.VERCEL !== "1") {
+    if (mongoUri.startsWith("mongodb+srv://") && process.env.VERCEL !== "1") {
       try {
         configureMongoDns();
-        await verifySrvRecord(process.env.MONGODB_URI);
+        await verifySrvRecord(mongoUri);
       } catch (dnsErr: any) {
         console.warn("DNS pre-check warning:", dnsErr?.message || dnsErr);
       }
     }
 
-    const rawConnectionPromise = mongoose.connect(process.env.MONGODB_URI, MONGO_OPTIONS);
+    const rawConnectionPromise = mongoose.connect(mongoUri, MONGO_OPTIONS);
     rawConnectionPromise.catch(() => {});
     connectionPromise = withTimeout(
       rawConnectionPromise,

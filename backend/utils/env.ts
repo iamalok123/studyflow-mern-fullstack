@@ -11,7 +11,11 @@ const REQUIRED_ENV_VARS: readonly string[] = [
 
 export const validateEnv = (): void => {
   const production = process.env.NODE_ENV === "production";
-  const missing = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
+  const hasMongoUri = Boolean(process.env.MONGODB_URI || process.env.MONGO_URI);
+  const missing = REQUIRED_ENV_VARS.filter((key) => {
+    if (key === "MONGODB_URI") return !hasMongoUri;
+    return !process.env[key];
+  });
 
   if (missing.length > 0) {
     const message = `Missing required environment variables: ${missing.join(", ")}`;

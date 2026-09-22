@@ -8,6 +8,9 @@ import { ArrowLeft, CheckCircle2, XCircle, Trophy, Target, BookOpen } from 'luci
 
 const QuizResultPage = () => {
   const { quizId } = useParams();
+  const location = useLocation();
+  const fromContext = location.state?.from || 'sidebar';
+
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -64,12 +67,9 @@ const QuizResultPage = () => {
     return 'Keep practicing! Consistency is the key to success.';
   };
 
-  const location = useLocation();
-  const fromContext = location.state?.from || 'sidebar';
-
-  const backTarget = fromContext === 'workspace' && quiz.workspace?._id
+  const backTarget = fromContext === 'workspace' && quiz?.workspace?._id
     ? `/workspaces/${quiz.workspace._id}`
-    : fromContext === 'document' && quiz.document?._id
+    : fromContext === 'document' && quiz?.document?._id
       ? `/documents/${quiz.document._id}`
       : '/quizzes';
   const backLabel = fromContext === 'workspace' ? 'Back to Workspace' : fromContext === 'document' ? 'Back to Document' : 'Back to Quizzes';

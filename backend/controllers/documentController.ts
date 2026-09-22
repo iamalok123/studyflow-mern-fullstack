@@ -337,7 +337,7 @@ export const deleteDocument = async ( req: Request, res: Response, next: NextFun
     }).select("_id");
     const affectedWorkspaceIds = affectedWorkspaces.map((workspace) => workspace._id);
 
-    // Delete all associated DB records in parallel
+    // Delete document-specific DB records and update workspaces in parallel
     await Promise.all([
       DocumentChunk.deleteMany({ documentId: document._id }),
       Flashcard.deleteMany({ documentId: document._id, userId: req.user._id }),
@@ -358,15 +358,6 @@ export const deleteDocument = async ( req: Request, res: Response, next: NextFun
               },
             }
           )
-        : Promise.resolve(),
-      affectedWorkspaceIds.length > 0
-        ? Flashcard.deleteMany({ workspaceId: { $in: affectedWorkspaceIds }, userId: req.user._id })
-        : Promise.resolve(),
-      affectedWorkspaceIds.length > 0
-        ? Quiz.deleteMany({ workspaceId: { $in: affectedWorkspaceIds }, userId: req.user._id })
-        : Promise.resolve(),
-      affectedWorkspaceIds.length > 0
-        ? ChatHistory.deleteMany({ workspaceId: { $in: affectedWorkspaceIds }, userId: req.user._id })
         : Promise.resolve(),
     ]);
 

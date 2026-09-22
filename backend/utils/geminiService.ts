@@ -2,6 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 import { IMindmapNode, IChatMessage } from "../types/models.js";
 import { TextChunk } from "./textChunker.js";
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+
 // Lazy-initialised Gemini client (avoids module-level crash in serverless).
 let _ai: GoogleGenAI | null = null;
 const getAI = (): GoogleGenAI => {
@@ -51,7 +53,7 @@ const retryWithBackoff = async <T>(fn: () => Promise<T>, maxRetries = 3, baseDel
 const generateWithRetry = async (prompt: string): Promise<string> => {
   const response = await retryWithBackoff(() =>
     getAI().models.generateContent({
-      model: "gemini-3.5-flash-lite",
+      model: GEMINI_MODEL,
       contents: prompt,
     })
   );
@@ -515,7 +517,7 @@ Response:`;
 
   try {
     const responseStream = await getAI().models.generateContentStream({
-      model: "gemini-2.5-flash-lite",
+      model: GEMINI_MODEL,
       contents: prompt,
     });
 

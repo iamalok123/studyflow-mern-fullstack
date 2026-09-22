@@ -9,6 +9,9 @@ import toast from 'react-hot-toast'
 const QuizTakePage = () => {
   const { quizId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromContext = location.state?.from || 'sidebar'
+
   const [quiz, setQuiz] = useState(null)
   const [loading, setLoading] = useState(false)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -101,12 +104,9 @@ const QuizTakePage = () => {
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const answeredCount = Object.keys(selectedAnswers).length;
 
-  const location = useLocation();
-  const fromContext = location.state?.from || 'sidebar';
-
-  const backTarget = fromContext === 'workspace' && quiz.workspaceId
+  const backTarget = fromContext === 'workspace' && quiz?.workspaceId
     ? `/workspaces/${quiz.workspaceId._id || quiz.workspaceId}`
-    : fromContext === 'document' && quiz.documentId
+    : fromContext === 'document' && quiz?.documentId
       ? `/documents/${quiz.documentId._id || quiz.documentId}`
       : '/quizzes';
   const backLabel = fromContext === 'workspace' ? 'Back to Workspace' : fromContext === 'document' ? 'Back to Document' : 'Back to Quizzes';

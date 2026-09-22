@@ -18,6 +18,7 @@ export interface SearchOptions {
   userId: Types.ObjectId | string;
   documentId?: Types.ObjectId | string;
   workspaceId?: Types.ObjectId | string;
+  documentIds?: (Types.ObjectId | string)[];
   query: string;
   limit?: number;
   minScore?: number;
@@ -31,6 +32,7 @@ export const searchSimilarChunks = async ({
   userId,
   documentId,
   workspaceId,
+  documentIds,
   query,
   limit = 6,
   minScore = 0.35,
@@ -53,6 +55,9 @@ export const searchSimilarChunks = async ({
       ? new Types.ObjectId(workspaceId)
       : workspaceId
     : null;
+  const docObjectIds = Array.isArray(documentIds) && documentIds.length > 0
+    ? documentIds.map((id) => (typeof id === "string" ? new Types.ObjectId(id) : id))
+    : null;
 
   // Build filter condition for Atlas Vector Search
   const filter: Record<string, any> = {
@@ -61,6 +66,8 @@ export const searchSimilarChunks = async ({
 
   if (docObjectId) {
     filter.documentId = { $eq: docObjectId };
+  } else if (docObjectIds && docObjectIds.length > 0) {
+    filter.documentId = { $in: docObjectIds };
   } else if (wsObjectId) {
     filter.workspaceId = { $eq: wsObjectId };
   }
@@ -122,6 +129,8 @@ export const searchSimilarChunks = async ({
   const fallbackQuery: Record<string, any> = { userId: userObjectId };
   if (docObjectId) {
     fallbackQuery.documentId = docObjectId;
+  } else if (docObjectIds && docObjectIds.length > 0) {
+    fallbackQuery.documentId = { $in: docObjectIds };
   } else if (wsObjectId) {
     fallbackQuery.workspaceId = wsObjectId;
   }
