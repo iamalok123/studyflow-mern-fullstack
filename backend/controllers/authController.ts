@@ -14,6 +14,40 @@ const generateToken = (id: Types.ObjectId | string): string => {
   });
 };
 
+/**
+ * Canonicalizes an email address for consistent indexing, lookup, and linking
+ * across local password authentication and Google OAuth.
+ * - Trims whitespace and converts to lowercase
+ * - Strips Gmail/Googlemail dots (e.g. john.doe -> johndoe) and subaddresses (+tag)
+ * - Normalizes googlemail.com to gmail.com
+ * - Removes subaddresses for major providers (Outlook, Hotmail, Live, iCloud)
+ */
+export const canonicalizeEmail = (email: string): string => {
+  if (!email || typeof email !== "string") return "";
+  const trimmed = email.trim().toLowerCase();
+  const atIndex = trimmed.lastIndexOf("@");
+  if (atIndex === -1) return trimmed;
+
+  const localPart = trimmed.slice(0, atIndex);
+  let domainPart = trimmed.slice(atIndex + 1);
+
+  if (domainPart === "googlemail.com") {
+    domainPart = "gmail.com";
+  }
+
+  if (domainPart === "gmail.com") {
+    const cleanLocal = localPart.replace(/\./g, "").split("+")[0];
+    return `${cleanLocal}@${domainPart}`;
+  }
+
+  if (["outlook.com", "hotmail.com", "live.com", "icloud.com"].includes(domainPart)) {
+    const cleanLocal = localPart.split("+")[0];
+    return `${cleanLocal}@${domainPart}`;
+  }
+
+  return `${localPart}@${domainPart}`;
+};
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -28,21 +62,34 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       });
     }
 
-    // Check if user exists
-    const userExists = await User.findOne({ $or: [{ email }, { username }] });
+    const trimmedUsername = username.trim();
+    const rawEmail = email.trim().toLowerCase();
+    const canonicalEmail = canonicalizeEmail(email);
+
+    // Check if user exists using canonical email, raw email, or username
+    const userExists = await User.findOne({
+      $or: [
+        { email: canonicalEmail },
+        { email: rawEmail },
+        { username: trimmedUsername },
+      ],
+    });
+
     if (userExists) {
+      const isEmailMatch = userExists.email === canonicalEmail || userExists.email === rawEmail;
       return res.status(400).json({
         success: false,
-        error:
-          userExists.email === email
-            ? "Email already registered."
-            : "Username already taken.",
+        error: isEmailMatch ? "Email already registered." : "Username already taken.",
         statusCode: 400,
       });
     }
 
-    // Create a new user
-    const user = await User.create({ username, email, password });
+    // Create a new user with canonicalEmail
+    const user = await User.create({
+      username: trimmedUsername,
+      email: canonicalEmail,
+      password,
+    });
 
     // generate token
     const token = generateToken(user._id);
@@ -83,8 +130,14 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       });
     }
 
-    // Check if user exists
-    const user = await User.findOne({ email }).select("+password");
+    const rawEmail = email.trim().toLowerCase();
+    const canonicalEmail = canonicalizeEmail(email);
+
+    // Check if user exists matching either canonical or raw email format
+    const user = await User.findOne({
+      $or: [{ email: canonicalEmail }, { email: rawEmail }],
+    }).select("+password");
+
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -316,21 +369,30 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
       });
     }
 
+    const rawEmail = email.trim().toLowerCase();
+    const canonicalEmail = canonicalizeEmail(email);
+
     // Check if user already exists by googleId
     let user = await User.findOne({ googleId });
 
     if (!user) {
-      // Check if a local user exists with same email
-      user = await User.findOne({ email });
+      // Check if an existing user exists with same email (canonical or raw format)
+      user = await User.findOne({
+        $or: [{ email: canonicalEmail }, { email: rawEmail }],
+      });
 
       if (user) {
         // Link Google account to existing local user
         user.googleId = googleId;
         user.authProvider = "google";
-        if (picture) user.profileImage = picture;
+        if (picture && (!user.profileImage || user.profileImage.includes("cdn-icons-png"))) {
+          user.profileImage = picture;
+        }
+        // Harmonize stored email to canonical format for consistency
+        user.email = canonicalEmail;
         await user.save();
       } else {
-        // Create new Google user
+        // Create new Google user with canonical email
         // Generate a unique username from the Google name
         let username = (name || "user").replace(/\s+/g, "").toLowerCase();
         const existingUsername = await User.findOne({ username });
@@ -340,7 +402,7 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
 
         user = await User.create({
           username,
-          email,
+          email: canonicalEmail,
           googleId,
           authProvider: "google",
           profileImage: picture || undefined,

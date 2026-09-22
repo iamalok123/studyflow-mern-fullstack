@@ -127,4 +127,26 @@ describe("Auth Controller Unit Tests", () => {
       );
     });
   });
+
+  describe("Email Canonicalization & Normalization", () => {
+    it("should strip dots and plus tags for Gmail and Googlemail", async () => {
+      const { canonicalizeEmail } = await import("../controllers/authController.js");
+      expect(canonicalizeEmail("John.Doe@gmail.com")).toBe("johndoe@gmail.com");
+      expect(canonicalizeEmail("first.last+study@gmail.com")).toBe("firstlast@gmail.com");
+      expect(canonicalizeEmail("user@googlemail.com")).toBe("user@gmail.com");
+    });
+
+    it("should preserve dots for non-Gmail domains and normalize subaddresses where applicable", async () => {
+      const { canonicalizeEmail } = await import("../controllers/authController.js");
+      expect(canonicalizeEmail("Jane.Doe@outlook.com")).toBe("jane.doe@outlook.com");
+      expect(canonicalizeEmail("user.name+tag@outlook.com")).toBe("user.name@outlook.com");
+      expect(canonicalizeEmail("Student.Name@yahoo.com")).toBe("student.name@yahoo.com");
+    });
+
+    it("should handle empty or malformed strings gracefully", async () => {
+      const { canonicalizeEmail } = await import("../controllers/authController.js");
+      expect(canonicalizeEmail("")).toBe("");
+      expect(canonicalizeEmail("invalid-email")).toBe("invalid-email");
+    });
+  });
 });

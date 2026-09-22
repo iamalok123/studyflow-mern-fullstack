@@ -6,12 +6,16 @@ let dnsConfigured = false;
 let lastErrorLogAt = 0;
 let lastErrorMessage = "";
 
-const MONGO_OPTIONS: mongoose.ConnectOptions = {
-  serverSelectionTimeoutMS: 8000,
-};
-
 const DNS_TIMEOUT_MS = Number.parseInt(process.env.MONGODB_DNS_TIMEOUT_MS || "", 10) || 5000;
 const CONNECT_TIMEOUT_MS = Number.parseInt(process.env.MONGODB_CONNECT_TIMEOUT_MS || "", 10) || 12000;
+
+const MONGO_OPTIONS: mongoose.ConnectOptions = {
+  serverSelectionTimeoutMS: 8000,
+  maxPoolSize: 10,
+  minPoolSize: 0,
+  connectTimeoutMS: CONNECT_TIMEOUT_MS,
+  socketTimeoutMS: 45000,
+};
 
 const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> => {
   let timer: NodeJS.Timeout;
@@ -87,12 +91,34 @@ const getMongoUri = (): string => {
   return (process.env.MONGODB_URI || process.env.MONGO_URI || "").trim();
 };
 
-mongoose.connection.on("disconnected", () => {
-  connectionPromise = null;
-});
+// Register connection lifecycle listeners idempotently for serverless container resilience
+if (mongoose.connection.listenerCount("disconnected") === 0) {
+  mongoose.connection.on("disconnected", () => {
+    connectionPromise = null;
+  });
+}
+
+if (mongoose.connection.listenerCount("close") === 0) {
+  mongoose.connection.on("close", () => {
+    connectionPromise = null;
+  });
+}
+
+if (mongoose.connection.listenerCount("error") === 0) {
+  mongoose.connection.on("error", (err) => {
+    connectionPromise = null;
+    const now = Date.now();
+    const message = (err as Error)?.message || "Unknown MongoDB error event";
+    if (message !== lastErrorMessage || now - lastErrorLogAt > 60_000) {
+      lastErrorLogAt = now;
+      lastErrorMessage = message;
+      console.error(`MongoDB connection error event: ${message}`);
+    }
+  });
+}
 
 const connectDB = async (): Promise<typeof mongoose.connection> => {
-  if (mongoose.connection.readyState === 1) {
+  if ((mongoose.connection.readyState as number) === 1) {
     return mongoose.connection;
   }
 
@@ -102,6 +128,7 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
       if ((mongoose.connection.readyState as number) === 1) {
         return mongoose.connection;
       }
+      connectionPromise = null;
     } catch {
       connectionPromise = null;
     }

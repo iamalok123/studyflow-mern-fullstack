@@ -64,4 +64,28 @@ describe("Security & Auth Middlewares Unit Tests", () => {
       expect(mockNext).not.toHaveBeenCalled();
     });
   });
+
+  describe("CORS Origin Validation & Network Security", () => {
+    it("should allow legitimate StudyFlow origins and preview deployments", async () => {
+      const { isOriginAllowed } = await import("../server.js");
+      expect(isOriginAllowed("http://localhost:5173")).toBe(true);
+      expect(isOriginAllowed("https://studyflow-ai-alpha.vercel.app")).toBe(true);
+      expect(isOriginAllowed("https://studyflow-preview-123.vercel.app")).toBe(true);
+      expect(isOriginAllowed("https://studyflow-mern-branch.vercel.app")).toBe(true);
+      expect(isOriginAllowed(undefined)).toBe(true); // Non-browser requests (curl, mobile, Postman)
+    });
+
+    it("should reject unauthorized third-party origins", async () => {
+      const { isOriginAllowed } = await import("../server.js");
+      expect(isOriginAllowed("https://malicious-attacker.vercel.app")).toBe(false);
+      expect(isOriginAllowed("https://evil-studyflow.vercel.app")).toBe(false);
+      expect(isOriginAllowed("https://notstudyflow.vercel.app")).toBe(false);
+      expect(isOriginAllowed("https://studyflow.evil.com")).toBe(false);
+    });
+
+    it("should have trust proxy set to 1 for reverse proxy reliability", async () => {
+      const app = (await import("../server.js")).default;
+      expect(app.get("trust proxy")).toBe(1);
+    });
+  });
 });

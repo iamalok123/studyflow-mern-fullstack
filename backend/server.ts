@@ -19,28 +19,42 @@ import workspaceRoutes from "./routes/workspaceRoutes.js";
 validateEnv();
 const app = express();
 
+// Trust the first-hop reverse proxy (e.g., Vercel Edge Proxy)
+// Ensures correct req.ip resolution for rate limiting and prevents IP spoofing
+app.set("trust proxy", 1);
+
 app.use(securityHeaders);
 
 // Middleware to handle CORS
-const defaultAllowedOrigins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"];
+const defaultAllowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:5174",
+  "https://studyflow-ai-alpha.vercel.app",
+];
 const configuredOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(",").map((url) => url.trim())
+  ? process.env.FRONTEND_URL.split(",")
+      .map((url) => url.trim())
+      .filter(Boolean)
   : [];
-const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...configuredOrigins]));
+export const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...configuredOrigins]));
+
+// Specific regex strictly matching official StudyFlow preview and production deployments on Vercel
+export const STUDYFLOW_VERCEL_REGEX = /^https:\/\/(studyflow(-[a-z0-9_-]+)?)\.vercel\.app$/i;
+
+export const isOriginAllowed = (origin: string | undefined): boolean => {
+  // Allow requests with no origin (e.g. mobile apps, curl, Postman, server-to-server)
+  if (!origin) return true;
+  // Exact match against explicitly allowed origins
+  if (allowedOrigins.includes(origin)) return true;
+  // Scoped regex match for legitimate StudyFlow Vercel preview environments
+  return STUDYFLOW_VERCEL_REGEX.test(origin);
+};
 
 app.use(
   cors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, Postman)
-      if (!origin) return callback(null, true);
-      // Exact match against allowed origins
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      // Allow any Vercel deployment (*.vercel.app, *.vercel.com, vercel.com)
-      if (
-        origin.endsWith(".vercel.app") ||
-        origin.endsWith(".vercel.com") ||
-        origin === "https://vercel.com"
-      ) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       }
       callback(null, false);
@@ -142,7 +156,7 @@ app.use((_req: Request, res: Response) => {
 app.use(errorHandler);
 
 // Start server locally (Vercel handles routing automatically via export)
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== "production" && process.env.NODE_ENV !== "test") {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`StudyFlow API running in ${process.env.NODE_ENV} mode on port ${PORT}`);
