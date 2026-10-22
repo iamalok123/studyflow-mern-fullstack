@@ -2,74 +2,78 @@
   <img src="https://img.shields.io/badge/StudyFlow-AI%20Learning%20Platform-10B981?style=for-the-badge&logo=bookstack&logoColor=white" alt="StudyFlow" />
 </p>
 
-<h1 align="center">📚 StudyFlow — AI-Powered Document & Workspace Learning Assistance</h1>
+<h1 align="center">📚 StudyFlow — AI-Powered Document & Workspace Learning Platform</h1>
 
 ### 🌐 Live Demo — [https://studyflow-ai-alpha.vercel.app/](https://studyflow-ai-alpha.vercel.app/)
 
 <p align="center">
-  <strong>Single & Multi-Document Workspaces. AI Chat with Source Citation. Concept Mindmaps. Flashcards & Quizzes.</strong><br/>
-  A full-stack MERN application powered by Google Gemini AI that transforms static PDF documents and multi-document folders into interactive, intelligent learning experiences.
+  <strong>Single & Multi-Document Workspaces • Vector Search RAG • SSE Streaming Chat • Mindmaps • Flashcards & Quizzes</strong><br/>
+  A full-stack TypeScript & MERN application powered by Google Gemini AI that transforms static PDFs into interactive, intelligent learning workspaces.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/MongoDB-4EA94B?style=flat&logo=mongodb&logoColor=white" />
-  <img src="https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" />
   <img src="https://img.shields.io/badge/React_19-61DAFB?style=flat&logo=react&logoColor=black" />
-  <img src="https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white" />
-  <img src="https://img.shields.io/badge/Cloudinary-3448C5?style=flat&logo=cloudinary&logoColor=white" />
-  <img src="https://img.shields.io/badge/Google_Gemini-886FBF?style=flat&logo=google&logoColor=white" />
-  <img src="https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vite_7-646CFF?style=flat&logo=vite&logoColor=white" />
   <img src="https://img.shields.io/badge/TailwindCSS_4-06B6D4?style=flat&logo=tailwindcss&logoColor=white" />
+  <img src="https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/Express_5-000000?style=flat&logo=express&logoColor=white" />
+  <img src="https://img.shields.io/badge/MongoDB_Atlas-4EA94B?style=flat&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/Google_Gemini-886FBF?style=flat&logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/Cloudinary-3448C5?style=flat&logo=cloudinary&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vitest-6E9F18?style=flat&logo=vitest&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white" />
 </p>
 
 ![Project Dashboard](./frontend/public/image.png)
 
 ---
 
-## 🌟 What's New & Key Highlights
+## 🌟 Key Highlights & Architecture
 
-- **📂 Multi-Document Workspaces & Folders:** Organize PDFs into themed folders with custom color tags. Conduct cross-document synthesis across multiple course PDFs or research papers simultaneously.
-- **💬 Source-Attributed AI Chat:** Ask questions across an entire folder. AI responses tag specific source files (e.g. `[Source: "Cell_Biology_Ch4.pdf"]`).
-- **🧠 Cross-Document Mindmaps:** Auto-generate interactive concept maps connecting themes across all PDFs in a workspace.
-- **📤 Dual PDF Upload Workflows:** Add existing PDFs from your library OR upload external PDFs directly into workspaces with live progress tracking and Cloudinary signed uploads.
-- **🔍 Document & Workspace Search:** Real-time keyword filtering across documents and folder collections.
-- **🛡️ Cascading Cleanups & Validation:** Deleting a document or workspace cleanly purges Cloudinary files, text chunks, flashcard decks, quizzes, and chat histories in parallel.
+- **📂 Multi-Document Workspaces:** Group multiple PDFs into custom-color workspaces for cross-document synthesis across lectures, textbooks, and research papers.
+- **⚡ Server-Sent Events (SSE) Streaming:** Real-time token streaming for AI chat using `@google/genai` (`gemini-2.5-flash-lite`) with instant responsive rendering.
+- **🔍 Dual-Mode Vector Search RAG:** Embeddings generated via `gemini-embedding-001` (768 dimensions) stored in `DocumentChunk`. Searches via MongoDB Atlas `$vectorSearch` with automatic fallback to in-memory cosine similarity.
+- **🏷️ Source-Attributed Citations:** Chat responses include exact document name, page number, and chunk references for verifiable, hallucination-free answers.
+- **🧠 Interactive React Flow Mindmaps:** Hierarchical visual knowledge graphs generated for single PDFs or entire multi-doc workspaces with pan, zoom, and auto-layout.
+- **🃏 Auto-Generated Study Decks & Quizzes:** Q&A flashcards with spaced review tracking and 4-option MCQs with instant scoring and explanations.
+- **🛡️ Cascading Cleanup & Security:** Document and workspace deletions cleanly purge Cloudinary files, vector chunks, decks, quizzes, and chat histories in parallel.
 
 ---
 
 ## ✨ Full Feature Overview
 
 ### 📄 Document & Workspace Management
-- **PDF Direct Upload** — Signed Cloudinary frontend uploads for PDFs up to 10MB with live reading, signing, uploading, and indexing progress bars.
-- **Smart Chunking** — Automatic client-side PDF text extraction and backend semantic chunking (`500 tokens / 50 overlap`) with Tier-2 server fallback.
-- **6-Tab Workspace Hub** — Dedicated navigation tabs for Documents, Multi-Doc AI Chat, Executive Summary, Concept Mindmap, Flashcards, and Quizzes.
+- **Direct-to-Cloudinary Upload** — Signed frontend uploads for PDFs up to 10MB bypass serverless payload limits with live progress bars.
+- **Smart Chunking & Vector Indexing** — Client-side text extraction (`pdfjs-dist`) with server fallback, chunked and embedded (768-dim) into MongoDB.
+- **6-Tab Workspace Hub** — Dedicated tabs for Documents, Cross-Doc AI Chat, Executive Summary, Concept Mindmap, Flashcards, and Quizzes.
 
 ### 🤖 AI Suite (Google Gemini 2.5)
-- **Multi-Doc & Single-Doc Chat** — Conversational assistant with message history persistence and document source tagging.
-- **Executive Summaries** — Generate concise summaries for single PDFs or multi-document folders.
-- **Interactive Mindmaps** — Auto-generated concept trees rendered via React Flow with zoom, pan, and minimap controls.
-- **Flashcards & Quizzes** — Auto-generate Q&A study decks and practice exams for single PDFs or entire workspaces. Universal set-based lookup (`/flashcards/set/:setId`).
+- **Streaming Document & Workspace Chat** — SSE chat streaming with conversation history persistence and exact source citations.
+- **Executive Summaries** — Structured summaries generated from single PDFs or synthesized across multiple workspace documents.
+- **Visual Mindmaps** — Auto-generated concept trees rendered via React Flow (`@xyflow/react`) with persistent storage.
+- **Flashcards & Quizzes** — Adaptive study sets (`/api/flashcards/set/:setId`) and quizzes with answer validation and progress tracking.
 
 ### 📊 Progress & 🔐 Authentication
-- **Analytics Dashboard** — Track study activity, quiz performance, and recently opened learning materials.
-- **Auth System** — Secure JWT authentication and Google OAuth 2.0 integration.
-- **Responsive Layout** — Tailored desktop and mobile views with centered UI tiles and backdrop-blur modals.
+- **Analytics Dashboard** — Activity feeds, quiz scores, total materials, and deterministic study streak tracking.
+- **Hybrid Auth** — JWT authentication (7-day expiry) with bcrypt password hashing and Google OAuth 2.0 verification.
+- **Full Test Suite** — 26 unit and integration test suites powered by Vitest across backend (12) and frontend (14).
 
 ---
 
 ## 🏗️ Tech Stack
 
-- **Frontend:** React 19, Vite, TailwindCSS 4, React Router v7, React Flow, `pdfjs-dist`, Axios, Lucide React.
-- **Backend:** Node.js, Express 5, Mongoose 9, JWT, Cloudinary SDK, Express Rate Limit.
-- **AI & DB:** Google Gemini AI SDK (`@google/genai`), MongoDB Atlas.
+- **Frontend:** React 19, Vite 7, TypeScript, TailwindCSS 4, React Router v7, React Flow (`@xyflow/react`), `pdfjs-dist`, Axios, Lucide React, Lenis, Vitest.
+- **Backend:** Node.js 18+, Express 5, TypeScript (`server.ts`, `tsx`), Mongoose 9, MongoDB Atlas, Cloudinary SDK, Express Rate Limit, Vitest.
+- **AI & Vector Engine:** `@google/genai` (v1.43.0), `gemini-2.5-flash-lite`, `gemini-embedding-001` (768-dim), Atlas `$vectorSearch` + Cosine Fallback.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ and MongoDB Atlas Instance
-- Cloudinary Account & Google Cloud Project (OAuth Client ID & Gemini API key)
+- Node.js 18+ and MongoDB Atlas cluster (with optional vector search index)
+- Cloudinary account & Google Cloud project (OAuth Client ID & Gemini API key)
 
 ### Setup Instructions
 
@@ -83,13 +87,14 @@
    ```bash
    cd backend
    npm install
-   npm run dev
+   npm run dev    # Starts tsx watch server.ts on http://localhost:5000
+   npm test       # Runs 12 Vitest backend test suites
    ```
    *Create a `.env` file in `backend/` with:*
    ```env
    PORT=5000
-   MONGO_URI=your_mongodb_uri
-   JWT_SECRET=your_jwt_secret
+   MONGO_URI=your_mongodb_atlas_uri
+   JWT_SECRET=your_jwt_secret_min_32_chars
    GEMINI_API_KEY=your_gemini_api_key
    CLOUDINARY_CLOUD_NAME=your_cloudinary_name
    CLOUDINARY_API_KEY=your_cloudinary_api_key
@@ -102,7 +107,8 @@
    ```bash
    cd ../frontend
    npm install
-   npm run dev
+   npm run dev    # Starts Vite on http://localhost:5173
+   npm test       # Runs 14 Vitest frontend test suites
    ```
    *Create a `.env` file in `frontend/` with:*
    ```env
@@ -114,27 +120,30 @@
 
 ## 🔌 Core API Endpoints
 
-- **Auth:** `/api/auth/register`, `/api/auth/login`, `/api/auth/google`, `/api/auth/profile`
+- **Auth:** `/api/auth/register`, `/api/auth/login`, `/api/auth/google`, `/api/auth/profile`, `/api/auth/change-password`
 - **Documents:** `/api/documents/upload-signature`, `/api/documents/upload`, `/api/documents`, `/api/documents/:id`
-- **Workspaces:** `/api/workspaces`, `/api/workspaces/:id`, `/api/workspaces/:id/documents`
-- **AI Suite:** `/api/ai/chat`, `/api/ai/workspace-chat`, `/api/ai/generate-summary`, `/api/ai/workspace-summary`, `/api/ai/generate-mindmap`, `/api/ai/workspace-mindmap`, `/api/ai/generate-flashcards`, `/api/ai/generate-quiz`
-- **Study & Progress:** `/api/flashcards/set/:setId`, `/api/quizzes/:id/submit`, `/api/progress/dashboard`
+- **Workspaces:** `/api/workspaces`, `/api/workspaces/:id`, `/api/workspaces/:id/documents`, `/api/workspaces/:id/documents/:documentId`
+- **AI Suite (SSE & REST):** `/api/ai/stream-chat` (SSE), `/api/ai/workspace-stream-chat` (SSE), `/api/ai/generate-summary`, `/api/ai/workspace-summary`, `/api/ai/generate-mindmap`, `/api/ai/workspace-mindmap`, `/api/ai/generate-flashcards`, `/api/ai/workspace-flashcards`, `/api/ai/generate-quiz`, `/api/ai/workspace-quiz`
+- **Study & Progress:** `/api/flashcards/set/:setId`, `/api/flashcards/workspace/:workspaceId`, `/api/quizzes/:id/submit`, `/api/quizzes/workspace/:workspaceId`, `/api/progress/dashboard`
 
 ---
 
-## 🗄️ Database Schema Summary
-- **User:** Authentication, profiles, OAuth IDs.
-- **Document:** Cloudinary URLs, extracted text, semantic chunks (`500/50`), status.
-- **Workspace:** Folder metadata, document ID array, embedded summary & mindmap JSON.
-- **Flashcard & Quiz:** Generated study resources linked to `documentId` or `workspaceId`.
-- **ChatHistory:** Multi-turn conversation logs for documents or workspaces.
+## 🗄️ Database Collections (MongoDB Atlas)
+
+- **User:** Authentication credentials, profile avatars, Google OAuth identities.
+- **Document:** PDF metadata, Cloudinary CDN links, extracted text, embedded mindmaps.
+- **DocumentChunk:** Vector chunks with 768-dim embeddings, page numbers, and document/workspace references.
+- **Workspace:** Multi-document folder metadata, document ID array, embedded workspace summary & mindmap.
+- **Flashcard:** AI-generated study sets with individual card review counts and star favorites.
+- **Quiz:** Multiple-choice practice exams with options, correct answers, explanations, and user scores.
+- **ChatHistory:** Multi-turn conversation logs with source citations and referenced chunk indices.
 
 ---
 
-## 🌍 Vercel Production Deployment
-Both `frontend/` and `backend/` contain pre-configured `vercel.json` rewrite settings:
-- **Frontend SPA Rewrite:** `frontend/vercel.json` routes client routes to `/index.html`.
-- **Backend API Serverless:** `backend/vercel.json` routes server requests to `/api/index.js`.
+## 🌍 Production Deployment
+
+- **Frontend:** Configured with `frontend/vercel.json` for single-page application routing on Vercel.
+- **Backend:** TypeScript builds via `tsc` to `dist/server.js`, with serverless entry via `backend/api/index.js` and `backend/vercel.json`.
 
 ---
 
