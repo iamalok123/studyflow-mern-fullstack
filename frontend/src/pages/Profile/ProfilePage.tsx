@@ -45,7 +45,7 @@ const ProfilePage = () => {
       }
     };
     fetchProfile();
-  }, []);
+  }, [updateUser]);
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();

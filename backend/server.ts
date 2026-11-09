@@ -6,7 +6,7 @@ import errorHandler from "./middlewares/errorHandler.js";
 import securityHeaders from "./middlewares/securityHeaders.js";
 import { createRateLimiter } from "./middlewares/rateLimiter.js";
 import { validateEnv } from "./utils/env.js";
-import connectDB, { getDbStatus } from "./config/db.js";
+import connectDB, { getDbStatus, getDbDetailedStatus } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import flashcardRoutes from "./routes/flashcardRoutes.js";
@@ -129,6 +129,22 @@ app.get("/", (_req: Request, res: Response) => {
     success: true,
     message: "StudyFlow API is running",
     database: getDbStatus(),
+  });
+});
+
+// Comprehensive API Health & Readiness endpoint (unblocked by DB status)
+app.get("/api/health", (_req: Request, res: Response) => {
+  const dbInfo = getDbDetailedStatus();
+  const isHealthy = dbInfo.status === "connected";
+  res.status(isHealthy ? 200 : 503).json({
+    success: isHealthy,
+    status: isHealthy ? "healthy" : "degraded",
+    message: isHealthy
+      ? "StudyFlow API and database are operational"
+      : "Database connection unavailable. Please check MONGODB_URI and cluster status.",
+    database: dbInfo,
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString(),
   });
 });
 

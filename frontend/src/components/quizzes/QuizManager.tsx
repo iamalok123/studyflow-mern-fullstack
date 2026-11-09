@@ -34,7 +34,7 @@ const QuizManager = ({ documentId, onCountUpdate }) => {
     } finally {
       setLoading(false);
     }
-  }, [documentId]);
+  }, [documentId, onCountUpdate]);
 
   useEffect(() => {
     if (documentId) {

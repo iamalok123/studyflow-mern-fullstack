@@ -5,9 +5,12 @@ let connectionPromise: Promise<typeof mongoose> | null = null;
 let dnsConfigured = false;
 let lastErrorLogAt = 0;
 let lastErrorMessage = "";
+let lastFailedAt = 0;
+let lastError: Error | null = null;
 
 const DNS_TIMEOUT_MS = Number.parseInt(process.env.MONGODB_DNS_TIMEOUT_MS || "", 10) || 5000;
 const CONNECT_TIMEOUT_MS = Number.parseInt(process.env.MONGODB_CONNECT_TIMEOUT_MS || "", 10) || 12000;
+const CONNECT_COOLDOWN_MS = Number.parseInt(process.env.MONGODB_CONNECT_COOLDOWN_MS || "", 10) || 5000;
 
 const MONGO_OPTIONS: mongoose.ConnectOptions = {
   serverSelectionTimeoutMS: 8000,
@@ -72,19 +75,35 @@ const verifySrvRecord = async (uri: string): Promise<void> => {
   );
 };
 
-const getMongoErrorHint = (error: unknown): string => {
-  const err = error as { message?: string };
+const checkMongoUriWarning = (uri: string): void => {
+  try {
+    const url = new URL(uri);
+    const dbName = (url.pathname || "").replace(/^\//, "");
+    if (!dbName) {
+      console.warn("MongoDB Notice: No database name found in MONGODB_URI path (e.g. mongodb.net/studyflow). Mongoose will default to 'test' database.");
+    }
+  } catch {
+    // Non-fatal warning check
+  }
+};
+
+export const getMongoErrorHint = (error: unknown): string => {
+  const err = error as { message?: string; code?: string };
   const message = err?.message || "";
 
-  if (message.includes("querySrv") || message.includes("SRV DNS") || message.includes("ENOTFOUND") || message.includes("ECONNREFUSED")) {
-    return "Using DNS fallback if configured. Check internet/DNS, VPN/firewall, and MongoDB Atlas network access.";
+  if (message.includes("querySrv ENOTFOUND") || (err?.code === "ENOTFOUND" && message.includes("querySrv"))) {
+    return "MongoDB Atlas cluster host not found in DNS. The cluster has likely been paused or terminated by Atlas due to inactivity, or the host in MONGODB_URI is mistyped. Verify your cluster status at https://cloud.mongodb.com and update MONGODB_URI.";
   }
 
-  if (message.includes("bad auth") || message.includes("Authentication failed")) {
-    return "Check the username and password in MONGODB_URI.";
+  if (message.includes("ENOTFOUND") || message.includes("SRV DNS") || message.includes("ECONNREFUSED")) {
+    return "Network error reaching MongoDB. Check your internet connection, DNS configuration, and MongoDB Atlas IP Access List (whitelist 0.0.0.0/0).";
   }
 
-  return "Check MongoDB availability and connection settings.";
+  if (message.includes("bad auth") || message.includes("Authentication failed") || message.includes("auth error")) {
+    return "Authentication failed. Check the username and password in MONGODB_URI in backend/.env.";
+  }
+
+  return "Check MongoDB Atlas availability and connection settings in backend/.env.";
 };
 
 const getMongoUri = (): string => {
@@ -122,6 +141,12 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
     return mongoose.connection;
   }
 
+  // Circuit breaker: Fail-fast if previous connection attempt failed recently
+  const now = Date.now();
+  if (lastFailedAt && now - lastFailedAt < CONNECT_COOLDOWN_MS && lastError) {
+    throw lastError;
+  }
+
   if (connectionPromise) {
     try {
       await connectionPromise;
@@ -139,6 +164,8 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
     if (!mongoUri) {
       throw new Error("MONGODB_URI is not configured.");
     }
+
+    checkMongoUriWarning(mongoUri);
 
     if (mongoUri.startsWith("mongodb+srv://") && process.env.VERCEL !== "1") {
       try {
@@ -158,16 +185,20 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
     );
     const conn = await connectionPromise;
     console.log(`MongoDB connected: ${conn.connection.host}`);
+    lastFailedAt = 0;
+    lastError = null;
     return conn.connection;
   } catch (error) {
     connectionPromise = null;
-    const now = Date.now();
+    const failNow = Date.now();
+    lastFailedAt = failNow;
     const err = error as Error;
+    lastError = err;
     const message = err.message || "Unknown MongoDB error";
-    const shouldLog = message !== lastErrorMessage || now - lastErrorLogAt > 60_000;
+    const shouldLog = message !== lastErrorMessage || failNow - lastErrorLogAt > 60_000;
 
     if (shouldLog) {
-      lastErrorLogAt = now;
+      lastErrorLogAt = failNow;
       lastErrorMessage = message;
       console.error(`MongoDB unavailable: ${message}. ${getMongoErrorHint(error)}`);
     }
@@ -185,6 +216,22 @@ export const getDbStatus = (): string => {
   };
 
   return states[mongoose.connection.readyState] || "unknown";
+};
+
+export const getDbDetailedStatus = (): {
+  status: string;
+  readyState: number;
+  lastError: string | null;
+  errorHint: string | null;
+  host?: string;
+} => {
+  return {
+    status: getDbStatus(),
+    readyState: mongoose.connection.readyState,
+    lastError: lastErrorMessage || null,
+    errorHint: lastError ? getMongoErrorHint(lastError) : null,
+    host: mongoose.connection.host || undefined,
+  };
 };
 
 export default connectDB;

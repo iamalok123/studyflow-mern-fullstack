@@ -42,6 +42,9 @@ axiosInstance.interceptors.response.use(
       if (error.response.status === 500) {
         console.error("Server error. Please try again later.");
       }
+      if (error.response.status === 503) {
+        console.warn("Database or service unavailable. Please check MongoDB connection status.");
+      }
     } else if (error.code === "ECONNABORTED") {
       console.error("Request timeout. Please try again.");
     }

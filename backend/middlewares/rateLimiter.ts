@@ -14,6 +14,22 @@ interface RateLimiterOptions {
 
 const stores = new Map<string, Map<string, RateLimitRecord>>();
 
+// Periodic cleanup of expired rate limit entries every 5 minutes to prevent memory leak
+const cleanupTimer = setInterval(() => {
+  const now = Date.now();
+  for (const store of stores.values()) {
+    for (const [key, record] of store.entries()) {
+      if (record.resetAt <= now) {
+        store.delete(key);
+      }
+    }
+  }
+}, 5 * 60 * 1000);
+
+if (cleanupTimer.unref) {
+  cleanupTimer.unref();
+}
+
 const getClientKey = (req: Request): string => {
   const forwardedFor = req.headers["x-forwarded-for"];
   const ip = Array.isArray(forwardedFor)

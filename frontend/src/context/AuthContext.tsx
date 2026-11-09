@@ -64,18 +64,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [checkAuthStatus]);
 
-  const login = (userData: IUser, token: string) => {
+  const login = useCallback((userData: IUser, token: string) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
-  };
+  }, []);
 
-  const updateUser = (updatedUserData: Partial<IUser>) => {
-    const newUserData = user ? { ...user, ...updatedUserData } : (updatedUserData as IUser);
-    setUser(newUserData);
-    localStorage.setItem('user', JSON.stringify(newUserData));
-  };
+  const updateUser = useCallback((updatedUserData: Partial<IUser>) => {
+    setUser((prevUser) => {
+      const newUserData = prevUser ? { ...prevUser, ...updatedUserData } : (updatedUserData as IUser);
+      localStorage.setItem('user', JSON.stringify(newUserData));
+      return newUserData;
+    });
+  }, []);
 
   const value: AuthContextType = {
     user,
