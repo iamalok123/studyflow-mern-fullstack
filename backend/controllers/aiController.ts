@@ -369,6 +369,11 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
+    let isClientDisconnected = false;
+    req.on("close", () => {
+      isClientDisconnected = true;
+    });
+
     // Vector retrieval for semantically relevant chunks
     const relevantChunks = await searchSimilarChunks({
       userId: req.user._id,
@@ -419,41 +424,49 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
         documentTitle: document.title,
       })),
       history: chatHistory.messages,
+      isAborted: () => isClientDisconnected || req.destroyed,
       onChunk: (chunkText: string) => {
-        res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+        if (!isClientDisconnected && !res.writableEnded) {
+          res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+        }
       },
     });
 
-    // Persist conversation to MongoDB history with citations
-    chatHistory.messages.push(
-      {
-        role: "user",
-        content: question,
-        timestamp: new Date(),
-        relevantChunks: [],
-      },
-      {
-        role: "assistant",
-        content: answer,
-        timestamp: new Date(),
-        relevantChunks: chunkIndices,
-        citations,
-      }
-    );
+    // Persist conversation to MongoDB history with citations if not empty
+    if (answer && answer.trim()) {
+      chatHistory.messages.push(
+        {
+          role: "user",
+          content: question,
+          timestamp: new Date(),
+          relevantChunks: [],
+        },
+        {
+          role: "assistant",
+          content: answer,
+          timestamp: new Date(),
+          relevantChunks: chunkIndices,
+          citations,
+        }
+      );
 
-    if (chatHistory.messages.length > 100) {
-      chatHistory.messages = chatHistory.messages.slice(-100);
+      if (chatHistory.messages.length > 100) {
+        chatHistory.messages = chatHistory.messages.slice(-100);
+      }
+
+      await chatHistory.save();
     }
 
-    await chatHistory.save();
-
-    res.write(`data: [DONE]\n\n`);
-    res.end();
+    if (!isClientDisconnected && !res.writableEnded) {
+      res.write(`data: [DONE]\n\n`);
+      res.end();
+    }
   } catch (error: any) {
+    if (req.destroyed) return;
     console.error("streamChat error:", error);
     if (!res.headersSent) {
       next(error);
-    } else {
+    } else if (!res.writableEnded) {
       res.write(`data: ${JSON.stringify({ error: error.message || "Streaming failed" })}\n\n`);
       res.end();
     }
@@ -519,6 +532,11 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
+    let isClientDisconnected = false;
+    req.on("close", () => {
+      isClientDisconnected = true;
+    });
+
     const readyDocIds = readyDocs.map((doc) => doc._id);
 
     // 1. Vector search across all documents in this workspace
@@ -573,40 +591,49 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
         documentTitle: c.documentTitle,
       })),
       history: chatHistory.messages,
+      isAborted: () => isClientDisconnected || req.destroyed,
       onChunk: (chunkText: string) => {
-        res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+        if (!isClientDisconnected && !res.writableEnded) {
+          res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+        }
       },
     });
 
-    chatHistory.messages.push(
-      {
-        role: "user",
-        content: question,
-        timestamp: new Date(),
-        relevantChunks: [],
-      },
-      {
-        role: "assistant",
-        content: answer,
-        timestamp: new Date(),
-        relevantChunks: chunkIndices,
-        citations,
-      }
-    );
+    // Persist conversation to MongoDB history with citations if not empty
+    if (answer && answer.trim()) {
+      chatHistory.messages.push(
+        {
+          role: "user",
+          content: question,
+          timestamp: new Date(),
+          relevantChunks: [],
+        },
+        {
+          role: "assistant",
+          content: answer,
+          timestamp: new Date(),
+          relevantChunks: chunkIndices,
+          citations,
+        }
+      );
 
-    if (chatHistory.messages.length > 100) {
-      chatHistory.messages = chatHistory.messages.slice(-100);
+      if (chatHistory.messages.length > 100) {
+        chatHistory.messages = chatHistory.messages.slice(-100);
+      }
+
+      await chatHistory.save();
     }
 
-    await chatHistory.save();
-
-    res.write(`data: [DONE]\n\n`);
-    res.end();
+    if (!isClientDisconnected && !res.writableEnded) {
+      res.write(`data: [DONE]\n\n`);
+      res.end();
+    }
   } catch (error: any) {
+    if (req.destroyed) return;
     console.error("workspaceStreamChat error:", error);
     if (!res.headersSent) {
       next(error);
-    } else {
+    } else if (!res.writableEnded) {
       res.write(`data: ${JSON.stringify({ error: error.message || "Streaming failed" })}\n\n`);
       res.end();
     }

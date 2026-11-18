@@ -116,5 +116,41 @@ describe("Frontend AIService Unit Tests", () => {
       expect(receivedCitations).toEqual([{ pageNumber: 4, documentTitle: "Biology" }]);
       expect(receivedText).toEqual(["Photosynthesis occurs in ", "chloroplasts."]);
     });
+
+    it("should handle AbortSignal cancellation cleanly without throwing", async () => {
+      const abortController = new AbortController();
+      const mockReader = {
+        read: vi.fn().mockImplementation(() => {
+          abortController.abort();
+          return Promise.resolve({
+            done: false,
+            value: new TextEncoder().encode('data: {"text":"Partial chunk"}\n\n'),
+          });
+        }),
+        cancel: vi.fn().mockResolvedValue(undefined),
+      };
+
+      const mockResponse = {
+        ok: true,
+        body: {
+          getReader: () => mockReader,
+        },
+      };
+
+      vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(mockResponse as any);
+
+      const receivedText: string[] = [];
+      await expect(
+        aiService.streamChat(
+          "doc1",
+          "Explain photosynthesis",
+          (text) => receivedText.push(text),
+          undefined,
+          abortController.signal
+        )
+      ).resolves.toBeUndefined();
+
+      expect(mockReader.cancel).toHaveBeenCalled();
+    });
   });
 });

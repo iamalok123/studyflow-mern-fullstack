@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Sparkles, Layers, BookOpen } from 'lucide-react';
+import { Send, Sparkles, Layers, BookOpen, Square } from 'lucide-react';
 import aiService from '../../services/aiService';
 import Spinner from '../common/Spinner';
 import MarkdownRenderer from '../common/MarkdownRenderer';
@@ -16,12 +16,21 @@ const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspa
   const [loading, setLoading] = useState<boolean>(false);
   const [initialLoading, setInitialLoading] = useState<boolean>(true);
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -43,6 +52,25 @@ const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspa
     scrollToBottom();
   }, [history]);
 
+  const handleStopGenerating = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
+    setHistory(prev => {
+      const updated = [...prev];
+      const lastIndex = updated.length - 1;
+      if (lastIndex >= 0 && updated[lastIndex].role === 'assistant' && !updated[lastIndex].content) {
+        updated[lastIndex] = {
+          ...updated[lastIndex],
+          content: '⏹️ Generation stopped.',
+        };
+      }
+      return updated;
+    });
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || loading) return;
@@ -59,6 +87,9 @@ const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspa
     setHistory(prev => [...prev, userMessage, assistantPlaceholder]);
     setMessage('');
     setLoading(true);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       await aiService.streamWorkspaceChat(
@@ -89,9 +120,13 @@ const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspa
             }
             return updated;
           });
-        }
+        },
+        controller.signal
       );
     } catch (error: any) {
+      if (controller.signal.aborted) {
+        return;
+      }
       console.error('Workspace streaming chat failed:', error);
       setHistory(prev => {
         const updated = [...prev];
@@ -106,6 +141,7 @@ const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspa
       });
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -226,14 +262,26 @@ const WorkspaceChatInterface: React.FC<WorkspaceChatInterfaceProps> = ({ workspa
             disabled={loading}
             className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
           />
-          <button
-            type="submit"
-            disabled={loading || !message.trim()}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <Send className="w-4 h-4" />
-            <span>Send</span>
-          </button>
+          {loading ? (
+            <button
+              type="button"
+              onClick={handleStopGenerating}
+              className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              title="Stop generating response"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+              <span>Stop</span>
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!message.trim()}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+              <span>Send</span>
+            </button>
+          )}
         </form>
       </div>
     </div>

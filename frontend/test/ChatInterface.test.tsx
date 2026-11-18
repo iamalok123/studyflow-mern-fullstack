@@ -79,4 +79,58 @@ describe("Frontend ChatInterface Component Tests", () => {
 
     expect(screen.getByText(/Ask me anything about your document/i)).toBeDefined();
   });
+
+  it("should show Stop button while streaming and stop generation on click", async () => {
+    (aiService.getChatHistory as any).mockResolvedValueOnce([]);
+
+    let streamResolve: (val?: any) => void;
+    (aiService.streamChat as any).mockImplementation(() => {
+      return new Promise((resolve) => {
+        streamResolve = resolve;
+      });
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/documents/doc_test"]}>
+        <Routes>
+          <Route path="/documents/:id" element={<ChatInterface />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Ask a question about this document/i)).toBeDefined();
+    });
+
+    const input = screen.getByPlaceholderText(/Ask a question about this document/i);
+    const form = input.closest("form")!;
+
+    // Type question and submit
+    const { fireEvent, act } = await import("@testing-library/react");
+    await act(async () => {
+      fireEvent.change(input, { target: { value: "Tell me about mitochondria" } });
+      fireEvent.submit(form);
+    });
+
+    // Stop button should now be visible
+    await waitFor(() => {
+      expect(screen.getByTitle(/Stop generating/i)).toBeDefined();
+    });
+
+    // Click Stop button
+    const stopButton = screen.getByTitle(/Stop generating/i);
+    await act(async () => {
+      fireEvent.click(stopButton);
+    });
+
+    // Should stop loading and show Generation stopped text
+    await waitFor(() => {
+      expect(screen.getByText(/⏹️ Generation stopped\./i)).toBeDefined();
+    });
+
+    // Cleanup promise
+    await act(async () => {
+      if (streamResolve!) streamResolve();
+    });
+  });
 });

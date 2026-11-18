@@ -123,17 +123,27 @@ const streamFetch = async (
   url: string,
   body: any,
   onChunk: (text: string) => void,
-  onCitations?: (citations: ICitation[]) => void
+  onCitations?: (citations: ICitation[]) => void,
+  signal?: AbortSignal
 ) => {
   const token = localStorage.getItem('token');
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+      body: JSON.stringify(body),
+      signal,
+    });
+  } catch (error: any) {
+    if (error?.name === 'AbortError' || signal?.aborted) {
+      return;
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     let errMessage = 'Streaming request failed';
@@ -154,39 +164,55 @@ const streamFetch = async (
   const decoder = new TextDecoder('utf-8');
   let buffer = '';
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || ''; // Keep incomplete trailing line in buffer
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('data: ')) {
-        const dataStr = trimmed.replace('data: ', '').trim();
-        if (dataStr === '[DONE]') {
-          return;
-        }
+  try {
+    while (true) {
+      if (signal?.aborted) {
         try {
-          const parsed = JSON.parse(dataStr);
-          if (parsed.type === 'citations' && Array.isArray(parsed.citations) && typeof onCitations === 'function') {
-            onCitations(parsed.citations);
+          await reader.cancel();
+        } catch {
+          // ignore
+        }
+        return;
+      }
+
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || ''; // Keep incomplete trailing line in buffer
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data: ')) {
+          const dataStr = trimmed.replace('data: ', '').trim();
+          if (dataStr === '[DONE]') {
+            return;
           }
-          if (parsed.text && typeof onChunk === 'function') {
-            onChunk(parsed.text);
-          }
-          if (parsed.error) {
-            throw new Error(parsed.error);
-          }
-        } catch (e: any) {
-          if (e.message && !e.message.includes('JSON')) {
-            throw e;
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.type === 'citations' && Array.isArray(parsed.citations) && typeof onCitations === 'function') {
+              onCitations(parsed.citations);
+            }
+            if (parsed.text && typeof onChunk === 'function') {
+              onChunk(parsed.text);
+            }
+            if (parsed.error) {
+              throw new Error(parsed.error);
+            }
+          } catch (e: any) {
+            if (e.message && !e.message.includes('JSON')) {
+              throw e;
+            }
           }
         }
       }
     }
+  } catch (error: any) {
+    if (error?.name === 'AbortError' || signal?.aborted) {
+      return;
+    }
+    throw error;
   }
 };
 
@@ -194,20 +220,22 @@ const streamChat = async (
   documentId: string,
   question: string,
   onChunk: (text: string) => void,
-  onCitations?: (citations: ICitation[]) => void
+  onCitations?: (citations: ICitation[]) => void,
+  signal?: AbortSignal
 ) => {
   const fullUrl = `${BASE_URL}${API_PATHS.AI.STREAM_CHAT}`;
-  await streamFetch(fullUrl, { documentId, question }, onChunk, onCitations);
+  await streamFetch(fullUrl, { documentId, question }, onChunk, onCitations, signal);
 };
 
 const streamWorkspaceChat = async (
   workspaceId: string,
   question: string,
   onChunk: (text: string) => void,
-  onCitations?: (citations: ICitation[]) => void
+  onCitations?: (citations: ICitation[]) => void,
+  signal?: AbortSignal
 ) => {
   const fullUrl = `${BASE_URL}${API_PATHS.AI.WORKSPACE_STREAM_CHAT}`;
-  await streamFetch(fullUrl, { workspaceId, question }, onChunk, onCitations);
+  await streamFetch(fullUrl, { workspaceId, question }, onChunk, onCitations, signal);
 };
 
 const aiService = {

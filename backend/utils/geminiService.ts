@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { IMindmapNode, IChatMessage } from "../types/models.js";
 import { TextChunk } from "./textChunker.js";
+import { packChunksWithinBudget, packHistoryWithinBudget } from "./tokenBudget.js";
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
 
@@ -358,19 +359,21 @@ ${text.substring(0, 20000)}`;
  * Chat with document context
  */
 export const chatWithContext = async (question: string, chunks: TextChunk[], history: IChatMessage[] = []): Promise<string> => {
-  const context = chunks
+  const { items: packedChunks } = packChunksWithinBudget(chunks);
+  const { items: packedHistory } = packHistoryWithinBudget(history);
+
+  const context = packedChunks
     .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
     .join("\n\n");
 
   let historyBlock = "";
-  if (history.length > 0) {
-    const recentMessages = history.slice(-14);
+  if (packedHistory.length > 0) {
     historyBlock =
       "\nRecent Conversation History:\n" +
-      recentMessages
+      packedHistory
         .map(
           (m) =>
-            `${m.role === "user" ? "Student" : "Assistant"}: ${m.content.substring(0, 1000)}`
+            `${m.role === "user" ? "Student" : "Assistant"}: ${m.content}`
         )
         .join("\n") +
       "\n";
@@ -444,13 +447,18 @@ export interface StreamChatParams {
   chunks: (TextChunk | ChatContextChunk)[];
   history?: IChatMessage[];
   onChunk?: (chunkText: string) => void;
+  signal?: AbortSignal;
+  isAborted?: () => boolean;
 }
 
 /**
  * Stream chat with document/workspace context
  */
-export const streamChatWithContext = async ({ question, chunks, history = [], onChunk }: StreamChatParams): Promise<string> => {
-  const context = chunks
+export const streamChatWithContext = async ({ question, chunks, history = [], onChunk, signal, isAborted }: StreamChatParams): Promise<string> => {
+  const { items: packedChunks } = packChunksWithinBudget(chunks);
+  const { items: packedHistory } = packHistoryWithinBudget(history);
+
+  const context = packedChunks
     .map((c, i) => {
       const pageInfo = c.pageNumber ? ` | Page ${c.pageNumber}` : "";
       const docInfo = (c as any).documentTitle ? ` | Document: "${(c as any).documentTitle}"` : "";
@@ -459,14 +467,13 @@ export const streamChatWithContext = async ({ question, chunks, history = [], on
     .join("\n\n");
 
   let historyBlock = "";
-  if (history.length > 0) {
-    const recentMessages = history.slice(-14);
+  if (packedHistory.length > 0) {
     historyBlock =
       "\nRecent Conversation History (Last 5-7 questions & answers):\n" +
-      recentMessages
+      packedHistory
         .map(
           (m) =>
-            `${m.role === "user" ? "Student" : "Assistant"}: ${m.content.substring(0, 1000)}`
+            `${m.role === "user" ? "Student" : "Assistant"}: ${m.content}`
         )
         .join("\n") +
       "\n";
@@ -523,6 +530,9 @@ Response:`;
 
     let fullText = "";
     for await (const chunk of responseStream) {
+      if (signal?.aborted || isAborted?.()) {
+        break;
+      }
       if (chunk.text) {
         fullText += chunk.text;
         if (typeof onChunk === "function") {

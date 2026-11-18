@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, MessageSquare, Sparkles, BookOpen } from 'lucide-react';
+import { Send, MessageSquare, Sparkles, BookOpen, Square } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import aiService from '../../services/aiService';
 import { useAuth } from '../../context/useAuth';
@@ -15,12 +15,21 @@ const ChatInterface: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [initialLoading, setInitialLoading] = useState<boolean>(true);
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
     if (messageEndRef.current && typeof messageEndRef.current.scrollIntoView === 'function') {
       messageEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -42,6 +51,25 @@ const ChatInterface: React.FC = () => {
     scrollToBottom();
   }, [history]);
 
+  const handleStopGenerating = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
+    setHistory(prev => {
+      const updated = [...prev];
+      const lastIndex = updated.length - 1;
+      if (lastIndex >= 0 && updated[lastIndex].role === 'assistant' && !updated[lastIndex].content) {
+        updated[lastIndex] = {
+          ...updated[lastIndex],
+          content: '⏹️ Generation stopped.',
+        };
+      }
+      return updated;
+    });
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || loading || !documentId) return;
@@ -59,6 +87,9 @@ const ChatInterface: React.FC = () => {
     setHistory(prev => [...prev, userMessage, assistantPlaceholder]);
     setMessage('');
     setLoading(true);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       await aiService.streamChat(
@@ -89,9 +120,13 @@ const ChatInterface: React.FC = () => {
             }
             return updated;
           });
-        }
+        },
+        controller.signal
       );
     } catch (error: any) {
+      if (controller.signal.aborted) {
+        return;
+      }
       console.error('Streaming Chat Error: ', error);
       setHistory(prev => {
         const updated = [...prev];
@@ -106,6 +141,7 @@ const ChatInterface: React.FC = () => {
       });
     } finally {
       setLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -233,14 +269,26 @@ const ChatInterface: React.FC = () => {
             className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400 font-medium"
             disabled={loading}
           />
-          <button
-            type="submit"
-            disabled={loading || !message.trim()}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shrink-0"
-          >
-            <Send className="w-4 h-4" />
-            <span className="hidden sm:inline">Send</span>
-          </button>
+          {loading ? (
+            <button
+              type="button"
+              onClick={handleStopGenerating}
+              className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              title="Stop generating response"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+              <span className="hidden sm:inline">Stop</span>
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!message.trim()}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl text-xs font-semibold shadow-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            >
+              <Send className="w-4 h-4" />
+              <span className="hidden sm:inline">Send</span>
+            </button>
+          )}
         </form>
       </div>
     </div>
