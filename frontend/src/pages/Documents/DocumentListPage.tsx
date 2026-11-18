@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Plus, Upload, Trash2, FileText, X, Loader, CheckCircle2, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import documentService from '../../services/documentService'
@@ -20,6 +20,19 @@ const DocumentListPage = () => {
   const [uploadStep, setUploadStep] = useState(null); // 'reading', 'signing', 'uploading', 'saving'
   const [uploadProgress, setUploadProgress] = useState(0);
   const [extractionProgress, setExtractionProgress] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const resetUploadModal = () => {
+    setIsUploadModalOpen(false);
+    setUploadFile(null);
+    setUploadTitle('');
+    setUploadStep(null);
+    setUploadProgress(0);
+    setExtractionProgress('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // State for delete confirmation model
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -120,16 +133,16 @@ const DocumentListPage = () => {
       });
 
       toast.success('Document uploaded successfully');
-      setIsUploadModalOpen(false);
-      setUploadFile(null);
-      setUploadTitle('');
-      setUploadStep(null);
-      setUploadProgress(0);
+      resetUploadModal();
       setLoading(true);
       fetchDocuments();
-    } catch (error) {
-      toast.error(error.message || 'Failed to upload document');
+    } catch (error: any) {
+      toast.error(error?.error || error?.message || 'Failed to upload document');
       setUploadStep(null);
+      setUploadProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setUploading(false);
     }
@@ -258,8 +271,9 @@ const DocumentListPage = () => {
           <div className='relative w-full max-w-lg app-panel p-6'>
             {/* Close Button */}
             <button
-              onClick={() => setIsUploadModalOpen(false)}
-              className='absolute top-6 right-6 h-8 w-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 cursor-pointer'
+              onClick={resetUploadModal}
+              disabled={uploading}
+              className='absolute top-6 right-6 h-8 w-8 flex items-center justify-center rounded-lg text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
             >
               <X className='w-5 h-5' strokeWidth={2} />
             </button>
@@ -298,6 +312,7 @@ const DocumentListPage = () => {
                 </label>
                 <div className='relative border-2 border-dashed border-emerald-200 shadow-sm bg-[#EEF6F2]/70 rounded-xl hover:border-emerald-400 hover:bg-emerald-50/70 transition-all duration-200'>
                   <input
+                    ref={fileInputRef}
                     type='file'
                     id='file-upload'
                     onChange={handleFileChange}
@@ -313,11 +328,29 @@ const DocumentListPage = () => {
                         strokeWidth={2.5}
                       />
                     </div>
-                    <p className='font-medium text-slate-700 text-sm mb-1'>
+                    <div className='font-medium text-slate-700 text-sm mb-1 text-center'>
                       {uploadFile ? (
-                        <span className='text-emerald-700'>
-                          {uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)
-                        </span>
+                        <div className='flex flex-col items-center gap-1.5 z-20 relative'>
+                          <span className='text-emerald-700 font-semibold'>
+                            {uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)
+                          </span>
+                          <button
+                            type='button'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setUploadFile(null);
+                              setUploadTitle('');
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                            }}
+                            disabled={uploading}
+                            className='text-xs text-rose-600 hover:text-rose-700 underline font-medium cursor-pointer disabled:opacity-50'
+                          >
+                            Change / Remove File
+                          </button>
+                        </div>
                       ) : (
                         <>
                           <span className='text-emerald-600'>
@@ -328,7 +361,7 @@ const DocumentListPage = () => {
                           </span>
                         </>
                       )}
-                    </p>
+                    </div>
                     <p className='text-slate-500 text-xs'>
                       PDF files only (max. 10MB)
                     </p>
@@ -369,7 +402,7 @@ const DocumentListPage = () => {
               <div className='flex gap-3 pt-2'>
                 <button
                   type='button'
-                  onClick={() => setIsUploadModalOpen(false)}
+                  onClick={resetUploadModal}
                   disabled={uploading}
                   className='app-secondary-action flex-1 h-11'
                 >

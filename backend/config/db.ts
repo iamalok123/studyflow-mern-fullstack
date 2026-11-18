@@ -107,7 +107,13 @@ export const getMongoErrorHint = (error: unknown): string => {
 };
 
 const getMongoUri = (): string => {
-  return (process.env.MONGODB_URI || process.env.MONGO_URI || "").trim();
+  return (
+    process.env.MONGODB_URI ||
+    process.env.MONGO_URI ||
+    process.env.MONGO_URL ||
+    process.env.MONGODB_URL ||
+    ""
+  ).trim();
 };
 
 // Register connection lifecycle listeners idempotently for serverless container resilience
@@ -195,6 +201,26 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
     const err = error as Error;
     lastError = err;
     const message = err.message || "Unknown MongoDB error";
+
+    // In development mode, attempt auto-fallback to local MongoDB if Atlas DNS resolution failed
+    if (process.env.NODE_ENV !== "production" && (message.includes("querySrv ENOTFOUND") || (err as any)?.code === "ENOTFOUND")) {
+      try {
+        const localUri = process.env.LOCAL_MONGODB_URI || "mongodb://127.0.0.1:27017/studyflow";
+        const localConnPromise = mongoose.connect(localUri, {
+          ...MONGO_OPTIONS,
+          serverSelectionTimeoutMS: 2000,
+          connectTimeoutMS: 2000,
+        });
+        const conn = await withTimeout(localConnPromise, 2000, "Local MongoDB unavailable");
+        console.log(`MongoDB connected via local fallback: ${conn.connection.host}`);
+        lastFailedAt = 0;
+        lastError = null;
+        return conn.connection;
+      } catch {
+        // Local MongoDB not available either, proceed with logging remote error
+      }
+    }
+
     const shouldLog = message !== lastErrorMessage || failNow - lastErrorLogAt > 60_000;
 
     if (shouldLog) {

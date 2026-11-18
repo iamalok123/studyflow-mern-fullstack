@@ -1,40 +1,71 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Spinner from '../../components/common/Spinner'
 import progressService from '../../services/progressService'
 import toast from 'react-hot-toast'
 import { Link } from 'react-router-dom'
-import { FileText, BookOpen, BrainCircuit, TrendingUp, Clock, Sparkles, FileUp, FolderPlus, GraduationCap, ArrowRight, Lightbulb } from 'lucide-react'
+import { FileText, BookOpen, BrainCircuit, TrendingUp, Clock, Sparkles, FileUp, FolderPlus, GraduationCap, ArrowRight, Lightbulb, RotateCcw, AlertCircle } from 'lucide-react'
 
 const DashboardPage = () => {
-  const [dashboardData, setDashboardData] = useState(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await progressService.getDashboardData();
+      setDashboardData(response.data);
+    } catch (err: any) {
+      const errMsg = err?.error || err?.message || 'Failed to fetch dashboard data';
+      setError(errMsg);
+      toast.error(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const response = await progressService.getDashboardData();
-        setDashboardData(response.data);
-      } catch (error) {
-        toast.error(error.error || error.message || 'Failed to fetch dashboard data');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDashboardData();
-  }, []);
+  }, [fetchDashboardData]);
 
   if (loading) {
     return <Spinner />;
   }
 
-  if (!dashboardData || !dashboardData.overview) {
+  if (error || !dashboardData || !dashboardData.overview) {
     return (
-      <div className="min-h-[60vh] app-bg flex items-center justify-center rounded-3xl">
-        <div className="text-center">
+      <div className="min-h-[60vh] app-bg flex items-center justify-center rounded-3xl p-6">
+        <div className="text-center max-w-md">
           <div className='mx-auto flex items-center justify-center w-16 h-16 app-icon-tile mb-4'>
-            <TrendingUp className='w-8 h-8 text-white' />
+            {error ? (
+              <AlertCircle className='w-8 h-8 text-rose-500' />
+            ) : (
+              <TrendingUp className='w-8 h-8 text-white' />
+            )}
           </div>
-          <p className='text-slate-600 text-sm'>No dashboard data available</p>
+          <h2 className='text-lg font-bold text-slate-900 mb-1'>
+            {error ? 'Unable to load dashboard' : 'No dashboard data available'}
+          </h2>
+          <p className='text-slate-600 text-sm mb-6 leading-relaxed'>
+            {error || 'Start by uploading documents or creating workspaces to track your study progress.'}
+          </p>
+          <div className='flex items-center justify-center gap-3'>
+            <button
+              onClick={fetchDashboardData}
+              className='app-primary-action inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold cursor-pointer'
+            >
+              <RotateCcw className='w-4 h-4' strokeWidth={2.5} />
+              Try Again
+            </button>
+            <Link
+              to="/documents"
+              className='app-secondary-action inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold'
+            >
+              <FileUp className='w-4 h-4' strokeWidth={2} />
+              Go to Documents
+            </Link>
+          </div>
         </div>
       </div>
     );

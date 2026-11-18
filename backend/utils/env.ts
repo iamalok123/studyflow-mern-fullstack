@@ -11,7 +11,12 @@ const REQUIRED_ENV_VARS: readonly string[] = [
 
 export const validateEnv = (): void => {
   const production = process.env.NODE_ENV === "production";
-  const hasMongoUri = Boolean(process.env.MONGODB_URI || process.env.MONGO_URI);
+  const hasMongoUri = Boolean(
+    process.env.MONGODB_URI ||
+    process.env.MONGO_URI ||
+    process.env.MONGO_URL ||
+    process.env.MONGODB_URL
+  );
   const missing = REQUIRED_ENV_VARS.filter((key) => {
     if (key === "MONGODB_URI") return !hasMongoUri;
     return !process.env[key];

@@ -24,6 +24,7 @@ const AddDocumentsModal = ({ isOpen, onClose, onAdd, workspaceId, existingDocIds
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStep, setUploadStep] = useState(null); // 'reading' | 'signing' | 'uploading' | 'saving'
   const [extractionProgress, setExtractionProgress] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchDocuments = React.useCallback(async () => {
     try {
@@ -51,6 +52,9 @@ const AddDocumentsModal = ({ isOpen, onClose, onAdd, workspaceId, existingDocIds
       setUploadProgress(0);
       setUploadStep(null);
       setActiveTab('select');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   }, [isOpen, fetchDocuments]);
 
@@ -151,10 +155,14 @@ const AddDocumentsModal = ({ isOpen, onClose, onAdd, workspaceId, existingDocIds
         await onAdd([newDoc.data._id]);
       }
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload failed:', err);
-      setError(err.message || 'Failed to upload document.');
+      setError(err?.error || err?.message || 'Failed to upload document.');
       setUploadStep(null);
+      setUploadProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setUploading(false);
     }
@@ -341,6 +349,7 @@ const AddDocumentsModal = ({ isOpen, onClose, onAdd, workspaceId, existingDocIds
               </label>
               <div className="relative border-2 border-dashed border-emerald-200/90 rounded-2xl p-6 text-center hover:border-emerald-400 transition-all bg-[#EEF6F2]/60">
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="application/pdf"
                   onChange={(e) => {
@@ -374,9 +383,27 @@ const AddDocumentsModal = ({ isOpen, onClose, onAdd, workspaceId, existingDocIds
                   </div>
 
                   {uploadFile ? (
-                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-700">
-                      <FileText className="w-4 h-4" />
-                      <span>{uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                    <div className="flex flex-col items-center gap-1.5 z-20 relative">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-700">
+                        <FileText className="w-4 h-4" />
+                        <span>{uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setUploadFile(null);
+                          setUploadTitle('');
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = '';
+                          }
+                        }}
+                        disabled={uploading}
+                        className="text-xs text-rose-600 hover:text-rose-700 underline font-medium cursor-pointer disabled:opacity-50"
+                      >
+                        Change / Remove File
+                      </button>
                     </div>
                   ) : (
                     <>

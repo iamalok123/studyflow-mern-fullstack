@@ -5,6 +5,9 @@ declare global {
       PORT?: string;
       FRONTEND_URL?: string;
       MONGODB_URI?: string;
+      MONGO_URI?: string;
+      MONGO_URL?: string;
+      MONGODB_URL?: string;
       MONGODB_DNS_SERVERS?: string;
       MONGODB_DNS_TIMEOUT_MS?: string;
       MONGODB_CONNECT_TIMEOUT_MS?: string;

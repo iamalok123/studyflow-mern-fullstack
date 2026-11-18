@@ -114,4 +114,24 @@ describe("Frontend DashboardPage Component Tests", () => {
 
     expect(screen.getByText(/Accessed Document :/i)).toBeDefined();
   });
+
+  it("should render error state with retry button when fetching fails", async () => {
+    (progressService.getDashboardData as any).mockRejectedValueOnce({
+      error: "Database connection unavailable",
+    });
+
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Unable to load dashboard/i)).toBeDefined();
+    });
+
+    expect(screen.getByText(/Database connection unavailable/i)).toBeDefined();
+    expect(screen.getByText(/Try Again/i)).toBeDefined();
+    expect(screen.getByText(/Go to Documents/i)).toBeDefined();
+  });
 });
