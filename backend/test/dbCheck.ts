@@ -9,6 +9,18 @@ const maskUri = (uri: string): string => {
 };
 
 const runDbCheck = async (): Promise<void> => {
+  const dnsServers = (process.env.MONGODB_DNS_SERVERS || "8.8.8.8,1.1.1.1")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (dnsServers.length > 0) {
+    try {
+      dns.setServers(dnsServers);
+    } catch {
+      // Ignore
+    }
+  }
+
   const uri = (
     process.env.MONGODB_URI ||
     process.env.MONGO_URI ||
