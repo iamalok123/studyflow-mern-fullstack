@@ -102,6 +102,10 @@ export interface IFlashcardCard {
   lastReviewed: Date | null;
   reviewCount: number;
   isStarred: boolean;
+  repetition?: number;
+  interval?: number;
+  easeFactor?: number;
+  nextReviewDate?: Date | null;
 }
 
 export interface IFlashcard extends Document {

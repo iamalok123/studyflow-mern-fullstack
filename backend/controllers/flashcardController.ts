@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import Flashcard from "../models/Flashcard.js";
+import { calculateSM2, ratingToQuality, isCardDue } from "../utils/sm2.js";
 
 // @desc    Get all flashcards for a document
 // @route   GET /api/flashcards/:documentId
@@ -18,10 +19,19 @@ export const getFlashcards = async (req: Request, res: Response, next: NextFunct
       .populate("documentId", "title fileName")
       .sort({ createdAt: -1 });
 
+    const setsWithStats = flashcards.map((set) => {
+      const setObj = set.toObject();
+      const dueCount = (setObj.cards || []).filter((c: any) => isCardDue(c.nextReviewDate)).length;
+      return {
+        ...setObj,
+        dueCount,
+      };
+    });
+
     res.status(200).json({
       success: true,
-      count: flashcards.length,
-      data: flashcards,
+      count: setsWithStats.length,
+      data: setsWithStats,
     });
   } catch (error) {
     next(error);
@@ -44,10 +54,19 @@ export const getAllFlashcardSets = async (req: Request, res: Response, next: Nex
       .populate("workspaceId", "title")
       .sort({ createdAt: -1 });
 
+    const setsWithStats = flashcards.map((set) => {
+      const setObj = set.toObject();
+      const dueCount = (setObj.cards || []).filter((c: any) => isCardDue(c.nextReviewDate)).length;
+      return {
+        ...setObj,
+        dueCount,
+      };
+    });
+
     res.status(200).json({
       success: true,
-      count: flashcards.length,
-      data: flashcards,
+      count: setsWithStats.length,
+      data: setsWithStats,
     });
   } catch (error) {
     next(error);
@@ -88,15 +107,48 @@ export const reviewFlashcard = async (req: Request, res: Response, next: NextFun
       });
     }
 
-    // Update review info
-    flashcardSet.cards[cardIndex].lastReviewed = new Date();
-    flashcardSet.cards[cardIndex].reviewCount += 1;
+    const card = flashcardSet.cards[cardIndex];
+    const { rating, quality } = req.body || {};
+
+    let sm2Data;
+    if (rating !== undefined || quality !== undefined) {
+      const q = quality !== undefined ? Number(quality) : ratingToQuality(rating);
+      sm2Data = calculateSM2(
+        q,
+        card.repetition || 0,
+        card.interval || 0,
+        card.easeFactor || 2.5
+      );
+
+      card.repetition = sm2Data.repetition;
+      card.interval = sm2Data.interval;
+      card.easeFactor = sm2Data.easeFactor;
+      card.nextReviewDate = sm2Data.nextReviewDate;
+    } else {
+      // Default/simple review mode (legacy compatibility - treat as standard successful recall)
+      sm2Data = calculateSM2(
+        4,
+        card.repetition || 0,
+        card.interval || 0,
+        card.easeFactor || 2.5
+      );
+      card.repetition = sm2Data.repetition;
+      card.interval = sm2Data.interval;
+      card.easeFactor = sm2Data.easeFactor;
+      card.nextReviewDate = sm2Data.nextReviewDate;
+    }
+
+    // Update review timestamp and review count
+    card.lastReviewed = new Date();
+    card.reviewCount = (card.reviewCount || 0) + 1;
 
     await flashcardSet.save();
 
     res.status(200).json({
       success: true,
       data: flashcardSet,
+      card,
+      sm2: sm2Data,
       message: "Flashcard reviewed successfully.",
     });
   } catch (error) {
@@ -236,9 +288,15 @@ export const getFlashcardSetById = async (req: Request, res: Response, next: Nex
       });
     }
 
+    const setObj = flashcardSet.toObject();
+    const dueCount = (setObj.cards || []).filter((c: any) => isCardDue(c.nextReviewDate)).length;
+
     res.status(200).json({
       success: true,
-      data: flashcardSet,
+      data: {
+        ...setObj,
+        dueCount,
+      },
     });
   } catch (error) {
     next(error);

@@ -49,6 +49,22 @@ const flashcardSchema = new mongoose.Schema<IFlashcard>(
           type: Boolean,
           default: false,
         },
+        repetition: {
+          type: Number,
+          default: 0,
+        },
+        interval: {
+          type: Number,
+          default: 0,
+        },
+        easeFactor: {
+          type: Number,
+          default: 2.5,
+        },
+        nextReviewDate: {
+          type: Date,
+          default: null,
+        },
       },
     ],
   },

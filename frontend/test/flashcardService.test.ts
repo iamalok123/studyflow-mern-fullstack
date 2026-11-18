@@ -34,12 +34,27 @@ describe("Frontend FlashcardService Unit Tests", () => {
     expect(result).toEqual(mockSet);
   });
 
-  it("should submit a flashcard review rating", async () => {
+  it("should submit a flashcard review rating with card index", async () => {
     const mockRes = { success: true, message: "Reviewed" };
     (axiosInstance.post as any).mockResolvedValueOnce({ data: mockRes });
 
     const result = await flashcardService.reviewFlashcard("card1", 3);
     expect(axiosInstance.post).toHaveBeenCalledWith("/api/flashcards/card1/review", { cardIndex: 3 });
+    expect(result).toEqual(mockRes);
+  });
+
+  it("should submit an SM-2 spaced repetition rating payload", async () => {
+    const mockRes = { success: true, sm2: { interval: 6, repetition: 2 } };
+    (axiosInstance.post as any).mockResolvedValueOnce({ data: mockRes });
+
+    const result = await flashcardService.reviewFlashcard("card1", {
+      rating: "good",
+      cardIndex: 1,
+    });
+    expect(axiosInstance.post).toHaveBeenCalledWith("/api/flashcards/card1/review", {
+      rating: "good",
+      cardIndex: 1,
+    });
     expect(result).toEqual(mockRes);
   });
 

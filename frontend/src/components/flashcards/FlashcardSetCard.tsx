@@ -20,6 +20,7 @@ const FlashcardSetCard: React.FC<FlashcardSetCardProps> = ({ flashcardSet, onDel
   const reviewedCount = flashcardSet.cards?.filter((card: any) => card.lastReviewed)?.length || 0;
   const totalCards = flashcardSet.cards?.length || 0;
   const progressPercentage = totalCards > 0 ? Math.round((reviewedCount / totalCards) * 100) : 0;
+  const dueCount = typeof flashcardSet.dueCount === 'number' ? flashcardSet.dueCount : 0;
 
   return (
     <div className="group relative app-panel app-panel-hover overflow-hidden p-5 cursor-pointer flex flex-col justify-between">
@@ -51,12 +52,20 @@ const FlashcardSetCard: React.FC<FlashcardSetCardProps> = ({ flashcardSet, onDel
         </div>
 
         {/* Stats */}
-        <div className="flex items-center gap-3 pt-2">
+        <div className="flex items-center gap-2 pt-2 flex-wrap">
           <div className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg">
             <span className="text-sm font-semibold text-slate-700">
               {totalCards} {totalCards === 1 ? 'Card' : 'Cards'}
             </span>
           </div>
+          {dueCount > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-sm font-semibold text-amber-800">
+                {dueCount} Due
+              </span>
+            </div>
+          )}
           {reviewedCount > 0 && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
               <TrendingUp className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2.5} />

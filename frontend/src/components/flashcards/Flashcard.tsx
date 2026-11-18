@@ -1,19 +1,37 @@
 import React, { useState } from 'react'
-import { Star, RotateCcw } from 'lucide-react'
+import { Star, RotateCcw, Clock, Zap } from 'lucide-react'
 
-const difficultyColors = {
+const difficultyColors: Record<string, string> = {
   Easy: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
   Medium: 'bg-lime-50 text-lime-800 border border-lime-200',
   Hard: 'bg-red-100 text-red-700 border border-red-200',
 };
 
-const Flashcard = ({ flashcard, onToggleStar }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
+interface FlashcardProps {
+  flashcard: any;
+  onToggleStar: (cardId: string) => void;
+  isFlipped?: boolean;
+  onFlip?: () => void;
+}
+
+const Flashcard: React.FC<FlashcardProps> = ({ flashcard, onToggleStar, isFlipped: controlledFlipped, onFlip }) => {
+  const [internalFlipped, setInternalFlipped] = useState(false);
+  const isFlipped = controlledFlipped !== undefined ? controlledFlipped : internalFlipped;
   const difficultyClass = difficultyColors[flashcard?.difficulty] || difficultyColors.Medium;
 
   const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-  }
+    if (onFlip) {
+      onFlip();
+    } else {
+      setInternalFlipped(!internalFlipped);
+    }
+  };
+
+  const intervalLabel = flashcard?.interval
+    ? `${flashcard.interval}d interval`
+    : flashcard?.reviewCount > 0
+    ? 'Reviewed'
+    : 'New';
   return (
     <div className='min-h-80' style={{ perspective: '1000px' }}>
       <div
@@ -32,10 +50,18 @@ const Flashcard = ({ flashcard, onToggleStar }) => {
             WebkitBackfaceVisibility: 'hidden'
           }}
         >
-          {/* Star Button */}
+          {/* Header Row */}
           <div className='flex justify-between items-start'>
-            <div className={`text-[10px] px-4 py-1 rounded font-medium uppercase ${difficultyClass}`}>
-              {flashcard?.difficulty}
+            <div className='flex items-center gap-1.5'>
+              <div className={`text-[10px] px-3 py-1 rounded font-medium uppercase ${difficultyClass}`}>
+                {flashcard?.difficulty}
+              </div>
+              {flashcard?.interval !== undefined && flashcard?.interval > 0 && (
+                <div className='text-[10px] px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1'>
+                  <Clock className='w-3 h-3' />
+                  {flashcard.interval}d
+                </div>
+              )}
             </div>
             <button
               onClick={(e) => {
@@ -75,10 +101,18 @@ const Flashcard = ({ flashcard, onToggleStar }) => {
             transform: 'rotateY(180deg)'
           }}
         >
-          {/* Star Button */}
+          {/* Header Row */}
           <div className='flex justify-between items-start'>
-            <div className={`text-[10px] px-4 py-1 rounded font-medium uppercase ${difficultyClass}`}>
-              {flashcard?.difficulty}
+            <div className='flex items-center gap-1.5'>
+              <div className={`text-[10px] px-3 py-1 rounded font-medium uppercase ${difficultyClass}`}>
+                {flashcard?.difficulty}
+              </div>
+              {flashcard?.interval !== undefined && flashcard?.interval > 0 && (
+                <div className='text-[10px] px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1'>
+                  <Clock className='w-3 h-3' />
+                  {flashcard.interval}d
+                </div>
+              )}
             </div>
             <button
               onClick={(e) => {

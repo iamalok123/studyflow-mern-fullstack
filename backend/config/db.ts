@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import dns from "node:dns";
+import net from "node:net";
 
 let connectionPromise: Promise<typeof mongoose> | null = null;
 let dnsConfigured = false;
@@ -51,6 +52,27 @@ const configureMongoDns = (): void => {
   } catch {
     // Keep startup quiet; invalid DNS config will surface through Mongo connection status.
   }
+};
+
+const isLocalMongoPortOpen = (host = "127.0.0.1", port = 27017, timeoutMs = 350): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    let settled = false;
+
+    const cleanup = (open: boolean) => {
+      if (!settled) {
+        settled = true;
+        socket.destroy();
+        resolve(open);
+      }
+    };
+
+    socket.setTimeout(timeoutMs);
+    socket.once("connect", () => cleanup(true));
+    socket.once("timeout", () => cleanup(false));
+    socket.once("error", () => cleanup(false));
+    socket.connect(port, host);
+  });
 };
 
 const getSrvHostFromUri = (uri: string): string | null => {
@@ -134,7 +156,8 @@ if (mongoose.connection.listenerCount("error") === 0) {
     connectionPromise = null;
     const now = Date.now();
     const message = (err as Error)?.message || "Unknown MongoDB error event";
-    if (message !== lastErrorMessage || now - lastErrorLogAt > 60_000) {
+    // Only log if connection was active and dropped, to prevent duplicate startup error messages
+    if (mongoose.connection.readyState === 1 && (message !== lastErrorMessage || now - lastErrorLogAt > 60_000)) {
       lastErrorLogAt = now;
       lastErrorMessage = message;
       console.error(`MongoDB connection error event: ${message}`);
@@ -177,8 +200,8 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
       try {
         configureMongoDns();
         await verifySrvRecord(mongoUri);
-      } catch (dnsErr: any) {
-        console.warn("DNS pre-check warning:", dnsErr?.message || dnsErr);
+      } catch {
+        // Handled cleanly by connectDB catch block below
       }
     }
 
@@ -202,22 +225,27 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
     lastError = err;
     const message = err.message || "Unknown MongoDB error";
 
-    // In development mode, attempt auto-fallback to local MongoDB if Atlas DNS resolution failed
+    // In development mode, only attempt local fallback if LOCAL_MONGODB_URI is specified or port 27017 is actively open
     if (process.env.NODE_ENV !== "production" && (message.includes("querySrv ENOTFOUND") || (err as any)?.code === "ENOTFOUND")) {
-      try {
-        const localUri = process.env.LOCAL_MONGODB_URI || "mongodb://127.0.0.1:27017/studyflow";
-        const localConnPromise = mongoose.connect(localUri, {
-          ...MONGO_OPTIONS,
-          serverSelectionTimeoutMS: 2000,
-          connectTimeoutMS: 2000,
-        });
-        const conn = await withTimeout(localConnPromise, 2000, "Local MongoDB unavailable");
-        console.log(`MongoDB connected via local fallback: ${conn.connection.host}`);
-        lastFailedAt = 0;
-        lastError = null;
-        return conn.connection;
-      } catch {
-        // Local MongoDB not available either, proceed with logging remote error
+      const explicitLocalUri = process.env.LOCAL_MONGODB_URI;
+      const isPortOpen = explicitLocalUri ? true : await isLocalMongoPortOpen("127.0.0.1", 27017);
+
+      if (isPortOpen) {
+        try {
+          const localUri = explicitLocalUri || "mongodb://127.0.0.1:27017/studyflow";
+          const localConnPromise = mongoose.connect(localUri, {
+            ...MONGO_OPTIONS,
+            serverSelectionTimeoutMS: 2000,
+            connectTimeoutMS: 2000,
+          });
+          const conn = await withTimeout(localConnPromise, 2000, "Local MongoDB unavailable");
+          console.log(`MongoDB connected via local fallback: ${conn.connection.host}`);
+          lastFailedAt = 0;
+          lastError = null;
+          return conn.connection;
+        } catch {
+          // Local fallback failed, proceed with logging remote Atlas error
+        }
       }
     }
 

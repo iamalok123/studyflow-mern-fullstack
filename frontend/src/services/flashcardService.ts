@@ -19,9 +19,16 @@ const getFlashcardsForDocument = async (documentId: string) => {
     }
 };
 
-const reviewFlashcard = async (cardId: string, cardIndex: number) => {
+export interface ReviewFlashcardPayload {
+  cardIndex?: number;
+  rating?: 'again' | 'hard' | 'good' | 'easy';
+  quality?: number;
+}
+
+const reviewFlashcard = async (cardId: string, payload?: number | ReviewFlashcardPayload) => {
     try {
-        const response = await axiosInstance.post(API_PATHS.FLASHCARDS.REVIEW_FLASHCARD(cardId), { cardIndex });
+        const body = typeof payload === 'number' ? { cardIndex: payload } : payload || {};
+        const response = await axiosInstance.post(API_PATHS.FLASHCARDS.REVIEW_FLASHCARD(cardId), body);
         return response.data;
     } catch (error: any) {
         throw error.response?.data || { message: 'Failed to review flashcard' };
