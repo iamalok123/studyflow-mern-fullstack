@@ -559,7 +559,7 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
       workspaceId: workspace._id,
       documentIds: readyDocIds,
       query: question,
-      limit: 6,
+      limit: 5,
     });
 
     const chunkIndices = relevantChunks.map((chunk) => chunk.chunkIndex);
