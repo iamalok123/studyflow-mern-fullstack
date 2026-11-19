@@ -1,5 +1,5 @@
 import axiosInstance from '../utils/axiosInstance';
-import { BASE_URL, API_PATHS } from '../utils/apiPaths';
+import { API_PATHS, buildApiUrl } from '../utils/apiPaths';
 import { ICitation } from '../types/models';
 
 const generateFlashcards = async (documentId: string, options?: any) => {
@@ -223,7 +223,7 @@ const streamChat = async (
   onCitations?: (citations: ICitation[]) => void,
   signal?: AbortSignal
 ) => {
-  const fullUrl = `${BASE_URL}${API_PATHS.AI.STREAM_CHAT}`;
+  const fullUrl = buildApiUrl(API_PATHS.AI.STREAM_CHAT);
   await streamFetch(fullUrl, { documentId, question }, onChunk, onCitations, signal);
 };
 
@@ -234,7 +234,7 @@ const streamWorkspaceChat = async (
   onCitations?: (citations: ICitation[]) => void,
   signal?: AbortSignal
 ) => {
-  const fullUrl = `${BASE_URL}${API_PATHS.AI.WORKSPACE_STREAM_CHAT}`;
+  const fullUrl = buildApiUrl(API_PATHS.AI.WORKSPACE_STREAM_CHAT);
   await streamFetch(fullUrl, { workspaceId, question }, onChunk, onCitations, signal);
 };
 

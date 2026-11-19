@@ -1,9 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { API_PATHS, BASE_URL } from "../src/utils/apiPaths";
+import { API_PATHS, BASE_URL, buildApiUrl } from "../src/utils/apiPaths";
 
 describe("Frontend API Paths Definition Tests", () => {
-  it("should have a valid BASE_URL", () => {
+  it("should have a valid BASE_URL without trailing slashes", () => {
     expect(BASE_URL).toBeDefined();
+    expect(BASE_URL.endsWith("/")).toBe(false);
+  });
+
+  it("should normalize URLs with buildApiUrl to prevent CORS preflight double-slash redirects", () => {
+    expect(buildApiUrl("/api/ai/stream-chat", "https://studyflow-mern-backend.vercel.app/"))
+      .toBe("https://studyflow-mern-backend.vercel.app/api/ai/stream-chat");
+    expect(buildApiUrl("/api/ai/stream-chat", "https://studyflow-mern-backend.vercel.app///"))
+      .toBe("https://studyflow-mern-backend.vercel.app/api/ai/stream-chat");
+    expect(buildApiUrl("api/ai/stream-chat", "https://studyflow-mern-backend.vercel.app"))
+      .toBe("https://studyflow-mern-backend.vercel.app/api/ai/stream-chat");
+    expect(buildApiUrl("/api/ai/stream-chat", ""))
+      .toBe("/api/ai/stream-chat");
   });
 
   it("should define valid AUTH endpoints", () => {

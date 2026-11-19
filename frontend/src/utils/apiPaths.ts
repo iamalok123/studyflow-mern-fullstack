@@ -1,4 +1,15 @@
-export const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:5000" : "");
+const rawBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:5000" : "");
+export const BASE_URL = (rawBaseUrl || "").trim().replace(/\/+$/, "");
+
+/**
+ * Builds a normalized, fully-qualified API URL preventing duplicate slashes (e.g. "//api/...")
+ * which cause Vercel 308 redirects that fail CORS preflight checks.
+ */
+export const buildApiUrl = (endpoint: string, base: string = BASE_URL): string => {
+    const cleanBase = (base || "").trim().replace(/\/+$/, "");
+    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    return cleanBase ? `${cleanBase}${cleanEndpoint}` : cleanEndpoint;
+};
 
 export const API_PATHS = {
     AUTH: {
