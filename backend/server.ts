@@ -34,7 +34,7 @@ const defaultAllowedOrigins = [
 ];
 const configuredOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(",")
-      .map((url) => url.trim())
+      .map((url) => url.trim().replace(/\/+$/, ""))
       .filter(Boolean)
   : [];
 export const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...configuredOrigins]));
@@ -45,10 +45,11 @@ export const STUDYFLOW_VERCEL_REGEX = /^https:\/\/(studyflow(-[a-z0-9_-]+)?)\.ve
 export const isOriginAllowed = (origin: string | undefined): boolean => {
   // Allow requests with no origin (e.g. mobile apps, curl, Postman, server-to-server)
   if (!origin) return true;
+  const cleanOrigin = origin.trim().replace(/\/+$/, "");
   // Exact match against explicitly allowed origins
-  if (allowedOrigins.includes(origin)) return true;
+  if (allowedOrigins.includes(cleanOrigin)) return true;
   // Scoped regex match for legitimate StudyFlow Vercel preview environments
-  return STUDYFLOW_VERCEL_REGEX.test(origin);
+  return STUDYFLOW_VERCEL_REGEX.test(cleanOrigin);
 };
 
 app.use(
@@ -60,7 +61,7 @@ app.use(
       callback(null, false);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cache-Control"],
     credentials: true,
   })
 );

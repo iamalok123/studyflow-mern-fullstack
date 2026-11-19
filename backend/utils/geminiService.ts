@@ -70,9 +70,15 @@ const stripJsonFence = (text: string): string => {
 
   const firstBrace = stripped.indexOf("{");
   const lastBrace = stripped.lastIndexOf("}");
+  const firstBracket = stripped.indexOf("[");
+  const lastBracket = stripped.lastIndexOf("]");
 
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    return stripped.slice(firstBrace, lastBrace + 1);
+  if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+    if (lastBrace > firstBrace) {
+      return stripped.slice(firstBrace, lastBrace + 1);
+    }
+  } else if (firstBracket !== -1 && lastBracket > firstBracket) {
+    return stripped.slice(firstBracket, lastBracket + 1);
   }
 
   return stripped;
