@@ -369,17 +369,21 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
+    if (typeof res.flushHeaders === "function") {
+      res.flushHeaders();
+    }
+
     let isClientDisconnected = false;
     req.on("close", () => {
       isClientDisconnected = true;
     });
 
-    // Vector retrieval for semantically relevant chunks
+    // Vector retrieval for semantically relevant chunks (optimal top-5 for high signal-to-noise ratio and fast TTFT)
     const relevantChunks = await searchSimilarChunks({
       userId: req.user._id,
       documentId: document._id,
       query: question,
-      limit: 10,
+      limit: 5,
     });
 
     const chunkIndices = relevantChunks.map((chunk) => chunk.chunkIndex);
@@ -398,8 +402,11 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
     }
     const citations = Array.from(citationMap.values()).sort((a, b) => a.pageNumber - b.pageNumber);
 
-    // Emit citations event before streaming response
+    // Emit citations event before streaming response and flush immediately
     res.write(`data: ${JSON.stringify({ type: "citations", citations })}\n\n`);
+    if (typeof (res as any).flush === "function") {
+      (res as any).flush();
+    }
 
     let chatHistory = await ChatHistory.findOne({
       userId: req.user._id,
@@ -428,6 +435,9 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
       onChunk: (chunkText: string) => {
         if (!isClientDisconnected && !res.writableEnded) {
           res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+          if (typeof (res as any).flush === "function") {
+            (res as any).flush();
+          }
         }
       },
     });
@@ -532,6 +542,10 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
 
+    if (typeof res.flushHeaders === "function") {
+      res.flushHeaders();
+    }
+
     let isClientDisconnected = false;
     req.on("close", () => {
       isClientDisconnected = true;
@@ -539,13 +553,13 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
 
     const readyDocIds = readyDocs.map((doc) => doc._id);
 
-    // 1. Vector search across all documents in this workspace
+    // 1. Vector search across all documents in this workspace (optimal top-6 for fast multi-doc TTFT)
     const relevantChunks = await searchSimilarChunks({
       userId: req.user._id,
       workspaceId: workspace._id,
       documentIds: readyDocIds,
       query: question,
-      limit: 12,
+      limit: 6,
     });
 
     const chunkIndices = relevantChunks.map((chunk) => chunk.chunkIndex);
@@ -568,6 +582,9 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
 
     // Emit citations event before streaming
     res.write(`data: ${JSON.stringify({ type: "citations", citations })}\n\n`);
+    if (typeof (res as any).flush === "function") {
+      (res as any).flush();
+    }
 
     let chatHistory = await ChatHistory.findOne({
       userId: req.user._id,
@@ -595,6 +612,9 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
       onChunk: (chunkText: string) => {
         if (!isClientDisconnected && !res.writableEnded) {
           res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+          if (typeof (res as any).flush === "function") {
+            (res as any).flush();
+          }
         }
       },
     });
