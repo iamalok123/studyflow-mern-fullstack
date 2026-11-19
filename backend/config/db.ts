@@ -196,12 +196,14 @@ const connectDB = async (): Promise<typeof mongoose.connection> => {
 
     checkMongoUriWarning(mongoUri);
 
-    if (mongoUri.startsWith("mongodb+srv://") && process.env.VERCEL !== "1") {
-      try {
-        configureMongoDns();
-        await verifySrvRecord(mongoUri);
-      } catch {
-        // Handled cleanly by connectDB catch block below
+    if (mongoUri.startsWith("mongodb+srv://")) {
+      configureMongoDns();
+      if (process.env.VERCEL !== "1") {
+        try {
+          await verifySrvRecord(mongoUri);
+        } catch {
+          // Handled cleanly by connectDB catch block below
+        }
       }
     }
 

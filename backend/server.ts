@@ -124,7 +124,13 @@ const ensureDbConnected = async (
 };
 
 // Health check
-app.get("/", (_req: Request, res: Response) => {
+app.get("/", async (_req: Request, res: Response) => {
+  try {
+    await connectDB();
+  } catch {
+    // Non-fatal: status reported via getDbStatus()
+  }
+
   res.json({
     success: true,
     message: "StudyFlow API is running",
@@ -133,7 +139,13 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 // Comprehensive API Health & Readiness endpoint (unblocked by DB status)
-app.get("/api/health", (_req: Request, res: Response) => {
+app.get("/api/health", async (_req: Request, res: Response) => {
+  try {
+    await connectDB();
+  } catch {
+    // Non-fatal: detailed error captured in getDbDetailedStatus()
+  }
+
   const dbInfo = getDbDetailedStatus();
   const isHealthy = dbInfo.status === "connected";
   res.status(isHealthy ? 200 : 503).json({
