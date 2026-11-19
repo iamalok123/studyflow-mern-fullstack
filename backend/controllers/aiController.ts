@@ -374,8 +374,10 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
     }
 
     let isClientDisconnected = false;
-    req.on("close", () => {
-      isClientDisconnected = true;
+    res.on("close", () => {
+      if (!res.writableEnded) {
+        isClientDisconnected = true;
+      }
     });
 
     // Vector retrieval for semantically relevant chunks (optimal top-5 for high signal-to-noise ratio and fast TTFT)
@@ -431,7 +433,7 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
         documentTitle: document.title,
       })),
       history: chatHistory.messages,
-      isAborted: () => isClientDisconnected || req.destroyed,
+      isAborted: () => isClientDisconnected || res.writableEnded,
       onChunk: (chunkText: string) => {
         if (!isClientDisconnected && !res.writableEnded) {
           res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
@@ -469,15 +471,21 @@ export const streamChat = async (req: Request, res: Response, next: NextFunction
 
     if (!isClientDisconnected && !res.writableEnded) {
       res.write(`data: [DONE]\n\n`);
+      if (typeof (res as any).flush === "function") {
+        (res as any).flush();
+      }
       res.end();
     }
   } catch (error: any) {
-    if (req.destroyed) return;
+    if (res.writableEnded) return;
     console.error("streamChat error:", error);
     if (!res.headersSent) {
       next(error);
-    } else if (!res.writableEnded) {
+    } else {
       res.write(`data: ${JSON.stringify({ error: error.message || "Streaming failed" })}\n\n`);
+      if (typeof (res as any).flush === "function") {
+        (res as any).flush();
+      }
       res.end();
     }
   }
@@ -547,8 +555,10 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
     }
 
     let isClientDisconnected = false;
-    req.on("close", () => {
-      isClientDisconnected = true;
+    res.on("close", () => {
+      if (!res.writableEnded) {
+        isClientDisconnected = true;
+      }
     });
 
     const readyDocIds = readyDocs.map((doc) => doc._id);
@@ -608,7 +618,7 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
         documentTitle: c.documentTitle,
       })),
       history: chatHistory.messages,
-      isAborted: () => isClientDisconnected || req.destroyed,
+      isAborted: () => isClientDisconnected || res.writableEnded,
       onChunk: (chunkText: string) => {
         if (!isClientDisconnected && !res.writableEnded) {
           res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
@@ -646,15 +656,21 @@ export const workspaceStreamChat = async (req: Request, res: Response, next: Nex
 
     if (!isClientDisconnected && !res.writableEnded) {
       res.write(`data: [DONE]\n\n`);
+      if (typeof (res as any).flush === "function") {
+        (res as any).flush();
+      }
       res.end();
     }
   } catch (error: any) {
-    if (req.destroyed) return;
+    if (res.writableEnded) return;
     console.error("workspaceStreamChat error:", error);
     if (!res.headersSent) {
       next(error);
-    } else if (!res.writableEnded) {
+    } else {
       res.write(`data: ${JSON.stringify({ error: error.message || "Streaming failed" })}\n\n`);
+      if (typeof (res as any).flush === "function") {
+        (res as any).flush();
+      }
       res.end();
     }
   }

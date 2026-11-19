@@ -142,6 +142,19 @@ const ChatInterface: React.FC = () => {
     } finally {
       setLoading(false);
       abortControllerRef.current = null;
+      if (!controller.signal.aborted) {
+        setHistory(prev => {
+          const updated = [...prev];
+          const lastIndex = updated.length - 1;
+          if (lastIndex >= 0 && updated[lastIndex].role === 'assistant' && !updated[lastIndex].content.trim()) {
+            updated[lastIndex] = {
+              ...updated[lastIndex],
+              content: '⚠️ No response was received from the server. Please try asking again.',
+            };
+          }
+          return updated;
+        });
+      }
     }
   };
 
@@ -174,11 +187,15 @@ const ChatInterface: React.FC = () => {
           <div className={isUser ? '**:text-white! [&_a]:text-white! [&_code]:bg-white/10! [&_code]:text-white!' : ''}>
             {msg.content ? (
               <MarkdownRenderer content={msg.content} />
-            ) : (
+            ) : loading && index === history.length - 1 ? (
               <div className="flex items-center gap-1.5 py-1 text-xs text-slate-400 font-medium">
                 <Spinner inline size="sm" />
                 <span>Generating real-time response...</span>
               </div>
+            ) : (
+              <p className="text-xs text-amber-600 font-medium">
+                ⚠️ No response was received from the server. Please try asking again.
+              </p>
             )}
           </div>
 
