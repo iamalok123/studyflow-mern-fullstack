@@ -20,9 +20,12 @@ describe("Security & Auth Middlewares Unit Tests", () => {
       securityHeaders(mockReq, mockRes, mockNext);
 
       expect(mockRes.setHeader).toHaveBeenCalledWith("X-Content-Type-Options", "nosniff");
-      expect(mockRes.setHeader).toHaveBeenCalledWith("X-Frame-Options", "SAMEORIGIN");
-      expect(mockRes.setHeader).toHaveBeenCalledWith("Referrer-Policy", "no-referrer-when-downgrade");
-      expect(mockRes.setHeader).toHaveBeenCalledWith("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+      expect(mockRes.setHeader).toHaveBeenCalledWith("X-Frame-Options", "DENY");
+      expect(mockRes.setHeader).toHaveBeenCalledWith("Referrer-Policy", "strict-origin-when-cross-origin");
+      expect(mockRes.setHeader).toHaveBeenCalledWith("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+      expect(mockRes.setHeader).toHaveBeenCalledWith("X-Permitted-Cross-Domain-Policies", "none");
+      expect(mockRes.setHeader).toHaveBeenCalledWith("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+      expect(mockRes.setHeader).toHaveBeenCalledWith("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none';");
       expect(mockNext).toHaveBeenCalled();
     });
   });

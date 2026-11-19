@@ -28,7 +28,9 @@ const protect = async (req: Request, res: Response, next: NextFunction): Promise
         throw new Error("JWT_SECRET is not configured.");
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayloadWithId;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+        algorithms: ["HS256"],
+      }) as JwtPayloadWithId;
       const user = await User.findById(decoded.id).select("-password");
 
       if (!user) {

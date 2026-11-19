@@ -359,13 +359,21 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
       });
     }
 
-    const { sub: googleId, email, name, picture } = payload;
+    const { sub: googleId, email, name, picture, email_verified } = payload;
 
     if (!email) {
       return res.status(400).json({
         success: false,
         error: "Google account does not have an email.",
         statusCode: 400,
+      });
+    }
+
+    if (!email_verified) {
+      return res.status(401).json({
+        success: false,
+        error: "Google account email is not verified. Please verify your email with Google first.",
+        statusCode: 401,
       });
     }
 

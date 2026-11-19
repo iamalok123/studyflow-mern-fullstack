@@ -31,12 +31,13 @@ if (cleanupTimer.unref) {
 }
 
 const getClientKey = (req: Request): string => {
-  const forwardedFor = req.headers["x-forwarded-for"];
-  const ip = Array.isArray(forwardedFor)
-    ? forwardedFor[0]
-    : forwardedFor?.split(",")[0]?.trim();
+  // If user is authenticated, key primarily by user ID so rate limits bind to account
+  if ((req as any).user?._id) {
+    return `user:${(req as any).user._id}`;
+  }
 
-  return ip || req.ip || req.socket?.remoteAddress || "unknown";
+  // Fallback to Express trusted IP (respects app.set("trust proxy", 1))
+  return req.ip || req.socket?.remoteAddress || "unknown";
 };
 
 export const createRateLimiter = ({

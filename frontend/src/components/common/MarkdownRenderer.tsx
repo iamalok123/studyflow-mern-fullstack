@@ -173,14 +173,29 @@ const MarkdownRenderer = ({ content }) => {
             <h4 className="text-xs sm:text-sm font-semibold mt-2.5 mb-1 text-slate-900" {...withoutNode(props)} />
           ),
           p: (props) => <p className="mb-2 leading-relaxed text-slate-900" {...withoutNode(props)} />,
-          a: (props) => (
-            <a
-              className="text-emerald-700 hover:text-emerald-800 hover:underline font-semibold break-all"
-              target="_blank"
-              rel="noopener noreferrer"
-              {...withoutNode(props)}
-            />
-          ),
+          a: ({ href, children, ...props }) => {
+            const rawHref = typeof href === 'string' ? href.trim() : '';
+            const isSafeScheme =
+              rawHref.startsWith('http://') ||
+              rawHref.startsWith('https://') ||
+              rawHref.startsWith('mailto:') ||
+              rawHref.startsWith('/') ||
+              rawHref.startsWith('#');
+
+            const safeHref = isSafeScheme ? rawHref : '#';
+
+            return (
+              <a
+                href={safeHref}
+                className="text-emerald-700 hover:text-emerald-800 hover:underline font-semibold break-all"
+                target={safeHref.startsWith('#') || safeHref.startsWith('/') ? undefined : '_blank'}
+                rel="noopener noreferrer"
+                {...withoutNode(props)}
+              >
+                {children}
+              </a>
+            );
+          },
           ul: (props) => (
             <ul className="list-disc list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-slate-900" {...withoutNode(props)} />
           ),

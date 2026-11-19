@@ -9,6 +9,7 @@ import { extractTextFromPDF } from "../utils/pdfParser.js";
 import { recursiveChunkText } from "../utils/textChunker.js";
 import { generateDocumentEmbeddings } from "../utils/embeddingService.js";
 import getCloudinary from "../config/cloudinary.js";
+import { isValidCloudinaryUrl, isValidCloudinaryPublicId } from "../utils/securityValidators.js";
 import mongoose, { Types } from "mongoose";
 
 const invalidateWorkspaceAiArtifacts = async (workspaceId: Types.ObjectId | string, userId: Types.ObjectId | string): Promise<void> => {
@@ -91,6 +92,23 @@ export const uploadDocument = async ( req: Request, res: Response, next: NextFun
       });
     }
 
+    // SSRF & Asset Security Validation: Ensure URL and Public ID are genuine Cloudinary assets
+    if (!isValidCloudinaryUrl(cloudinaryUrl)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid or untrusted document URL. Must be a secure Cloudinary asset.",
+        statusCode: 400,
+      });
+    }
+
+    if (!isValidCloudinaryPublicId(cloudinaryPublicId)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid document public ID format.",
+        statusCode: 400,
+      });
+    }
+
     let extractedText = clientExtractedText || "";
     let status: "Processing" | "Ready" | "Failed" | "no_text" = "Ready";
     let message = "Document uploaded and indexed into vector database successfully.";
@@ -98,10 +116,44 @@ export const uploadDocument = async ( req: Request, res: Response, next: NextFun
     // Tier 2 Fallback: If client says it might be a scanned PDF and requests server extraction
     if (attemptServerExtraction) {
       try {
-        const response = await fetch(cloudinaryUrl);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s network timeout
+
+        const response = await fetch(cloudinaryUrl, {
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
         if (response.ok) {
-          const arrayBuffer = await response.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
+          const contentLength = response.headers.get("content-length");
+          const MAX_PDF_BYTES = 15 * 1024 * 1024; // 15MB maximum
+          if (contentLength && parseInt(contentLength, 10) > MAX_PDF_BYTES) {
+            throw new Error("File exceeds 15MB limit for server-side processing");
+          }
+
+          let buffer: Buffer;
+          if (response.body) {
+            const reader = response.body.getReader();
+            const chunks: Uint8Array[] = [];
+            let totalBytes = 0;
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              if (value) {
+                totalBytes += value.length;
+                if (totalBytes > MAX_PDF_BYTES) {
+                  await reader.cancel();
+                  throw new Error("File stream exceeded 15MB limit");
+                }
+                chunks.push(value);
+              }
+            }
+            buffer = Buffer.concat(chunks);
+          } else {
+            const arrayBuffer = await response.arrayBuffer();
+            buffer = Buffer.from(arrayBuffer);
+          }
 
           const { text } = await extractTextFromPDF(buffer);
           if (text && text.trim().length > 100) {
@@ -315,8 +367,8 @@ export const deleteDocument = async ( req: Request, res: Response, next: NextFun
       });
     }
 
-    // Delete PDF from Cloudinary
-    if (document.cloudinaryPublicId) {
+    // Delete PDF from Cloudinary with safe public ID check
+    if (document.cloudinaryPublicId && isValidCloudinaryPublicId(document.cloudinaryPublicId)) {
       try {
         const result = await getCloudinary().uploader.destroy(document.cloudinaryPublicId, {
           resource_type: "image",

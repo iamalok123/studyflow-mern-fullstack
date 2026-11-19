@@ -16,10 +16,17 @@ interface PdfViewerProps {
 }
 
 const PdfViewer: React.FC<PdfViewerProps> = ({ url }) => {
+  const isSafePdfUrl = Boolean(
+    url && (url.startsWith('https://') || url.startsWith('/') || url.startsWith('blob:'))
+  );
+  const safeUrl = isSafePdfUrl ? url : null;
+
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    url && !isSafePdfUrl ? 'Invalid or untrusted PDF URL scheme.' : null
+  );
   
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
@@ -81,14 +88,16 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ url }) => {
         <p className="text-xs mt-4 text-slate-500">
           The document might be too large, corrupted, or unavailable due to CORS policies.
         </p>
-        <a 
-          href={url} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="mt-6 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-        >
-          View PDF Externally
-        </a>
+        {safeUrl && (
+          <a 
+            href={safeUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="mt-6 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+          >
+            View PDF Externally
+          </a>
+        )}
       </div>
     );
   }
@@ -151,14 +160,16 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ url }) => {
         
         {/* External Link */}
         <div>
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:underline px-2 py-1"
-          >
-            Open Original
-          </a>
+          {safeUrl && (
+            <a
+              href={safeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:underline px-2 py-1"
+            >
+              Open Original
+            </a>
+          )}
         </div>
       </div>
 
@@ -168,7 +179,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ url }) => {
         className="flex-1 overflow-auto bg-slate-100 p-4 custom-scrollbar relative flex justify-center items-start"
       >
         <Document
-          file={url}
+          file={safeUrl}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
           loading={

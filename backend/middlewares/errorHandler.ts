@@ -54,9 +54,15 @@ const errorHandler: ErrorRequestHandler = (err: CustomError, _req: Request, res:
     stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
   });
 
+  // Prevent leaking internal system/database details in production
+  const safeMessage =
+    process.env.NODE_ENV === "production" && statusCode >= 500
+      ? "An unexpected server error occurred. Please try again later."
+      : message;
+
   res.status(statusCode).json({
     success: false,
-    error: message,
+    error: safeMessage,
     statusCode,
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
